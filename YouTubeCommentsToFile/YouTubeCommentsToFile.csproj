@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <ApplicationIcon>YouTubeCommentsToFile.ico</ApplicationIcon>
+    <Title>YouTube Comments To File</Title>
+    <Version>1.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Runtime)' == 'win-x64'">
+    <DefineConstants>$(DefineConstants);WINDOWS_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Runtime)' == 'linux-x64'">
+    <DefineConstants>$(DefineConstants);LINUX_BUILD</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="YouTubeCommentsToFile.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YouTubeCommentsToFile.Library\YouTubeCommentsToFile.Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="System.Diagnostics" />
+    <Using Include="System.Reflection" />
+    <Using Include="System.Text" />
+    <Using Include="System.Web" />
+  </ItemGroup>
+
+</Project>

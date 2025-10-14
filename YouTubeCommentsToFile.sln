@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouTubeCommentsToFile", "YouTubeCommentsToFile\YouTubeCommentsToFile.csproj", "{1D581444-6CA6-4880-ADFF-4C9C1D2A872E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouTubeCommentsToFile.Library", "YouTubeCommentsToFile.Library\YouTubeCommentsToFile.Library.csproj", "{B84A8EFC-882F-4D42-B724-916ECE3950F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Solution Items\DownloadComments.cmd = Solution Items\DownloadComments.cmd
+		Publish.cmd = Publish.cmd
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Icons", "Icons", "{A5BD540D-74D3-4542-8CA2-4A78D4A96CF8}"
+	ProjectSection(SolutionItems) = preProject
+		Solution Items\Icons\Icon Link.txt = Solution Items\Icons\Icon Link.txt
+		Solution Items\Icons\YouTubeCommentsToFile.ico = Solution Items\Icons\YouTubeCommentsToFile.ico
+		Solution Items\Icons\YouTubeCommentsToFile.png = Solution Items\Icons\YouTubeCommentsToFile.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Images", "Images", "{3B73A979-5EFC-49DA-8DAD-783D9B570989}"
+	ProjectSection(SolutionItems) = preProject
+		Solution Items\Images\YouTubeCommentsToFile.gif = Solution Items\Images\YouTubeCommentsToFile.gif
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1D581444-6CA6-4880-ADFF-4C9C1D2A872E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D581444-6CA6-4880-ADFF-4C9C1D2A872E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D581444-6CA6-4880-ADFF-4C9C1D2A872E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D581444-6CA6-4880-ADFF-4C9C1D2A872E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B84A8EFC-882F-4D42-B724-916ECE3950F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B84A8EFC-882F-4D42-B724-916ECE3950F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B84A8EFC-882F-4D42-B724-916ECE3950F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B84A8EFC-882F-4D42-B724-916ECE3950F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A5BD540D-74D3-4542-8CA2-4A78D4A96CF8} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{3B73A979-5EFC-49DA-8DAD-783D9B570989} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCD254ED-5F2F-41A0-876B-34A5B0F7B548}
+	EndGlobalSection
+EndGlobal
