@@ -622,7 +622,7 @@ public partial class CommentsWriter(Settings settings)
             ytDlpCommandLine += $" --encoding {settings.EncodingCodePage.Value}";
 
         if (settings.UpdateYtDlp)
-            ytDlpCommandLine += " -U";
+            ytDlpCommandLine += " --update-to nightly";
 
         if (string.IsNullOrEmpty(settings.YtDlpOptions) == false)
             ytDlpCommandLine += $" {settings.YtDlpOptions}";
@@ -794,7 +794,7 @@ public partial class CommentsWriter(Settings settings)
     {
         try
         {
-            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, settings.EncodingCodePage);
+            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, settings.EncodingCodePage, settings.UpdateYtDlp);
 
             ct.ThrowIfCancellationRequested();
 
@@ -831,7 +831,7 @@ public partial class CommentsWriter(Settings settings)
     }
 
 #if DEBUG
-    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null)
+    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null, bool updateYtDlp = false)
     {
         if (string.IsNullOrEmpty(ytDlp))
         {
@@ -853,7 +853,7 @@ public partial class CommentsWriter(Settings settings)
             encoding = Encoding.GetEncoding(encodingCodePage.Value);
         }
 
-        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, encodingCodePage);
+        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, encodingCodePage, updateYtDlp);
 
         string outputText = null;
         int exitCode = -1;
@@ -871,7 +871,7 @@ public partial class CommentsWriter(Settings settings)
     }
 #endif
 
-    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int? encodingCodePage)
+    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int? encodingCodePage, bool updateYtDlp)
     {
         var fields = typeof(VideoInfo)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
@@ -880,7 +880,17 @@ public partial class CommentsWriter(Settings settings)
         if (hideVideoDescription)
             fields = fields.Where(field => field != "description");
 
-        return $@"--print ""{string.Join(Environment.NewLine, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json{(encodingCodePage != null ? $" --encoding {encodingCodePage.Value}" : null)} ""{url}""";
+        string ytDlpCommandLine = $@"--print ""{string.Join(Environment.NewLine, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
+
+        if (encodingCodePage != null)
+            ytDlpCommandLine += $" --encoding {encodingCodePage.Value}";
+
+        if (updateYtDlp)
+            ytDlpCommandLine += " --update-to nightly";
+
+        ytDlpCommandLine += $@" ""{url}""";
+
+        return ytDlpCommandLine;
     }
 
     private static VideoInfo GetVideoInfoFromOutputText(string outputText, int exitCode)

@@ -255,7 +255,7 @@ Download the comments JSON file and don't write text and HTML files. This option
 --only-download-comments  Whether to download comments JSON file and stop.
 ```
 
-Update yt-dlp before downloading comments. YouTube and yt-dlp developers are engaged in a cat and mouse chase, YouTube being the mouse and yt-dlp being the cat. YouTube is making frequent changes to the site in order to curve, limit and stop scraping tools such as yt-dlp. The developers of yt-dlp are quick to respond with changes to the program, but as a result of that, the users can no longer update yt-dlp once in a-very-long-time. If yt-dlp is not frequently updated (daily, weekly) to the newest version, it's more than likely it will stop working properly. Hence the update option. This option automates the updating process and takes the burden of remembering to update the program off the user's shoulders.
+Update yt-dlp before downloading comments. Updates to `nightly` release channel. YouTube and yt-dlp developers are engaged in a cat and mouse chase, YouTube being the mouse and yt-dlp being the cat. YouTube is making frequent changes to the site in order to curve, limit and stop scraping tools such as yt-dlp. The developers of yt-dlp are quick to respond with changes to the program, but as a result of that, the users can no longer update yt-dlp once in a-very-long-time. If yt-dlp is not frequently updated (daily, weekly) to the newest version, it's more than likely it will stop working properly. Hence the update option. This option automates the updating process and takes the burden of remembering to update the program off the user's shoulders.
 
 ```console
 --update-yt-dlp           Whether to update yt-dlp to the latest version.

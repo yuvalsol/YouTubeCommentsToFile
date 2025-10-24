@@ -71,7 +71,7 @@ internal interface IDownloadOptions
     [Option("trim-title", HelpText = "Limit the length of the video title in the filename to the specified number of characters. Doesn't limit the length of the video uploader.")]
     uint? TrimTitle { get; set; }
 
-    [Option("update-yt-dlp", HelpText = "Whether to update yt-dlp to the latest version.")]
+    [Option("update-yt-dlp", HelpText = "Whether to update yt-dlp to the latest version. Updates to 'nightly' release channel.")]
     bool UpdateYtDlp { get; set; }
 
     [Option("windows-filenames", HelpText = "Force filenames to be Windows-compatible by replacing Windows reserved characters with lookalike unicode characters.")]

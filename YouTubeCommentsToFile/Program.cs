@@ -460,9 +460,9 @@ static void Run<T>(T options)
     Console.WriteLine();
 }
 
-static void GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null)
+static void GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null, bool updateYtDlp = false)
 {
-    var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, encodingCodePage);
+    var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, encodingCodePage, updateYtDlp);
     if (videoInfo != null)
         Console.WriteLine(videoInfo);
     else
