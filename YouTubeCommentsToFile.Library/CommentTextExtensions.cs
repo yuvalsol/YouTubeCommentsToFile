@@ -561,10 +561,10 @@ internal static partial class CommentTextExtensions
     }
 
     [GeneratedRegex(@"[❤❣♾❄☕✅⚠✊☮✝⚖]")]
-    private static partial Regex EmojiPlusSpace();
+    private static partial Regex RegexEmojiPlusSpace();
 
     [GeneratedRegex(@"[\u20E3]")]
-    private static partial Regex EmojiMinusSpace();
+    private static partial Regex RegexEmojiMinusSpace();
 
     [GeneratedRegex("\uD83C[\uDDE6-\uDDFF]")]
     private static partial Regex RegexRegionalIndicatorSymbol();
@@ -572,8 +572,8 @@ internal static partial class CommentTextExtensions
     public static int GetTextLengthForTextFile(this string text)
     {
         return text.Length
-            + EmojiPlusSpace().Count(text)
-            - EmojiMinusSpace().Count(text)
+            + RegexEmojiPlusSpace().Count(text)
+            - RegexEmojiMinusSpace().Count(text)
             - RegexRegionalIndicatorSymbol().Count(text);
     }
 
