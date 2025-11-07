@@ -1337,6 +1337,10 @@ public partial class CommentsWriter(Settings settings)
                     else
                         writer.WriteLine($"<a href='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}'>{HttpUtility.HtmlEncode(videoInfo.UploaderID)}</a>");
                 }
+
+                string uploadDate = GetUploadDate();
+                if (string.IsNullOrEmpty(uploadDate) == false)
+                    writer.WriteLine(HttpUtility.HtmlEncode($"Uploaded at {uploadDate}"));
             }
             else
             {
@@ -1350,6 +1354,10 @@ public partial class CommentsWriter(Settings settings)
 
                 if (string.IsNullOrEmpty(settings.URL) == false)
                     writer.WriteLine(settings.URL);
+
+                string uploadDate = GetUploadDate();
+                if (string.IsNullOrEmpty(uploadDate) == false)
+                    writer.WriteLine($"Uploaded at {uploadDate}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
@@ -1457,6 +1465,31 @@ public partial class CommentsWriter(Settings settings)
         {
             foreach (var widthCh in GetHighlightWidthCh(reply, indentSize, textLineLength, indentCount))
                 yield return widthCh;
+        }
+    }
+
+    private string GetUploadDate()
+    {
+        if (string.IsNullOrEmpty(videoInfo.UploadDate))
+            return null;
+
+        try
+        {
+            if (int.TryParse(videoInfo.UploadDate[..4], out int year) == false)
+                return null;
+
+            if (int.TryParse(videoInfo.UploadDate[4..6], out int month) == false)
+                return null;
+
+            if (int.TryParse(videoInfo.UploadDate[6..], out int day) == false)
+                return null;
+
+            var uploadDate = new DateTime(year, month, day);
+            return uploadDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return null;
         }
     }
 
