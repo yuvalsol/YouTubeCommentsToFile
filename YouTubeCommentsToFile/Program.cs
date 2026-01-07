@@ -395,6 +395,8 @@ static ArgumentException ReplaceOptionLongName(ArgumentException ex)
     return new ArgumentException(message);
 }
 
+#pragma warning disable CS8321 // Local function is declared but never used
+
 #if DEBUG
 static void Debug()
 {
@@ -469,6 +471,8 @@ static void GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage 
         WriteErrorLine("Failed to get video info.");
 }
 #endif
+
+#pragma warning restore CS8321 // Local function is declared but never used
 
 static void WriteErrorLine(string line = null)
 {
