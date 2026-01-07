@@ -2,7 +2,7 @@
 
 # YouTube Comments To File
 
-YouTube Comments To File converts YouTube comments JSON file to a text file or an HTML file. The comments JSON file must be produced by [yt-dlp](https://github.com/yt-dlp/yt-dlp "yt-dlp"). The program doesn't retrieve the comments by itself from YouTube. The output file is aim at readability, showing the comments and replies in a tree-like manner. No Excel, no CSV, and no tabular format of fields and values.
+YouTube Comments To File converts YouTube comments JSON file to a text file or an HTML file. The comments JSON file must be produced by [yt-dlp](https://github.com/yt-dlp/yt-dlp "yt-dlp"). The program doesn't retrieve the comments by itself from YouTube. The output file is aim at readability, showing the comments and replies in a tree-like structure.
 
 The program can also utilize an existing copy of yt-dlp to download and convert comments from YouTube. This mode nullifies the need to execute two scripts, one for yt-dlp, to get the comments JSON file, and another to convert the JSON file to text file or HTML file.
 
@@ -12,20 +12,19 @@ YouTube Comments To File requires .NET 8 Runtime.
 
 ## Comment Threading
 
-Comment threading is the ability to reply to a reply. A good example is Reddit, where you can have a whole conversation between people in the comments section. On YouTube, you can't do that. You can only reply to a top-level comment. Because of this limitation, there is a convention on YouTube that if you want to reply to someone else's reply, you write the user name, that you want to reply to, **first** in your reply.
+Comment threading is the ability to reply to a reply. A good example is Reddit, where you can have a whole conversation between people in the comments section. YouTube supports threaded comments up to three levels of replies, meaning level 1 top-level comment, level 2 reply to top-level comment, and level 3 reply to reply.
 
-YouTube Comments To File takes advantage of this convention to build comment threading. This is enabled by default. You can disable comment threading with option [`--disable-threading`](#shared-options "Shared Options"). If disabled, the result will mimic what you see on YouTube, top-level comment and a running list of replies underneath it.
+There is a convention on YouTube that if you want to reply to someone else's reply, you write their user name **first** in your reply. This program takes advantage of this convention to build threaded comments for all comments, regardless of YouTube limitation of three levels of replies. This is enabled by default. You can disable comment threading with option [`--disable-threading`](#shared-options "Shared Options"). If disabled, shows the comments the way they appear on YouTube.
 
-As I write this, mid-to-late 2025, YouTube is experimenting with comment threading. It is available for premium subscribers that sign up for it. I don't know if yt-dlp takes it into account but if the structure of the comments JSON file will remain the same (`id` and `parent` JSON properties), YouTube Comments To File should still work in the future.
+## Tutorial
 
-## How-To
+This is a little tutorial how to "Install" this program and use a script to download comments.
 
-This is a very bare-bone tutorial how to use YouTubeCommentsToFile. This will download comments to HTML file and the comments are sorted by top comments first.
-
-1. Download YouTubeCommentsToFile (from Releases).
-2. [Download yt-dlp](https://github.com/yt-dlp/yt-dlp#installation "Download yt-dlp").
-3. Place YouTubeCommentsToFile and yt-dlp in the same directory. Make sure that directory **doesn't** need administrative rights (For example, on Windows, **not** under `C:\Program Files`) because you want to update yt-dlp with no prompts.
-4. Create file [`DownloadComments.cmd`](./Solution%20Items/DownloadComments.cmd "DownloadComments.cmd") in the same directory as YouTubeCommentsToFile.
+1. Download YouTubeCommentsToFile from [Releases](https://github.com/yuvalsol/YouTubeCommentsToFile/releases "YouTubeCommentsToFile Releases").
+2. [Download yt-dlp](https://github.com/yt-dlp/yt-dlp#installation "yt-dlp Installation").
+3. [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download deno-x86_64-pc-windows-msvc.zip from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
+4. Place YouTubeCommentsToFile, yt-dlp and Deno in the same directory. Make sure that directory **doesn't** need administrative rights (For example, on Windows, **not** under `C:\Program Files`) because you want to update yt-dlp with no prompts.
+5. Create this script file [`DownloadComments.cmd`](./Solution%20Items/DownloadComments.cmd "DownloadComments.cmd") in the same directory as YouTubeCommentsToFile. This script downloads comments to HTML file and the comments are sorted by top comments first.
 
 ```batch
 @echo off
@@ -45,14 +44,14 @@ exit /b %ERRORLEVEL%
 - `--delete-json-file` Delete the comments JSON file after successfully writing to the HTML output file.
 - `--update-yt-dlp` Update yt-dlp when using it.
 
-5. Open Command Line/Terminal/shell in the same directory where YouTubeCommentsToFile is at or change the path to it.
-6. Download comments. Don't forget to change the URL below.
+6. Open Command Line/Terminal/shell in the same directory where YouTubeCommentsToFile is at or change the path to it.
+7. Download comments with this command. Don't forget to change the URL below.
 
 ```console
 DownloadComments "https://www.youtube.com/watch?v=dtCwxFTMMDg"
 ```
 
-7. Repeat steps 5 and 6.
+8. Repeat steps 6 and 7.
 
 ## Convert
 
@@ -239,11 +238,11 @@ These options determine how the file name is processed.
 ```console
 --filename-sanitization   Sanitize Windows reserved characters by removing them or
                           by replacing with comparable character or by replacing
-                          with underscore. Doesn't replace with unicode characters.
+                          with underscore. Doesn't replace with Unicode characters.
 --restrict-filenames      Restrict filenames to only ASCII characters,
                           and avoid '&' and spaces in filenames.
 --windows-filenames       Force filenames to be Windows-compatible by replacing
-                          Windows reserved characters with lookalike unicode characters.
+                          Windows reserved characters with lookalike Unicode characters.
 --trim-title              Limit the length of the video title in the filename
                           to the specified number of characters. Doesn't limit
                           the length of the video uploader.
@@ -343,7 +342,7 @@ When both `--to-html` and `--to-html-and-text` are disabled, writes only to text
                                  and to text file.
 ```
 
-Disable [comment threading](#comment-threading "Comment Threading"). Shows running list of replies under top-level comments.
+Disable [comment threading](#comment-threading "Comment Threading"). Shows the comments the way they appear on YouTube.
 
 ```console
 --disable-threading              Whether to disable comment threading.

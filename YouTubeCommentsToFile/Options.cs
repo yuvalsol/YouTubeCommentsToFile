@@ -59,7 +59,7 @@ internal interface IDownloadOptions
     [OptionPrecedence(12, 2)]
     bool SortTop { get; set; }
 
-    [Option("filename-sanitization", HelpText = "Sanitize Windows reserved characters by removing them or by replacing with comparable character or by replacing with underscore. Doesn't replace with unicode characters.")]
+    [Option("filename-sanitization", HelpText = "Sanitize Windows reserved characters by removing them or by replacing with comparable character or by replacing with underscore. Doesn't replace with Unicode characters.")]
     bool FilenameSanitization { get; set; }
 
     [Option("only-download-comments", HelpText = "Whether to download comments JSON file and stop. Don't write text and HTML files.")]
@@ -74,7 +74,7 @@ internal interface IDownloadOptions
     [Option("update-yt-dlp", HelpText = "Whether to update yt-dlp to the latest version. Updates to 'nightly' release channel.")]
     bool UpdateYtDlp { get; set; }
 
-    [Option("windows-filenames", HelpText = "Force filenames to be Windows-compatible by replacing Windows reserved characters with lookalike unicode characters.")]
+    [Option("windows-filenames", HelpText = "Force filenames to be Windows-compatible by replacing Windows reserved characters with lookalike Unicode characters.")]
     bool WindowsFilenames { get; set; }
 
     [Option("yt-dlp-options", HelpText = "Options added to yt-dlp command line.")]

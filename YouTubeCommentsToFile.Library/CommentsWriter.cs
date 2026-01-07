@@ -995,13 +995,12 @@ public partial class CommentsWriter(Settings settings)
 
     private void AddRepliesToTopLevelComments()
     {
-        var topLevelComments = comments.Where(c => c.IsTopLevelComment);
-        var replies = comments.Select((r, i) => (r, i)).Where(x => x.r.IsReply);
+        var allComments = comments.Select((comment, index) => (comment, index));
 
-        var items = topLevelComments.Join(
-            replies,
-            c => c.Id,
-            x => x.r.Parent,
+        var items = allComments.Join(
+            allComments,
+            p => p.comment.Id,
+            r => r.comment.Parent,
             (parent, reply) => (parent, reply)
         );
 
@@ -1009,8 +1008,8 @@ public partial class CommentsWriter(Settings settings)
 
         foreach (var (parent, reply) in items)
         {
-            parent.Add(reply.r);
-            indexes.Add(reply.i);
+            parent.comment.Add(reply.comment);
+            indexes.Add(reply.index);
         }
 
         if (indexes.HasAny())
@@ -1049,11 +1048,15 @@ public partial class CommentsWriter(Settings settings)
         if (settings.DisableThreading)
             return;
 
-        if (comments.IsNullOrEmpty())
-            return;
+        var currentComments = comments.Where(c => c.Count > 0);
 
-        foreach (var comment in comments.Where(c => c.Count > 0))
-            ThreadReplies(comment);
+        while (currentComments.HasAny())
+        {
+            foreach (var comment in currentComments)
+                ThreadReplies(comment);
+
+            currentComments = currentComments.SelectMany(c => c.Where(r => r.Count > 0));
+        }
     }
 
     private static void ThreadReplies(Comment comment)
