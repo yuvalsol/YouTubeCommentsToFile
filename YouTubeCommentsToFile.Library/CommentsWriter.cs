@@ -95,7 +95,8 @@ public partial class CommentsWriter(Settings settings)
 
     #region yt-dlp
 
-    private const int TIMEOUT = 10 * 60 * 1000;
+    private const int COMMENTS_TIMEOUT = 10 * 60 * 1000;
+    private const int VIDEO_INFO_TIMEOUT = 1 * 60 * 1000;
 
     private static Process GetYtDlpProcess(string ytDlp, string ytDlpCommandLine, Encoding encoding = null)
     {
@@ -124,8 +125,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 using var process = GetYtDlpProcess("yt-dlp", "--version");
                 process.Start();
-                process.WaitForExit(TIMEOUT);
-
+                process.WaitForExit(VIDEO_INFO_TIMEOUT);
                 version = process.StandardOutput.ReadToEnd().Trim();
                 exitCode = process.ExitCode;
             }
@@ -322,7 +322,7 @@ public partial class CommentsWriter(Settings settings)
 
             try
             {
-                if (taskVideoInfo.Wait(TIMEOUT, ct) && taskVideoInfo.IsCanceled == false)
+                if (taskVideoInfo.Wait(VIDEO_INFO_TIMEOUT, ct) && taskVideoInfo.IsCanceled == false)
                     videoInfo = taskVideoInfo.Result;
             }
             catch (Exception ex)
@@ -655,7 +655,7 @@ public partial class CommentsWriter(Settings settings)
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-            process.WaitForExit(TIMEOUT);
+            process.WaitForExit(COMMENTS_TIMEOUT);
             exitCode = process.ExitCode;
         }
 
@@ -861,8 +861,7 @@ public partial class CommentsWriter(Settings settings)
         {
             using var process = GetYtDlpProcess(ytDlp, ytDlpCommandLine, encoding);
             process.Start();
-            process.WaitForExit(TIMEOUT);
-
+            process.WaitForExit(VIDEO_INFO_TIMEOUT);
             outputText = process.StandardOutput.ReadToEnd();
             exitCode = process.ExitCode;
         }
