@@ -509,7 +509,7 @@ internal static partial class CommentTextExtensions
 
     #region Timestamp
 
-    [GeneratedRegex(@"(?<!(?:Amos|Apostles|Chronicles|Colossians|Corinthians|Daniel|Deuteronomy|Ecclesiastes|Ephesians|Esther|Exodus|Ezekiel|Ezra|Galatians|Genesis|Habakkuk|Haggai|Hebrews|Hosea|Isaiah|James|Jeremiah|Job|Joel|John|Jonah|Joshua|Jude|Judges|Kings|Lamentations|Leviticus|Luke|Malachi|Mark|Matthew|Micah|Nahum|Nehemiah|Numbers|Obadiah|Peter|Philemon|Philippians|Proverbs|Psalms|Revelation|Romans|Ruth|Samuel|Solomon|Thessalonians|Timothy|Titus|Zechariah|Zephaniah)\s*)\b(\d{1,}:)?(?:[0-5])?\d:[0-5]\d(?!\d)", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"(?<!(?:Amos|Apostles|Chronicles|Colossians|Corinthians|Daniel|Deuteronomy|Ecclesiastes|Ephesians|Esther|Exodus|Ezekiel|Ezra|Galatians|Genesis|Habakkuk|Haggai|Hebrews|Hosea|Isaiah|James|Jeremiah|Job|Joel|John|Jonah|Joshua|Jude|Judges|Kings|Lamentations|Leviticus|Luke|Malachi|Mark|Matthew|Micah|Nahum|Nehemiah|Numbers|Obadiah|Peter|Philemon|Philippians|Proverbs|Psalms|Revelation|Romans|Ruth|Samuel|Solomon|Thessalonians|Timothy|Titus|Zechariah|Zephaniah)\s*)\b(\d{1,}:)?(?:[0-5])?\d:[0-5]\d(?!\d|\s*[ap]\.?m\.?)", RegexOptions.IgnoreCase)]
     private static partial Regex RegexTimestamp();
 
     public static bool HasTimestamp(this string text)
