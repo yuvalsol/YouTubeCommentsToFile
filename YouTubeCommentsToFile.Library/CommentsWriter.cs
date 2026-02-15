@@ -982,7 +982,7 @@ public partial class CommentsWriter(Settings settings)
         if (settings.HideReplies)
             comments.RemoveAll(c => c.IsReply);
         else
-            AddRepliesToTopLevelComments();
+            AddRepliesToComments();
 
         // only top-level comments from this point on
 
@@ -993,52 +993,17 @@ public partial class CommentsWriter(Settings settings)
         EnumerateAndHighlightComments(out commentsCount);
     }
 
-    private void AddRepliesToTopLevelComments()
+    private void AddRepliesToComments()
     {
-        var allComments = comments.Select((comment, index) => (comment, index));
-
-        var items = allComments.Join(
-            allComments,
-            p => p.comment.Id,
-            r => r.comment.Parent,
+        var items = comments.Join(
+            comments,
+            p => p.Id,
+            r => r.Parent,
             (parent, reply) => (parent, reply)
         );
 
-        var indexes = new List<int>();
-
         foreach (var (parent, reply) in items)
-        {
-            parent.comment.Add(reply.comment);
-            indexes.Add(reply.index);
-        }
-
-        if (indexes.HasAny())
-        {
-            for (int i = indexes.Count - 1; i >= 0; i--)
-            {
-                int endIndex = indexes[i];
-
-                int startIndex = endIndex;
-                for (int j = i - 1; j >= 0; j--)
-                {
-                    int index = indexes[j];
-                    if (startIndex - 1 == index)
-                    {
-                        startIndex = index;
-                        i = j;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-
-                if (startIndex < endIndex)
-                    comments.RemoveRange(startIndex, endIndex - startIndex + 1);
-                else
-                    comments.RemoveAt(startIndex);
-            }
-        }
+            parent.Add(reply);
 
         comments.RemoveAll(c => c.IsReply);
     }
