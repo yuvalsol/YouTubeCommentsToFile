@@ -501,14 +501,23 @@ public partial class CommentsWriter(Settings settings)
 
     private static bool ValidateYouTubeURL(UriBuilder uriBuilder)
     {
-        if (string.IsNullOrEmpty(uriBuilder.Query))
+        bool hasWatch = uriBuilder.Path.StartsWith("/watch");
+        bool hasShorts = uriBuilder.Path.StartsWith("/shorts");
+        if (hasWatch == false && hasShorts == false)
             return false;
 
-        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        if (string.IsNullOrEmpty(query["v"]))
-            return false;
+        // https://www.youtube.com/watch?v=*
+        bool hasV =
+            string.IsNullOrEmpty(uriBuilder.Query) == false &&
+            string.IsNullOrEmpty(HttpUtility.ParseQueryString(uriBuilder.Query)["v"]) == false;
+        if (hasWatch && hasV)
+            return true;
 
-        return true;
+        // https://www.youtube.com/watch/*
+        // https://www.youtube.com/shorts/*
+        return
+            (uriBuilder.Path.StartsWith("/watch/") && uriBuilder.Path.EndsWith("/watch/") == false) ||
+            (uriBuilder.Path.StartsWith("/shorts/") && uriBuilder.Path.EndsWith("/shorts/") == false);
     }
 
     private static string CleanYouTubeURL(UriBuilder uriBuilder)
