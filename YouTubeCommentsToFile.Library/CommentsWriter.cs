@@ -54,7 +54,7 @@ public partial class CommentsWriter(Settings settings)
     private static readonly Color FavoritedBgLightThemeColor = Color.FromArgb(229, 235, 238);
     private static readonly Color HeaderBgLightThemeColor = Color.FromArgb(242, 242, 242);
     private static readonly Color HighlightLightThemeColor = Color.FromArgb(15, 15, 15);
-    private static readonly Color HighlightBgLightThemeColor = Color.FromArgb(255, 228, 196);
+    private static readonly Color HighlightBgLightThemeColor = Color.FromArgb(255, 249, 224);
     private static readonly Color HighlightBorderLightThemeColor = Color.FromArgb(183, 136, 0);
     private static readonly Color LinkLightThemeColor = Color.FromArgb(0, 0, 238);
     private static readonly Color CopyTextSuccessLightThemeColor = Color.FromArgb(15, 170, 15);
