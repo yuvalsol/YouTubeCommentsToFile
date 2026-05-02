@@ -1317,6 +1317,9 @@ public partial class CommentsWriter(Settings settings)
                 string uploadDate = GetUploadDate();
                 if (string.IsNullOrEmpty(uploadDate) == false)
                     writer.WriteLine(HttpUtility.HtmlEncode($"Uploaded at {uploadDate}"));
+
+                writer.WriteLine();
+                writer.WriteLine(HttpUtility.HtmlEncode($"Scrapped at {GetScrapeDate()}"));
             }
             else
             {
@@ -1334,6 +1337,9 @@ public partial class CommentsWriter(Settings settings)
                 string uploadDate = GetUploadDate();
                 if (string.IsNullOrEmpty(uploadDate) == false)
                     writer.WriteLine($"Uploaded at {uploadDate}");
+
+                writer.WriteLine();
+                writer.WriteLine($"Scrapped at {GetScrapeDate()}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
@@ -1467,6 +1473,11 @@ public partial class CommentsWriter(Settings settings)
         {
             return null;
         }
+    }
+
+    private static string GetScrapeDate()
+    {
+        return DateTime.Now.ToString("MMM d, yyyy, h:mm tt", CultureInfo.InvariantCulture);
     }
 
     private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
