@@ -1319,7 +1319,7 @@ public partial class CommentsWriter(Settings settings)
                     writer.WriteLine(HttpUtility.HtmlEncode($"Uploaded at {uploadDate}"));
 
                 writer.WriteLine();
-                writer.WriteLine(HttpUtility.HtmlEncode($"Scrapped at {GetScrapeDate()}"));
+                writer.WriteLine(HttpUtility.HtmlEncode($"Downloaded at {GetCommentsDownloadDate()}"));
             }
             else
             {
@@ -1339,7 +1339,7 @@ public partial class CommentsWriter(Settings settings)
                     writer.WriteLine($"Uploaded at {uploadDate}");
 
                 writer.WriteLine();
-                writer.WriteLine($"Scrapped at {GetScrapeDate()}");
+                writer.WriteLine($"Downloaded at {GetCommentsDownloadDate()}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
@@ -1475,7 +1475,7 @@ public partial class CommentsWriter(Settings settings)
         }
     }
 
-    private static string GetScrapeDate()
+    private static string GetCommentsDownloadDate()
     {
         return DateTime.Now.ToString("MMM d, yyyy, h:mm tt", CultureInfo.InvariantCulture);
     }
