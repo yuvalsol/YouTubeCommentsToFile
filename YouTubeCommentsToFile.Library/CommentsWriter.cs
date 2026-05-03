@@ -324,16 +324,19 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (taskVideoInfo.Wait(VIDEO_INFO_TIMEOUT, ct) && taskVideoInfo.IsCanceled == false)
                     videoInfo = taskVideoInfo.Result;
+
+                if (taskVideoInfo.Exception != null)
+                    downloadVideoInfoError = taskVideoInfo.Exception;
             }
             catch (Exception ex)
             {
                 downloadVideoInfoError = ex;
-
-                videoInfo = new VideoInfo()
-                {
-                    Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-                };
             }
+
+            videoInfo ??= new VideoInfo()
+            {
+                Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
+            };
 
             FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(videoInfo, downloadVideoInfoError));
         }
