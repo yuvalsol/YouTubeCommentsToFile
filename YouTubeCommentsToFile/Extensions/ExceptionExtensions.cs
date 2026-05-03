@@ -74,7 +74,8 @@ public static partial class ExceptionExtensions
                         if ((isFoundNamespaceNotSystem == false) ||
                             (string.IsNullOrEmpty(reflectedType.Namespace) == false && reflectedType.Namespace.StartsWith("System") == false))
                         {
-                            isFoundNamespaceNotSystem = reflectedType.Namespace.StartsWith("System") == false;
+                            if (string.IsNullOrEmpty(reflectedType.Namespace) == false)
+                                isFoundNamespaceNotSystem = reflectedType.Namespace.StartsWith("System") == false;
 
                             MethodInfo mi = method as MethodInfo;
                             if (mi != null)
