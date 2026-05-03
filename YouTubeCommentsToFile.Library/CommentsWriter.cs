@@ -96,7 +96,7 @@ public partial class CommentsWriter(Settings settings)
     #region yt-dlp
 
     private const int COMMENTS_TIMEOUT = 10 * 60 * 1000;
-    private const int VIDEO_INFO_TIMEOUT = 1 * 60 * 1000;
+    private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
 
     private static Process GetYtDlpProcess(string ytDlp, string ytDlpCommandLine, Encoding encoding = null)
     {
@@ -891,7 +891,7 @@ public partial class CommentsWriter(Settings settings)
         if (hideVideoDescription)
             fields = fields.Where(field => field != "description");
 
-        string ytDlpCommandLine = $@"--print ""{string.Join(Environment.NewLine, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
+        string ytDlpCommandLine = $@"--print ""{string.Join(string.Empty, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
 
         if (encodingCodePage != null)
             ytDlpCommandLine += $" --encoding {encodingCodePage.Value}";
