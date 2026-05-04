@@ -1,4 +1,6 @@
-﻿namespace System;
+﻿#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace System;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 public static partial class ExceptionExtensions
 {
@@ -71,11 +73,11 @@ public static partial class ExceptionExtensions
                     Type reflectedType = method.ReflectedType;
                     if (reflectedType != null)
                     {
-                        if ((isFoundNamespaceNotSystem == false) ||
-                            (string.IsNullOrEmpty(reflectedType.Namespace) == false && reflectedType.Namespace.StartsWith("System") == false))
+                        bool isNotSystemNamespace = string.IsNullOrEmpty(reflectedType.Namespace) || reflectedType.Namespace.StartsWith("System") == false;
+
+                        if (isFoundNamespaceNotSystem == false || isNotSystemNamespace)
                         {
-                            if (string.IsNullOrEmpty(reflectedType.Namespace) == false)
-                                isFoundNamespaceNotSystem = reflectedType.Namespace.StartsWith("System") == false;
+                            isFoundNamespaceNotSystem = isNotSystemNamespace;
 
                             MethodInfo mi = method as MethodInfo;
                             if (mi != null)

@@ -402,11 +402,16 @@ static void Debug()
 {
     //Help();
 
-    //Download("");
+    //string url = "";
+    //string ytDlp = @"";
+    //string downloadPath = @"";
 
-    //Convert(@"");
+    //Download(url, ytDlp, downloadPath, options => { });
 
-    //GetVideoInfo("");
+    //string jsonFile = @"";
+    //Convert(jsonFile, url, ytDlp, options => { });
+
+    //GetVideoInfo(url, ytDlp);
 }
 
 static void Help()

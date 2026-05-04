@@ -1,50 +1,22 @@
-﻿using Newtonsoft.Json;
+﻿namespace YouTubeCommentsToFile.Library;
 
-namespace YouTubeCommentsToFile.Library;
-
-[JsonObject(
-    MemberSerialization = MemberSerialization.OptIn,
-    ItemNullValueHandling = NullValueHandling.Ignore
-)]
-internal partial class Comment : ICollection<Comment>, IComparable<Comment>, IComparer<Comment>
+internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IComparer<Comment>
 {
     #region Properties
 
-    [JsonProperty("id")]
-    public string Id { get; set; }
+    public virtual string Id { get; set; }
+    public virtual string Parent { get; set; }
+    public virtual string Text { get; set; }
+    public virtual int LikeCount { get; set; }
+    public virtual string Author { get; set; }
+    public virtual bool AuthorIsUploader { get; set; }
+    public virtual string AuthorURL { get; set; }
+    public virtual bool IsFavorited { get; set; }
+    public virtual string TimeText { get; set; }
+    public virtual bool IsPinned { get; set; }
 
-    [JsonProperty("parent")]
-    public string Parent { get; set; }
-
-    [JsonProperty("text")]
-    [JsonConverter(typeof(CleanTextJsonConverter))]
-    public string Text { get; set; }
-
-    [JsonProperty("like_count")]
-    public int LikeCount { get; set; }
-
-    [JsonProperty("author")]
-    public string Author { get; set; }
-
-    [JsonProperty("author_is_uploader")]
-    public bool AuthorIsUploader { get; set; }
-
-    [JsonProperty("author_url")]
-    public string AuthorURL { get; set; }
-
-    [JsonProperty("is_favorited")]
-    public bool IsFavorited { get; set; }
-
-    [JsonProperty("_time_text")]
-    public string TimeText { get; set; }
-
-    [JsonProperty("is_pinned")]
-    public bool IsPinned { get; set; }
-
-    public bool IsTopLevelComment => string.IsNullOrEmpty(Parent) || Parent == "root";
-    public bool IsReply => !IsTopLevelComment;
-
-    public bool AuthorIsYouTube => Author == "@YouTube";
+    public virtual bool IsTopLevelComment => string.IsNullOrEmpty(Parent);
+    public virtual bool IsReply => !IsTopLevelComment;
 
     public Comment ParentComment { get; set; }
     public int CommentNumber { get; set; }
@@ -125,9 +97,32 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
 
     #endregion
 
+    #region Compare By Id
+
+    public int CompareTo(Comment other)
+    {
+        return Compare(this, other);
+    }
+
+    public int Compare(Comment x, Comment y)
+    {
+        if (ReferenceEquals(x, y))
+            return 0;
+
+        if (x is null)
+            return -1;
+
+        if (y is null)
+            return 1;
+
+        return x.Id.CompareTo(y.Id);
+    }
+
+    #endregion
+
     #region To Lines, To String, To Error
 
-    public string ToError()
+    public virtual string ToError()
     {
         try
         {
@@ -135,7 +130,7 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
         }
         catch
         {
-            return $"{(string.IsNullOrEmpty(Author) ? AUTHOR_MISSING : Author)}{(string.IsNullOrEmpty(TimeText) ? null : $" {TimeText}")}{Environment.NewLine}{Text}";
+            return $"{(string.IsNullOrEmpty(Author) ? MissingAuthor : Author)}{(string.IsNullOrEmpty(TimeText) ? null : $" {TimeText}")}{Environment.NewLine}{Text}";
         }
     }
 
@@ -153,9 +148,10 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
         ));
     }
 
-    private const string AUTHOR_MISSING = "Author Missing";
+    public virtual bool AuthorIsYouTube => Author == "@YouTube";
+    protected virtual string MissingAuthor => "Missing Author";
 
-    public IEnumerable<string> ToLines(
+    public virtual IEnumerable<string> ToLines(
         Settings settings,
         WebsiteInfo websiteInfo,
         string uploaderId,
@@ -210,9 +206,9 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
             if (string.IsNullOrEmpty(Author))
             {
                 if (string.IsNullOrEmpty(AuthorURL))
-                    authorPart = $"<span{anchorReplyId} class='author'>{HttpUtility.HtmlEncode(AUTHOR_MISSING)}</span>";
+                    authorPart = $"<span{anchorReplyId} class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span>";
                 else
-                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='author'>{HttpUtility.HtmlEncode(AUTHOR_MISSING)}</span></a>";
+                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span></a>";
             }
             else
             {
@@ -248,7 +244,7 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
         }
         else
         {
-            string line = $"{(string.IsNullOrEmpty(Author) ? AUTHOR_MISSING : Author)}{(settings.HideTime || string.IsNullOrEmpty(TimeText) ? null : $" {TimeText}")}";
+            string line = $"{(string.IsNullOrEmpty(Author) ? MissingAuthor : Author)}{(settings.HideTime || string.IsNullOrEmpty(TimeText) ? null : $" {TimeText}")}";
             if (IsHighlight)
             {
                 int diff = lineCh - line.GetTextLengthForTextFile();
@@ -372,29 +368,6 @@ internal partial class Comment : ICollection<Comment>, IComparable<Comment>, ICo
             else
                 yield return $"♥ by {uploaderId}";
         }
-    }
-
-    #endregion
-
-    #region Compare By Id
-
-    public int CompareTo(Comment other)
-    {
-        return Compare(this, other);
-    }
-
-    public int Compare(Comment x, Comment y)
-    {
-        if (ReferenceEquals(x, y))
-            return 0;
-
-        if (x is null)
-            return -1;
-
-        if (y is null)
-            return 1;
-
-        return x.Id.CompareTo(y.Id);
     }
 
     #endregion

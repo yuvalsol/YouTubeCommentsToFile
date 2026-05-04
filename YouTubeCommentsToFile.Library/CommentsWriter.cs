@@ -354,7 +354,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            comments = GetComments();
+            comments = GetComments<YtDlpComment>();
             FinishLoadJsonFile?.Raise(this, () => new FinishLoadJsonFileEventArgs(videoInfo, jsonFile));
         }
         catch (Exception ex)
@@ -956,11 +956,12 @@ public partial class CommentsWriter(Settings settings)
 
     #region Get Comments
 
-    private List<Comment> GetComments()
+    private List<Comment> GetComments<TComment>()
+        where TComment : Comment, new()
     {
         using var jsonStream = new StreamReader(jsonFile);
         using var jsonReader = new JsonTextReader(jsonStream);
-        return new JsonSerializer().Deserialize<List<Comment>>(jsonReader);
+        return [.. new JsonSerializer().Deserialize<List<TComment>>(jsonReader).Cast<Comment>()];
     }
 
     #endregion

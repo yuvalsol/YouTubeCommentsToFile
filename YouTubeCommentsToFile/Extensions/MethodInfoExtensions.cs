@@ -1,4 +1,6 @@
-﻿namespace System.Reflection;
+﻿#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace System.Reflection;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 // https://gist.github.com/jamietre/4476307
 
