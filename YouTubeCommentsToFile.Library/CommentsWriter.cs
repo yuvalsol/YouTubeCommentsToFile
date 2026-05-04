@@ -1235,6 +1235,7 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine("<html lang='en' xmlns='http://www.w3.org/1999/xhtml'>");
             writer.WriteLine("<head>");
             writer.WriteLine($"{s4}<meta charset='{charset}' />");
+            writer.WriteLine($@"{s4}<meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}* {{ font-family: Consolas, monospace; }}");
