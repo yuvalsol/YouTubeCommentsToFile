@@ -266,15 +266,41 @@ internal static partial class CommentTextExtensions
         // sort descending
         placeholders.Sort((x, y) => y.FromIndex.CompareTo(x.FromIndex));
 
-        // some user names look like link
+        // a link may contain a user name
+        // www.host.com\@username
+        if (hasLink && (hasRepliedAuthor || hasOtherAuthors))
+        {
+            var links = placeholders.Where(ph => ph.IsLink);
+
+            var notAuthors = placeholders
+                .Where(ph => ph.IsRepliedAuthor || ph.IsOtherAuthor)
+                .Where(author => links.Any(link =>
+                    /*
+                     * [link.FromIndex,         link.ToIndex)
+                     *   [author.FromIndex, author.ToIndex)
+                     */
+                    link.FromIndex <= author.FromIndex &&
+                    author.ToIndex <= link.ToIndex
+                ))
+                .ToArray();
+
+            if (notAuthors.HasAny())
+            {
+                placeholders.RemoveAll(ph => (ph.IsRepliedAuthor || ph.IsOtherAuthor) && notAuthors.Contains(ph));
+                hasRepliedAuthor = placeholders.Any(ph => ph.IsRepliedAuthor);
+                hasOtherAuthors = placeholders.Any(ph => ph.IsOtherAuthor);
+            }
+        }
+
+        // some user names look like a link
         if (hasLink && (hasRepliedAuthor || hasOtherAuthors))
         {
             var authors = placeholders
-                .Where(item => item.IsRepliedAuthor || item.IsOtherAuthor)
+                .Where(ph => ph.IsRepliedAuthor || ph.IsOtherAuthor)
                 .ToArray();
 
             var notLinks = placeholders
-                .Where(item => item.IsLink)
+                .Where(ph => ph.IsLink)
                 .Where(link => authors.Any(author =>
                     /*
                      * [author.FromIndex, author.ToIndex)
@@ -290,7 +316,10 @@ internal static partial class CommentTextExtensions
                 .ToArray();
 
             if (notLinks.HasAny())
-                placeholders.RemoveAll(item => item.IsLink && notLinks.Contains(item));
+            {
+                placeholders.RemoveAll(ph => ph.IsLink && notLinks.Contains(ph));
+                hasLink = placeholders.Any(ph => ph.IsLink);
+            }
         }
 
         return placeholders;
