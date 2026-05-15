@@ -1,6 +1,6 @@
 ﻿namespace YouTubeCommentsToFile.Library;
 
-internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IComparer<Comment>
+internal abstract partial class Comment : ICollection<Comment>, IComparable<Comment>, IComparer<Comment>
 {
     #region Comment Properties
 
@@ -277,13 +277,27 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
             }
         }
 
-        string[] lines =
+        var lines =
             (writeToHTML ? Text : Text.CleanTextForTextFile())
-            .Split([Environment.NewLine, "\n"], StringSplitOptions.None);
+            .Split([Environment.NewLine, "\n"], StringSplitOptions.None)
+            .Select(line => (line ?? string.Empty).Trim())
+            .ToArray();
+
+        if (lines.HasAny() && lines[0].GetRepliedAuthor(out var repliedAuthor))
+        {
+            int index = repliedAuthor.Index + repliedAuthor.Name.Length;
+            string line1 = lines[0][..index].TrimEnd();
+            string line2 = lines[0][index..].TrimStart();
+            if (string.IsNullOrWhiteSpace(line2) == false)
+                lines = [line1, line2, .. lines.Skip(1)];
+        }
+
+        var rtlBlocks = (writeToHTML ? GetRTLBlocks(lines) : null);
 
         for (int i = 0; i < lines.Length; i++)
         {
-            string line = (lines[i] ?? string.Empty).Trim();
+            string line = lines[i];
+            bool isWholeLineRTL = writeToHTML && rtlBlocks.Any(b => b.start <= i && i <= b.end);
             int lineLength = (writeToHTML ? line.Length : line.GetTextLengthForTextFile());
 
             if (lineLength <= lineCh)
@@ -293,7 +307,7 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
                     if (IsHighlight && lineLength == 0)
                         line = " ";
 
-                    yield return $"{(settings.HideLikes && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
+                    yield return $"{(settings.HideLikes && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isWholeLineRTL ? " rtl" : null)}'{(isWholeLineRTL ? $" style='min-width: {lineCh}ch; max-width: {lineCh}ch;'" : null)}{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
                 }
                 else
                 {
@@ -320,7 +334,7 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
                         if (IsHighlight && innerLine.Length == 0)
                             innerLine = " ";
 
-                        yield return $"{(settings.HideLikes && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{innerLine}</span>{closeHighlightBorder}";
+                        yield return $"{(settings.HideLikes && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isWholeLineRTL ? " rtl" : null)}'{(isWholeLineRTL ? $" style='min-width: {lineCh}ch; max-width: {lineCh}ch;'" : null)}{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{innerLine}</span>{closeHighlightBorder}";
                     }
                 }
                 else
@@ -375,6 +389,68 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
             else
                 yield return $"♥ by {uploaderId}";
         }
+    }
+
+    private static List<(int start, int end)> GetRTLBlocks(string[] lines)
+    {
+        var rtlBlocks = lines
+            .Select((line, i) => (line, i))
+            .Where(x => IsWholeLineRTL(x.line))
+            .Select(x => x.i)
+            .Select((val, index) => new { val, groupKey = val - index })
+            .GroupBy(x => x.groupKey)
+            .Select(g => (start: g.First().val, end: g.Last().val))
+            .ToList();
+
+        if (rtlBlocks.HasMoreThanOne() == false)
+            return rtlBlocks;
+
+        for (int i = 1; i < rtlBlocks.Count; i++)
+        {
+            // start0 <= end0 < start1 <= end1
+            var (start0, end0) = rtlBlocks[i - 1];
+            var (start1, end1) = rtlBlocks[i];
+            int startIndex = end0 + 1;
+            int endIndex = start1 - 1;
+            int count = endIndex - startIndex + 1;
+            if (lines.Skip(startIndex).Take(count).All(string.IsNullOrWhiteSpace))
+            {
+                rtlBlocks.RemoveRange(i - 1, 2);
+                rtlBlocks.Insert(i - 1, (start0, end1));
+                i--;
+            }
+        }
+
+        return rtlBlocks;
+    }
+
+    [GeneratedRegex(@"[A-Za-z]")]
+    private static partial Regex RegexEnglish();
+
+    [GeneratedRegex(@"(?:\p{IsHebrew}|\p{IsArabic}|\p{IsArabicPresentationForms-A}|\p{IsArabicPresentationForms-B}|\p{IsSyriac})+")]
+    private static partial Regex RegexRTLLangs();
+
+    [GeneratedRegex(@"[0-9]+")]
+    private static partial Regex RegexDigits();
+
+    [GeneratedRegex(@"[-—–―‒_~!@#$%^&*()=+[\]{};:'""\\|,.<>/?`´‘’‚‛“”„‟]+")]
+    private static partial Regex RegexPunctuations();
+
+    private static bool IsWholeLineRTL(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return false;
+
+        if (RegexEnglish().IsMatch(line))
+            return false;
+
+        if (RegexRTLLangs().IsMatch(line) == false)
+            return false;
+
+        line = RegexRTLLangs().Replace(line, string.Empty);
+        line = RegexDigits().Replace(line, string.Empty);
+        line = RegexPunctuations().Replace(line, string.Empty);
+        return string.IsNullOrWhiteSpace(line);
     }
 
     #endregion

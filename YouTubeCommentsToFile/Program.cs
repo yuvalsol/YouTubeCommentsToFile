@@ -410,7 +410,8 @@ static void Debug()
     //    ToHTML = true,
     //    SortTop = true,
     //    HighlightUploader = true,
-    //    ShowCommentNavigationLinks = true
+    //    ShowCommentNavigationLinks = true,
+    //    DeleteJsonFile = false
     //});
 
     //Run(new ConvertOptions
@@ -420,7 +421,8 @@ static void Debug()
     //    YtDlp = @"",
     //    ToHTML = true,
     //    HighlightUploader = true,
-    //    ShowCommentNavigationLinks = true
+    //    ShowCommentNavigationLinks = true,
+    //    DeleteJsonFile = false
     //});
 
     //GetVideoInfo("", @"");

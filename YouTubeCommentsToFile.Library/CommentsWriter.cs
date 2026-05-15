@@ -1235,7 +1235,7 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine("<html lang='en' xmlns='http://www.w3.org/1999/xhtml'>");
             writer.WriteLine("<head>");
             writer.WriteLine($"{s4}<meta charset='{charset}' />");
-            writer.WriteLine($@"{s4}<meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">");
+            writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}* {{ font-family: Consolas, monospace; }}");
@@ -1246,6 +1246,7 @@ public partial class CommentsWriter(Settings settings)
                 writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBgColor.ToRgb()}); min-width: {textLineLength}ch; max-width: {textLineLength}ch; }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
+            writer.WriteLine($"{s8}.rtl {{ direction: rtl; unicode-bidi: bidi-override; }}");
             if (hasYouTube)
                 writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeColor.ToRgb()}); background-color: rgb({YouTubeBgColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
