@@ -123,7 +123,7 @@ static void WriteCommentsToFile(Settings settings)
     commentsWriter.StartDownloadComments += (sender, e) =>
     {
         Console.WriteLine(e.URL);
-        Console.WriteLine("Downloading comments from YouTube...");
+        Console.WriteLine("Downloading comments...");
         Console.WriteLine("yt-dlp command line:");
         Console.WriteLine($"yt-dlp {e.YtDlpCommandLine}");
         isDownloadComments = true;
@@ -402,63 +402,33 @@ static void Debug()
 {
     //Help();
 
-    //string url = "";
-    //string ytDlp = @"";
-    //string downloadPath = @"";
+    //Run(new DownloadOptions
+    //{
+    //    URL = "",
+    //    YtDlp = @"",
+    //    DownloadPath = @"",
+    //    ToHTML = true,
+    //    SortTop = true,
+    //    HighlightUploader = true,
+    //    ShowCommentNavigationLinks = true
+    //});
 
-    //Download(url, ytDlp, downloadPath, options => { });
+    //Run(new ConvertOptions
+    //{
+    //    JsonFile = @"",
+    //    URL = "",
+    //    YtDlp = @"",
+    //    ToHTML = true,
+    //    HighlightUploader = true,
+    //    ShowCommentNavigationLinks = true
+    //});
 
-    //string jsonFile = @"";
-    //Convert(jsonFile, url, ytDlp, options => { });
-
-    //GetVideoInfo(url, ytDlp);
+    //GetVideoInfo("", @"");
 }
 
 static void Help()
 {
     Console.WriteLine(GetHelp());
-}
-
-static void Download(string url, string ytDlp = null, string downloadPath = null, Action<DownloadOptions> OptionsHandler = null)
-{
-    var options = GetDownloadOptions(url, ytDlp, downloadPath);
-    OptionsHandler?.Invoke(options);
-    Run(options);
-}
-
-static DownloadOptions GetDownloadOptions(string url, string ytDlp = null, string downloadPath = null)
-{
-    return new DownloadOptions
-    {
-        URL = url,
-        YtDlp = ytDlp,
-        DownloadPath = downloadPath,
-        ToHTMLAndText = true,
-        UpdateYtDlp = true,
-        SortTop = true,
-        HighlightUploader = true,
-        ShowCommentNavigationLinks = true
-    };
-}
-
-static void Convert(string jsonFile, string url = null, string ytDlp = null, Action<ConvertOptions> OptionsHandler = null)
-{
-    var options = GetConvertOptions(jsonFile, url, ytDlp);
-    OptionsHandler?.Invoke(options);
-    Run(options);
-}
-
-static ConvertOptions GetConvertOptions(string jsonFile, string url = null, string ytDlp = null)
-{
-    return new ConvertOptions
-    {
-        JsonFile = jsonFile,
-        URL = url,
-        YtDlp = ytDlp,
-        ToHTMLAndText = true,
-        HighlightUploader = true,
-        ShowCommentNavigationLinks = true
-    };
 }
 
 static void Run<T>(T options)

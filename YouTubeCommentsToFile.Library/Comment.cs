@@ -2,23 +2,29 @@
 
 internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IComparer<Comment>
 {
-    #region Properties
+    #region Comment Properties
 
     public virtual string Id { get; set; }
     public virtual string Parent { get; set; }
     public virtual string Text { get; set; }
-    public virtual int LikeCount { get; set; }
     public virtual string Author { get; set; }
     public virtual bool AuthorIsUploader { get; set; }
-    public virtual string AuthorURL { get; set; }
-    public virtual bool IsFavorited { get; set; }
-    public virtual string TimeText { get; set; }
-    public virtual bool IsPinned { get; set; }
+
+    protected virtual int LikeCount { get; set; }
+    protected virtual int Ups { get; set; }
+    protected virtual int Downs { get; set; }
+    protected virtual string AuthorURL { get; set; }
+    protected virtual bool IsFavorited { get; set; }
+    protected virtual string TimeText { get; set; }
+    protected virtual bool IsPinned { get; set; }
 
     public virtual bool IsTopLevelComment => string.IsNullOrEmpty(Parent);
     public virtual bool IsReply => !IsTopLevelComment;
 
-    public Comment ParentComment { get; set; }
+    #endregion
+
+    #region Comment Writing Properties
+
     public int CommentNumber { get; set; }
     public int ReplyNumber { get; set; }
     public bool IsHighlight { get; set; }
@@ -28,6 +34,7 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
     #region Replies
 
     private List<Comment> replies;
+    public Comment ParentComment { get; private set; }
 
     public int Count => replies?.Count ?? 0;
 
@@ -122,6 +129,9 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
 
     #region To Lines, To String, To Error
 
+    public virtual bool AuthorIsYouTube => Author == "@YouTube";
+    protected virtual string MissingAuthor => "Missing Author";
+
     public virtual string ToError()
     {
         try
@@ -147,9 +157,6 @@ internal abstract class Comment : ICollection<Comment>, IComparable<Comment>, IC
             writeToHTML: false
         ));
     }
-
-    public virtual bool AuthorIsYouTube => Author == "@YouTube";
-    protected virtual string MissingAuthor => "Missing Author";
 
     public virtual IEnumerable<string> ToLines(
         Settings settings,

@@ -18,26 +18,26 @@ internal class YtDlpComment : Comment
     [JsonConverter(typeof(CleanTextJsonConverter))]
     public override string Text { get; set; }
 
-    [JsonProperty("like_count")]
-    public override int LikeCount { get; set; }
-
     [JsonProperty("author")]
     public override string Author { get; set; }
 
     [JsonProperty("author_is_uploader")]
     public override bool AuthorIsUploader { get; set; }
 
+    [JsonProperty("like_count")]
+    protected override int LikeCount { get; set; }
+
     [JsonProperty("author_url")]
-    public override string AuthorURL { get; set; }
+    protected override string AuthorURL { get; set; }
 
     [JsonProperty("is_favorited")]
-    public override bool IsFavorited { get; set; }
+    protected override bool IsFavorited { get; set; }
 
     [JsonProperty("_time_text")]
-    public override string TimeText { get; set; }
+    protected override string TimeText { get; set; }
 
     [JsonProperty("is_pinned")]
-    public override bool IsPinned { get; set; }
+    protected override bool IsPinned { get; set; }
 
     public override bool IsTopLevelComment => base.IsTopLevelComment || Parent == "root";
 
