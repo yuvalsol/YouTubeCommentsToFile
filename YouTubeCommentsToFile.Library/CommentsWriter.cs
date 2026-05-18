@@ -1232,21 +1232,22 @@ public partial class CommentsWriter(Settings settings)
             var s8 = new string(' ', 8);
 
             writer.WriteLine("<!DOCTYPE html>");
-            writer.WriteLine("<html lang='en' xmlns='http://www.w3.org/1999/xhtml'>");
+            writer.WriteLine("<html xmlns='http://www.w3.org/1999/xhtml' lang='en' xml:lang='en'>");
             writer.WriteLine("<head>");
             writer.WriteLine($"{s4}<meta charset='{charset}' />");
-            writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+            writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<style>");
-            writer.WriteLine($"{s8}* {{ font-family: Consolas, monospace; }}");
+            writer.WriteLine($"{s8}* {{ font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; }}");
             writer.WriteLine($"{s8}html, body {{ color: rgb({textColor.ToRgb()}); background-color: rgb({backgroundColor.ToRgb()}); line-height: 1; }}");
             writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
             writer.WriteLine($"{s8}a:link {{ color: rgb({linkColor.ToRgb()}); }}");
+            writer.WriteLine($"{s8}hr {{ min-width: {textLineLength}ch; max-width: {textLineLength}ch; margin: 0 0; }}");
             if (settings.HideHeader == false)
                 writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBgColor.ToRgb()}); min-width: {textLineLength}ch; max-width: {textLineLength}ch; }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
-            writer.WriteLine($"{s8}.rtl {{ direction: rtl; unicode-bidi: bidi-override; }}");
+            writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             if (hasYouTube)
                 writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeColor.ToRgb()}); background-color: rgb({YouTubeBgColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
