@@ -757,4 +757,78 @@ internal static partial class CommentTextExtensions
     }
 
     #endregion
+
+    #region RTL
+
+    public static bool HasRTLLine(this string[] lines)
+    {
+        return lines.HasAny(IsLineRTL);
+    }
+
+    public static List<(int start, int end)> GetRTLBlocks(this string[] lines)
+    {
+        var rtlBlocks = lines
+            .Select((line, i) => (line, i))
+            .Where(x => IsLineRTL(x.line))
+            .Select(x => x.i)
+            .Select((val, index) => new { val, groupKey = val - index })
+            .GroupBy(x => x.groupKey)
+            .Select(g => (start: g.First().val, end: g.Last().val))
+            .ToList();
+
+        if (rtlBlocks.HasMoreThanOne() == false)
+            return rtlBlocks;
+
+        for (int i = 1; i < rtlBlocks.Count; i++)
+        {
+            // start0 <= end0 < start1 <= end1
+            var (start0, end0) = rtlBlocks[i - 1];
+            var (start1, end1) = rtlBlocks[i];
+            int startIndex = end0 + 1;
+            int endIndex = start1 - 1;
+            int count = endIndex - startIndex + 1;
+            if (lines.Skip(startIndex).Take(count).All(string.IsNullOrWhiteSpace))
+            {
+                rtlBlocks.RemoveRange(i - 1, 2);
+                rtlBlocks.Insert(i - 1, (start0, end1));
+                i--;
+            }
+        }
+
+        return rtlBlocks;
+    }
+
+    [GeneratedRegex(@"\p{IsHebrew}|\p{IsArabic}|\p{IsArabicPresentationForms-A}|\p{IsArabicPresentationForms-B}|\p{IsSyriac}")]
+    private static partial Regex RegexRTLLangs();
+
+    [GeneratedRegex(@"[0-9]+")]
+    private static partial Regex RegexDigits();
+
+    [GeneratedRegex(@"[-—–―‒_~!@#$%^&*()=+[\]{};:'""\\|,.<>/?`´‘’‚‛“”„‟]+")]
+    private static partial Regex RegexPunctuations();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex RegexSpace();
+
+    private static bool IsLineRTL(string line)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+            return false;
+
+        if (RegexRTLLangs().IsMatch(line) == false)
+            return false;
+
+        line = RegexDigits().Replace(line, string.Empty);
+        line = RegexPunctuations().Replace(line, string.Empty);
+        line = RegexEmoji().Replace(line, string.Empty);
+        line = RegexSpace().Replace(line, string.Empty);
+
+        int countRTL = RegexRTLLangs().Count(line);
+        line = RegexRTLLangs().Replace(line, string.Empty);
+        int countLTR = line.Length;
+
+        return 1.0 * countLTR / (countLTR + countRTL) < 0.5;
+    }
+
+    #endregion
 }

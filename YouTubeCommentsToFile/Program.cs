@@ -439,9 +439,9 @@ static void Run<T>(T options)
     Console.WriteLine();
 }
 
-static void GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null, bool updateYtDlp = false)
+static void GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
 {
-    var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, encodingCodePage, updateYtDlp);
+    var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
     if (videoInfo != null)
         Console.WriteLine(videoInfo);
     else
@@ -500,7 +500,8 @@ static string GetHelpMessage(Parser parser, string[] args)
     sb.AppendLine();
     sb.AppendLine(GetHelpText<ConvertHelpOptions>(parser, args, optionsPrecedence, "Convert", OptionsHelper.ConvertHelpText, $"Uses verb '{OptionsHelper.ConvertVerb}'. Verb is {(OptionsHelper.ConvertIsDefaultVerb ? "optional" : "required")} to specify."));
     sb.AppendLine(GetHelpText<DownloadHelpOptions>(parser, args, optionsPrecedence, "Download", OptionsHelper.DownloadHelpText, $"Uses verb '{OptionsHelper.DownloadVerb}'. Verb is {(OptionsHelper.DownloadIsDefaultVerb ? "optional" : "required")} to specify."));
-    sb.AppendLine(GetHelpText<SharedHelpOptions>(parser, args, optionsPrecedence, "Shared Options", "Shared options to Convert and Download."));
+    sb.AppendLine(GetHelpText<SharedHelpOptions>(parser, args, optionsPrecedence, "Shared Options", "Shared options of Convert and Download."));
+    sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding Options"));
     sb.AppendLine(GetHelpText<UploaderHelpOptions>(parser, args, optionsPrecedence, "Uploader Shared Options"));
     sb.AppendLine(GetHelpText<AuthorsHelpOptions>(parser, args, optionsPrecedence, "Authors Shared Options", "Author name can be written with or without a leading @."));
     sb.AppendLine(GetHelpText<TextsHelpOptions>(parser, args, optionsPrecedence, "Texts Shared Options"));

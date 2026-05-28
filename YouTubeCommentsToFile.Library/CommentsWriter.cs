@@ -8,12 +8,14 @@ public partial class CommentsWriter(Settings settings)
 
     private readonly Settings settings = settings ?? new();
 
+    private int codePage = -1;
     private Encoding encoding;
     private WebsiteInfo websiteInfo;
     private VideoInfo videoInfo;
     private string jsonFile;
     private List<Comment> comments;
     private List<string> allAuthors;
+    private bool hasHighlight;
     private bool hasYouTube;
 
 #if DEBUG
@@ -225,13 +227,14 @@ public partial class CommentsWriter(Settings settings)
                 throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Maximum line length is {TEXT_LINE_MAX_LENGTH} characters.");
         }
 
-        if (settings.EncodingCodePage != null)
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            encoding = Encoding.GetEncoding(settings.EncodingCodePage.Value);
-        }
-
         Start?.Raise(this, () => EventArgs.Empty);
+
+        #region Encoding
+
+        codePage = GetEncodingCodePage();
+        encoding = GetEncoding(codePage);
+
+        #endregion
 
         #region Get Video Info
 
@@ -375,7 +378,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            ProcessComments(out string uploaderId, out allAuthors, out hasYouTube, out commentsCount, out totalComments);
+            ProcessComments(out string uploaderId, out allAuthors, out hasHighlight, out hasYouTube, out commentsCount, out totalComments);
 
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
@@ -577,6 +580,33 @@ public partial class CommentsWriter(Settings settings)
 
     #endregion
 
+    #region Encoding
+
+    private static Encoding GetEncoding(int codePage)
+    {
+        if (codePage == -1)
+            return null;
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(codePage);
+    }
+
+    private int GetEncodingCodePage()
+    {
+        if (0 <= settings.EncodingCodePage && settings.EncodingCodePage <= 65535)
+            return settings.EncodingCodePage.Value;
+
+        return typeof(Settings)
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
+            .Select(getter => new { getter, attr = getter.GetCustomAttribute<CodePageAttribute>() })
+            .Where(x => x.attr != null)
+            .Where(x => x.getter.GetValue(settings) as bool? == true)
+            .Select(x => x.attr.CodePage)
+            .FirstOrDefault(-1);
+    }
+
+    #endregion
+
     #region Download Comments
 
     private const string JSON_TEMPLATE = "%(comments)#+j";
@@ -630,8 +660,8 @@ public partial class CommentsWriter(Settings settings)
         if (settings.WindowsFilenames)
             ytDlpCommandLine += " --windows-filenames";
 
-        if (settings.EncodingCodePage != null)
-            ytDlpCommandLine += $" --encoding {settings.EncodingCodePage.Value}";
+        if (codePage != -1)
+            ytDlpCommandLine += $" --encoding {codePage}";
 
         if (settings.UpdateYtDlp)
             ytDlpCommandLine += " --update-to nightly";
@@ -806,7 +836,7 @@ public partial class CommentsWriter(Settings settings)
     {
         try
         {
-            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, settings.EncodingCodePage, settings.UpdateYtDlp);
+            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
 
             ct.ThrowIfCancellationRequested();
 
@@ -843,7 +873,7 @@ public partial class CommentsWriter(Settings settings)
     }
 
 #if DEBUG
-    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int? encodingCodePage = null, bool updateYtDlp = false)
+    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
     {
         if (string.IsNullOrEmpty(ytDlp))
         {
@@ -858,14 +888,9 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(ytDlp))
             return null;
 
-        Encoding encoding = null;
-        if (encodingCodePage != null)
-        {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            encoding = Encoding.GetEncoding(encodingCodePage.Value);
-        }
+        Encoding encoding = GetEncoding(codePage);
 
-        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, encodingCodePage, updateYtDlp);
+        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, codePage, updateYtDlp);
 
         string outputText = null;
         int exitCode = -1;
@@ -882,7 +907,7 @@ public partial class CommentsWriter(Settings settings)
     }
 #endif
 
-    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int? encodingCodePage, bool updateYtDlp)
+    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int codePage, bool updateYtDlp)
     {
         var fields = typeof(VideoInfo)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
@@ -893,8 +918,8 @@ public partial class CommentsWriter(Settings settings)
 
         string ytDlpCommandLine = $@"--print ""{string.Join(string.Empty, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
 
-        if (encodingCodePage != null)
-            ytDlpCommandLine += $" --encoding {encodingCodePage.Value}";
+        if (codePage != -1)
+            ytDlpCommandLine += $" --encoding {codePage}";
 
         if (updateYtDlp)
             ytDlpCommandLine += " --update-to nightly";
@@ -971,6 +996,7 @@ public partial class CommentsWriter(Settings settings)
     private void ProcessComments(
         out string uploaderId,
         out List<string> allAuthors,
+        out bool hasHighlight,
         out bool hasYouTube,
         out int commentsCount,
         out int totalComments)
@@ -1002,7 +1028,7 @@ public partial class CommentsWriter(Settings settings)
 
         FilterComments();
 
-        EnumerateAndHighlightComments(out commentsCount);
+        EnumerateAndHighlightComments(out commentsCount, out hasHighlight);
     }
 
     private void AddRepliesToComments()
@@ -1125,9 +1151,10 @@ public partial class CommentsWriter(Settings settings)
             RemoveUnfilteredReplies(reply, filteredComments);
     }
 
-    private void EnumerateAndHighlightComments(out int commentsCount)
+    private void EnumerateAndHighlightComments(out int commentsCount, out bool hasHighlight)
     {
         commentsCount = 0;
+        hasHighlight = false;
 
         if (comments.IsNullOrEmpty())
             return;
@@ -1136,11 +1163,11 @@ public partial class CommentsWriter(Settings settings)
         foreach (var comment in comments)
         {
             int replyNumber = 0;
-            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount);
+            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount, ref hasHighlight);
         }
     }
 
-    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount)
+    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount, ref bool hasHighlight)
     {
         comment.CommentNumber = commentNumber;
         comment.ReplyNumber = replyNumber++;
@@ -1157,11 +1184,13 @@ public partial class CommentsWriter(Settings settings)
             comment.IsHighlight = comment.Text.HasEmoji();
 #endif
 
+        hasHighlight |= comment.IsHighlight;
+
         if (comment.Count == 0)
             return;
 
         foreach (var reply in comment)
-            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount);
+            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount, ref hasHighlight);
     }
 
     #endregion
@@ -1206,14 +1235,12 @@ public partial class CommentsWriter(Settings settings)
         var commentSeparator = (settings.HideCommentSeparators ? null :
             (writeToHTML ? "<hr />" : new string('─', textLineLength)));
 
-        using var srtStream = File.Open(commentsFile, FileMode.Create);
-        using var writer = new StreamWriter(srtStream, Encoding.UTF8);
+        using var fs = File.Open(commentsFile, FileMode.Create, FileAccess.Write);
+        using var writer = new StreamWriter(fs, Encoding.UTF8);
 
         if (writeToHTML)
         {
-            string charset = "utf-8";
-            if (encoding != null)
-                try { charset = encoding.WebName; } catch { }
+            string charset = encoding?.WebName ?? "utf-8";
 
             Color textColor = (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor);
             Color backgroundColor = (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor);
@@ -1227,6 +1254,12 @@ public partial class CommentsWriter(Settings settings)
             Color linkColor = (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor);
             Color copyTextSuccess = (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor);
             Color copyTextFailure = (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor);
+
+            var widthsCh =
+                comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0, writeToHTML))
+                .Append(textLineLength)
+                .Distinct()
+                .OrderBy(widthCh => widthCh);
 
             var s4 = new string(' ', 4);
             var s8 = new string(' ', 8);
@@ -1242,9 +1275,12 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}html, body {{ color: rgb({textColor.ToRgb()}); background-color: rgb({backgroundColor.ToRgb()}); line-height: 1; }}");
             writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
             writer.WriteLine($"{s8}a:link {{ color: rgb({linkColor.ToRgb()}); }}");
-            writer.WriteLine($"{s8}hr {{ min-width: {textLineLength}ch; max-width: {textLineLength}ch; margin: 0 0; }}");
+            if (settings.HideCommentSeparators == false)
+                writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
+            foreach (var widthCh in widthsCh)
+                writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? $"{(settings.HideCommentSeparators ? null : ", hr")}{(settings.HideHeader ? null : ", .header")}" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
             if (settings.HideHeader == false)
-                writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBgColor.ToRgb()}); min-width: {textLineLength}ch; max-width: {textLineLength}ch; }}");
+                writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBgColor.ToRgb()}); }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
@@ -1258,21 +1294,13 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.favorited {{ color: rgb({textColor.ToRgb()}); background-color: rgb({favoritedBgColor.ToRgb()}); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
             writer.WriteLine($"{s8}.heart {{ color: rgb({HeartColor.ToRgb()}); }}");
 
-            var highlightWidthCh =
-                comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0))
-                .Distinct()
-                .OrderBy(widthCh => widthCh);
-
-            if (highlightWidthCh.HasAny())
+            if (hasHighlight)
             {
                 writer.WriteLine($"{s8}.highlight {{ color: rgb({highlightColor.ToRgb()}); background-color: rgb({highlightBgColor.ToRgb()}); }}");
                 writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border: solid 1px rgb({highlightBorderColor.ToRgb()}); padding-left: 1px; padding-right: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
                 writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");
-
-                foreach (var widthCh in highlightWidthCh)
-                    writer.WriteLine($"{s8}.highlight-{widthCh} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
             }
 
             if (settings.ShowCopyLinks)
@@ -1440,9 +1468,9 @@ public partial class CommentsWriter(Settings settings)
             (writeToHTML ? TEXT_LINE_LENGTH_HTML : TEXT_LINE_LENGTH_TEXT));
     }
 
-    private static IEnumerable<int> GetHighlightWidthCh(Comment comment, int indentSize, int textLineLength, int indentCount)
+    private static IEnumerable<int> GetHighlightWidthCh(Comment comment, int indentSize, int textLineLength, int indentCount, bool writeToHTML)
     {
-        if (comment.IsHighlight)
+        if (comment.IsHighlight || comment.HasRTLLine(writeToHTML))
             yield return textLineLength - indentCount;
 
         if (comment.Count == 0)
@@ -1452,7 +1480,7 @@ public partial class CommentsWriter(Settings settings)
 
         foreach (var reply in comment)
         {
-            foreach (var widthCh in GetHighlightWidthCh(reply, indentSize, textLineLength, indentCount))
+            foreach (var widthCh in GetHighlightWidthCh(reply, indentSize, textLineLength, indentCount, writeToHTML))
                 yield return widthCh;
         }
     }
@@ -1489,22 +1517,35 @@ public partial class CommentsWriter(Settings settings)
 
     private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
     {
-        string[] lines =
+        var lines =
             (writeToHTML ? videoInfo.Description : videoInfo.Description.CleanTextForTextFile())
-            .Split([Environment.NewLine, "\n"], StringSplitOptions.None);
+            .Split([Environment.NewLine, "\n"], StringSplitOptions.None)
+            .Select(line => (line ?? string.Empty).Trim())
+            .ToArray();
+
+        var rtlBlocks = (writeToHTML ? lines.GetRTLBlocks() : null);
 
         for (int i = 0; i < lines.Length; i++)
         {
-            string line = (lines[i] ?? string.Empty).Trim();
-
+            string line = lines[i];
+            bool isLineRTL = writeToHTML && rtlBlocks.Any(b => b.start <= i && i <= b.end);
             int lineLength = (writeToHTML ? line.Length : line.GetTextLengthForTextFile());
 
             if (lineLength <= textLineLength)
             {
                 if (writeToHTML)
-                    yield return line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: false, allAuthors);
+                {
+                    string html = line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: false, allAuthors);
+
+                    if (isLineRTL)
+                        yield return $"<span class='rtl width-{textLineLength}'>{html}</span>";
+                    else
+                        yield return html;
+                }
                 else
+                {
                     yield return line;
+                }
             }
             else
             {
@@ -1512,7 +1553,13 @@ public partial class CommentsWriter(Settings settings)
                 {
                     string[] innerLines = line.SplitToHtmlLines(textLineLength, settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: false, allAuthors);
                     for (int k = 0; k < innerLines.Length; k++)
-                        yield return (innerLines[k] ?? string.Empty).Trim();
+                    {
+                        string html = (innerLines[k] ?? string.Empty).Trim();
+                        if (isLineRTL)
+                            yield return $"<span class='rtl width-{textLineLength}'>{html}</span>";
+                        else
+                            yield return html;
+                    }
                 }
                 else
                 {
