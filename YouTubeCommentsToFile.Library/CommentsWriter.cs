@@ -248,7 +248,8 @@ public partial class CommentsWriter(Settings settings)
 
         bool isDownloadVideoInfo =
             string.IsNullOrEmpty(settings.URL) == false &&
-            string.IsNullOrEmpty(settings.YtDlp) == false;
+            string.IsNullOrEmpty(settings.YtDlp) == false &&
+            settings.HideHeader == false;
 
         if (isDownloadVideoInfo)
         {
@@ -1240,8 +1241,6 @@ public partial class CommentsWriter(Settings settings)
 
         if (writeToHTML)
         {
-            string charset = encoding?.WebName ?? "utf-8";
-
             Color textColor = (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor);
             Color backgroundColor = (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor);
             Color authorColor = (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor);
@@ -1267,7 +1266,7 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine("<!DOCTYPE html>");
             writer.WriteLine("<html xmlns='http://www.w3.org/1999/xhtml' lang='en' xml:lang='en'>");
             writer.WriteLine("<head>");
-            writer.WriteLine($"{s4}<meta charset='{charset}' />");
+            writer.WriteLine($"{s4}<meta charset='{encoding?.WebName ?? "utf-8"}' />");
             writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<style>");
