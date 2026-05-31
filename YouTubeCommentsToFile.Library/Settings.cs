@@ -51,7 +51,6 @@ public class Settings
     [CodePage(28594)] public bool BalticISO4 { get; set; }
     [CodePage(28603)] public bool BalticISO13 { get; set; }
     [CodePage(1257)] public bool BalticWindows { get; set; }
-    [CodePage(28604)] public bool Celtic { get; set; }
     [CodePage(1250)] public bool CentralEuropean { get; set; }
     [CodePage(936)] public bool ChineseSimplified { get; set; }
     [CodePage(950)] public bool ChineseTraditional { get; set; }
@@ -64,11 +63,8 @@ public class Settings
     [CodePage(1255)] public bool HebrewWindows { get; set; }
     [CodePage(932)] public bool Japanese { get; set; }
     [CodePage(949)] public bool Korean { get; set; }
-    [CodePage(28600)] public bool NorthEuropean { get; set; }
-    [CodePage(28606)] public bool SouthEasternEuropean { get; set; }
     [CodePage(28593)] public bool SouthEuropean { get; set; }
     [CodePage(874)] public bool Thai { get; set; }
-    [CodePage(28601)] public bool ThaiISO { get; set; }
     [CodePage(28599)] public bool TurkishISO { get; set; }
     [CodePage(1254)] public bool TurkishWindows { get; set; }
     [CodePage(1258)] public bool Vietnamese { get; set; }

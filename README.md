@@ -70,14 +70,13 @@ YouTubeCommentsToFile [convert]
     [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
 
     [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
-    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows] [--celtic]
+    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
     [--central-european] [--chinese-simplified] [--chinese-traditional]
     [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
     [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
-    [--japanese] [--korean] [--north-european] [--south-eastern-european]
-    [--south-european] [--thai] [--thai-iso] [--turkish-iso] [--turkish-windows]
-    [--vietnamese] [--western-european-iso-1] [--western-european-iso-15]
-    [--western-european-windows]
+    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
+    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
+    [--western-european-iso-15] [--western-european-windows]
 
     [-u] [--uh] [--uf] [--uhf]
 
@@ -170,14 +169,13 @@ YouTubeCommentsToFile download
     [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
 
     [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
-    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows] [--celtic]
+    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
     [--central-european] [--chinese-simplified] [--chinese-traditional]
     [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
     [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
-    [--japanese] [--korean] [--north-european] [--south-eastern-european]
-    [--south-european] [--thai] [--thai-iso] [--turkish-iso] [--turkish-windows]
-    [--vietnamese] [--western-european-iso-1] [--western-european-iso-15]
-    [--western-european-windows]
+    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
+    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
+    [--western-european-iso-15] [--western-european-windows]
 
     [-u] [--uh] [--uf] [--uhf]
 
@@ -438,47 +436,39 @@ If the video page is not in English (the title, the description, majority of the
 Or, use one of these predefined encodings.
 
 ```console
---arabic-iso                  Arabic (ISO 8859-6). Code page 28596.
+--arabic-iso                  Arabic (ISO-8859-6). Code page 28596.
                               Arabic, Persian, Urdu.
 --arabic-windows              Arabic (Windows-1256). Code page 1256.
---baltic-iso-13               Baltic (ISO 8859-13). Code page 28603.
+--baltic-iso-13               Baltic (ISO-8859-13). Code page 28603.
                               Lithuanian, Latvian, Estonian.
---baltic-iso-4                Baltic (ISO 8859-4). Code page 28594.
+--baltic-iso-4                Baltic (ISO-8859-4). Code page 28594.
                               Estonian, Latvian, Lithuanian, Greenlandic, Sami.
 --baltic-windows              Baltic (Windows-1257). Code page 1257.
---celtic                      Celtic (ISO 8859-14). Code page 28604.
-                              Irish, Scottish Gaelic, Welsh, Breton.
 --central-european            Central European (Windows-1250). Code page 1250.
 --chinese-simplified          Chinese Simplified (GB2312). Code page 936.
 --chinese-traditional         Chinese Traditional (Big5). Code page 950.
---cyrillic-iso                Cyrillic (ISO 8859-5). Code page 28595.
+--cyrillic-iso                Cyrillic (ISO-8859-5). Code page 28595.
                               Russian, Ukrainian, Bulgarian, Belarusian,
                               Macedonian, Serbian.
 --cyrillic-windows            Cyrillic (Windows-1251). Code page 1251.
---eastern-european            Eastern European (ISO 8859-2). Code page 28592.
+--eastern-european            Eastern European (ISO-8859-2). Code page 28592.
                               Czech, Hungarian, Polish, Romanian, Croatian,
                               Slovak, Slovenian.
---greek-iso                   Greek (ISO 8859-7). Code page 28597.
+--greek-iso                   Greek (ISO-8859-7). Code page 28597.
 --greek-windows               Greek (Windows-1253). Code page 1253.
---hebrew-iso                  Hebrew (ISO 8859-8). Code page 28598.
+--hebrew-iso                  Hebrew (ISO-8859-8). Code page 28598.
 --hebrew-windows              Hebrew (Windows-1255). Code page 1255.
---japanese                    Japanese (ShiftJIS). Code page 932.
---korean                      Korean (Windows949). Code page 949.
---north-european              North European (ISO 8859-10). Code page 28600.
-                              Nordic languages.
---south-eastern-european      South-Eastern European (ISO 8859-16). Code page 28606.
-                              Albanian, Croatian, Bosnian, Serbian, Hungarian,
-                              Polish, Romanian, Slovene.
---south-european              South European (ISO 8859-3). Code page 28593.
+--japanese                    Japanese (Shift-JIS). Code page 932.
+--korean                      Korean (Windows-949). Code page 949.
+--south-european              South European (ISO-8859-3). Code page 28593.
                               Maltese, Esperanto, Turkish.
---thai                        Thai (TIS620). Code page 874.
---thai-iso                    Thai (ISO 8859-11). Code page 28601.
---turkish-iso                 Turkish (ISO 8859-9). Code page 28599.
+--thai                        Thai (TIS-620). Code page 874.
+--turkish-iso                 Turkish (ISO-8859-9). Code page 28599.
 --turkish-windows             Turkish (Windows-1254). Code page 1254.
---vietnamese                  Vietnamese (Windows1258). Code page 1258.
---western-european-iso-1      Western European (ISO 8859-1). Code page 28591.
+--vietnamese                  Vietnamese (Windows-1258). Code page 1258.
+--western-european-iso-1      Western European (ISO-8859-1). Code page 28591.
                               English, French, Spanish, German, Italian, Portuguese.
---western-european-iso-15     Western European (ISO 8859-15). Code page 28605.
+--western-european-iso-15     Western European (ISO-8859-15). Code page 28605.
                               English, French, German, Spanish, Finnish, Danish,
                               Swedish, Italian, Dutch.
 --western-european-windows    Western European (Windows-1252). Code page 1252.

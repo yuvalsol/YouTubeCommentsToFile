@@ -140,23 +140,20 @@ internal interface IEncodingOptions
     [OptionPrecedence(31, 1)]
     int? EncodingCodePage { get; set; }
 
-    [Option("arabic-iso", HelpText = "Arabic (ISO 8859-6). Code page 28596. Arabic, Persian, Urdu.")]
+    [Option("arabic-iso", HelpText = "Arabic (ISO-8859-6). Code page 28596. Arabic, Persian, Urdu.")]
     bool ArabicISO { get; set; }
 
     [Option("arabic-windows", HelpText = "Arabic (Windows-1256). Code page 1256.")]
     bool ArabicWindows { get; set; }
 
-    [Option("baltic-iso-4", HelpText = "Baltic (ISO 8859-4). Code page 28594. Estonian, Latvian, Lithuanian, Greenlandic, Sámi.")]
+    [Option("baltic-iso-4", HelpText = "Baltic (ISO-8859-4). Code page 28594. Estonian, Latvian, Lithuanian, Greenlandic, Sámi.")]
     bool BalticISO4 { get; set; }
 
-    [Option("baltic-iso-13", HelpText = "Baltic (ISO 8859-13). Code page 28603. Lithuanian, Latvian, Estonian.")]
+    [Option("baltic-iso-13", HelpText = "Baltic (ISO-8859-13). Code page 28603. Lithuanian, Latvian, Estonian.")]
     bool BalticISO13 { get; set; }
 
     [Option("baltic-windows", HelpText = "Baltic (Windows-1257). Code page 1257.")]
     bool BalticWindows { get; set; }
-
-    [Option("celtic", HelpText = "Celtic (ISO 8859-14). Code page 28604. Irish, Scottish Gaelic, Welsh, Breton.")]
-    bool Celtic { get; set; }
 
     [Option("central-european", HelpText = "Central European (Windows-1250). Code page 1250.")]
     bool CentralEuropean { get; set; }
@@ -167,61 +164,52 @@ internal interface IEncodingOptions
     [Option("chinese-traditional", HelpText = "Chinese Traditional (Big5). Code page 950.")]
     bool ChineseTraditional { get; set; }
 
-    [Option("cyrillic-iso", HelpText = "Cyrillic (ISO 8859-5). Code page 28595. Russian, Ukrainian, Bulgarian, Belarusian, Macedonian, Serbian.")]
+    [Option("cyrillic-iso", HelpText = "Cyrillic (ISO-8859-5). Code page 28595. Russian, Ukrainian, Bulgarian, Belarusian, Macedonian, Serbian.")]
     bool CyrillicISO { get; set; }
 
     [Option("cyrillic-windows", HelpText = "Cyrillic (Windows-1251). Code page 1251.")]
     bool CyrillicWindows { get; set; }
 
-    [Option("eastern-european", HelpText = "Eastern European (ISO 8859-2). Code page 28592. Czech, Hungarian, Polish, Romanian, Croatian, Slovak, Slovenian.")]
+    [Option("eastern-european", HelpText = "Eastern European (ISO-8859-2). Code page 28592. Czech, Hungarian, Polish, Romanian, Croatian, Slovak, Slovenian.")]
     bool EasternEuropean { get; set; }
 
-    [Option("greek-iso", HelpText = "Greek (ISO 8859-7). Code page 28597.")]
+    [Option("greek-iso", HelpText = "Greek (ISO-8859-7). Code page 28597.")]
     bool GreekISO { get; set; }
 
     [Option("greek-windows", HelpText = "Greek (Windows-1253). Code page 1253.")]
     bool GreekWindows { get; set; }
 
-    [Option("hebrew-iso", HelpText = "Hebrew (ISO 8859-8). Code page 28598.")]
+    [Option("hebrew-iso", HelpText = "Hebrew (ISO-8859-8). Code page 28598.")]
     bool HebrewISO { get; set; }
 
     [Option("hebrew-windows", HelpText = "Hebrew (Windows-1255). Code page 1255.")]
     bool HebrewWindows { get; set; }
 
-    [Option("japanese", HelpText = "Japanese (ShiftJIS). Code page 932.")]
+    [Option("japanese", HelpText = "Japanese (Shift-JIS). Code page 932.")]
     bool Japanese { get; set; }
 
-    [Option("korean", HelpText = "Korean (Windows949). Code page 949.")]
+    [Option("korean", HelpText = "Korean (Windows-949). Code page 949.")]
     bool Korean { get; set; }
 
-    [Option("north-european", HelpText = "North European (ISO 8859-10). Code page 28600. Nordic languages.")]
-    bool NorthEuropean { get; set; }
-
-    [Option("south-eastern-european", HelpText = "South-Eastern European (ISO 8859-16). Code page 28606. Albanian, Croatian, Bosnian, Serbian, Hungarian, Polish, Romanian, Slovene.")]
-    bool SouthEasternEuropean { get; set; }
-
-    [Option("south-european", HelpText = "South European (ISO 8859-3). Code page 28593. Maltese, Esperanto, Turkish.")]
+    [Option("south-european", HelpText = "South European (ISO-8859-3). Code page 28593. Maltese, Esperanto, Turkish.")]
     bool SouthEuropean { get; set; }
 
-    [Option("thai", HelpText = "Thai (TIS620). Code page 874.")]
+    [Option("thai", HelpText = "Thai (TIS-620). Code page 874.")]
     bool Thai { get; set; }
 
-    [Option("thai-iso", HelpText = "Thai (ISO 8859-11). Code page 28601.")]
-    bool ThaiISO { get; set; }
-
-    [Option("turkish-iso", HelpText = "Turkish (ISO 8859-9). Code page 28599.")]
+    [Option("turkish-iso", HelpText = "Turkish (ISO-8859-9). Code page 28599.")]
     bool TurkishISO { get; set; }
 
     [Option("turkish-windows", HelpText = "Turkish (Windows-1254). Code page 1254.")]
     bool TurkishWindows { get; set; }
 
-    [Option("vietnamese", HelpText = "Vietnamese (Windows1258). Code page 1258.")]
+    [Option("vietnamese", HelpText = "Vietnamese (Windows-1258). Code page 1258.")]
     bool Vietnamese { get; set; }
 
-    [Option("western-european-iso-1", HelpText = "Western European (ISO 8859-1). Code page 28591. English, French, Spanish, German, Italian, Portuguese.")]
+    [Option("western-european-iso-1", HelpText = "Western European (ISO-8859-1). Code page 28591. English, French, Spanish, German, Italian, Portuguese.")]
     bool WesternEuropeanISO1 { get; set; }
 
-    [Option("western-european-iso-15", HelpText = "Western European (ISO 8859-15). Code page 28605. English, French, German, Spanish, Finnish, Danish, Swedish, Italian, Dutch.")]
+    [Option("western-european-iso-15", HelpText = "Western European (ISO-8859-15). Code page 28605. English, French, German, Spanish, Finnish, Danish, Swedish, Italian, Dutch.")]
     bool WesternEuropeanISO15 { get; set; }
 
     [Option("western-european-windows", HelpText = "Western European (Windows-1252). Code page 1252.")]
@@ -378,7 +366,6 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
     public bool BalticISO4 { get; set; }
     public bool BalticISO13 { get; set; }
     public bool BalticWindows { get; set; }
-    public bool Celtic { get; set; }
     public bool CentralEuropean { get; set; }
     public bool ChineseSimplified { get; set; }
     public bool ChineseTraditional { get; set; }
@@ -391,11 +378,8 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
     public bool HebrewWindows { get; set; }
     public bool Japanese { get; set; }
     public bool Korean { get; set; }
-    public bool NorthEuropean { get; set; }
-    public bool SouthEasternEuropean { get; set; }
     public bool SouthEuropean { get; set; }
     public bool Thai { get; set; }
-    public bool ThaiISO { get; set; }
     public bool TurkishISO { get; set; }
     public bool TurkishWindows { get; set; }
     public bool Vietnamese { get; set; }
@@ -444,7 +428,6 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
             BalticISO4 = BalticISO4,
             BalticISO13 = BalticISO13,
             BalticWindows = BalticWindows,
-            Celtic = Celtic,
             CentralEuropean = CentralEuropean,
             ChineseSimplified = ChineseSimplified,
             ChineseTraditional = ChineseTraditional,
@@ -457,11 +440,8 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
             HebrewWindows = HebrewWindows,
             Japanese = Japanese,
             Korean = Korean,
-            NorthEuropean = NorthEuropean,
-            SouthEasternEuropean = SouthEasternEuropean,
             SouthEuropean = SouthEuropean,
             Thai = Thai,
-            ThaiISO = ThaiISO,
             TurkishISO = TurkishISO,
             TurkishWindows = TurkishWindows,
             Vietnamese = Vietnamese,
@@ -617,7 +597,6 @@ internal class EncodingHelpOptions : IEncodingOptions
     public bool BalticISO4 { get; set; }
     public bool BalticISO13 { get; set; }
     public bool BalticWindows { get; set; }
-    public bool Celtic { get; set; }
     public bool CentralEuropean { get; set; }
     public bool ChineseSimplified { get; set; }
     public bool ChineseTraditional { get; set; }
@@ -630,11 +609,8 @@ internal class EncodingHelpOptions : IEncodingOptions
     public bool HebrewWindows { get; set; }
     public bool Japanese { get; set; }
     public bool Korean { get; set; }
-    public bool NorthEuropean { get; set; }
-    public bool SouthEasternEuropean { get; set; }
     public bool SouthEuropean { get; set; }
     public bool Thai { get; set; }
-    public bool ThaiISO { get; set; }
     public bool TurkishISO { get; set; }
     public bool TurkishWindows { get; set; }
     public bool Vietnamese { get; set; }
