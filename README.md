@@ -62,6 +62,7 @@ YouTubeCommentsToFile [convert]
     --json-file <path>
     [--url <url>]
     [--yt-dlp <path>]
+    [--deno <path>]
 
     [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
     [--delete-json-file] [--disable-threading]
@@ -107,6 +108,12 @@ Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile d
 --yt-dlp                  Path to yt-dlp.
 ```
 
+Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default. [Read more here](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
+
+```console
+--deno                    Path to Deno.
+```
+
 ### Convert Usage
 
 1. Convert to text file:
@@ -121,10 +128,10 @@ YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json"
 YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --to-html
 ```
 
-3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, description:
+3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description:
 
 ```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --to-html --show-comment-navigation-links --show-copy-links --uh
+YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --to-html --show-comment-navigation-links --show-copy-links --uh
 ```
 
 4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted:
@@ -147,6 +154,7 @@ Downloads comments to text file or HTML file. Uses verb `download`. Verb is requ
 YouTubeCommentsToFile download
     --url <url>
     [--yt-dlp <path>]
+    [--deno <path>]
     [--download-path <path>]
     [--max-comments <value>]
     [--max-parents <value>]
@@ -216,6 +224,12 @@ Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile d
 
 ```console
 --yt-dlp                  Path to yt-dlp.
+```
+
+Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default. [Read more here](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
+
+```console
+--deno                    Path to Deno.
 ```
 
 Path to where to download comments JSON file and convert it to text file or HTML file. If not set, download path is set to YouTubeCommentsToFile directory.
@@ -305,19 +319,19 @@ Quick reminder, double quotes in double quotes need to be escaped with a backsla
 1. Download to text file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder"
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder"
 ```
 
 2. Download to HTML file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --to-html
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html
 ```
 
 3. Download to more robust HTML file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --to-html --show-comment-navigation-links --show-copy-links --uh
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html --show-comment-navigation-links --show-copy-links --uh
 ```
 
 4. The `--yt-dlp` option can be omitted if yt-dlp is at the same directory as YouTubeCommentsToFile:
@@ -329,31 +343,31 @@ YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg
 5. Download all comments, sort by top comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --sort-top
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --sort-top
 ```
 
 6. Download up to 10,000 top-level comments and replies, at most 100 replies for each top-level comment, sort by new comments first (default):
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --max-comments 10000 --max-replies-per-thread 100
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-comments 10000 --max-replies-per-thread 100
 ```
 
 7. Download all top-level comments, up to 1000 replies, at most 10 replies for each top-level comment, sort by new comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --max-replies 1000 --max-replies-per-thread 10 --sort-new
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-replies 1000 --max-replies-per-thread 10 --sort-new
 ```
 
 8. Download up to 1000 top-level comments, no replies, sort by top comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --max-parents 1000 --max-replies 0 --sort-top
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-parents 1000 --max-replies 0 --sort-top
 ```
 
 9. Download to text file, use configuration file for yt-dlp, use cookies file for restricted video:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --download-path "C:\Path\To\Downloads Folder" --yt-dlp-options "--config-locations \"C:\Path\To\yt-dlp.conf\" --cookies cookies.txt"
+YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --yt-dlp-options "--config-locations \"C:\Path\To\yt-dlp.conf\" --cookies cookies.txt"
 ```
 
 ## Convert and Download Shared Options

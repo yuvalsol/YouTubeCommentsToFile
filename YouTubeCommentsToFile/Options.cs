@@ -19,6 +19,10 @@ internal interface IConvertOptions
     [Option("yt-dlp", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.")]
     [OptionPrecedence(3)]
     string YtDlp { get; set; }
+
+    [Option("deno", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
+    [OptionPrecedence(4)]
+    string Deno { get; set; }
 }
 
 internal interface IDownloadOptions
@@ -31,8 +35,12 @@ internal interface IDownloadOptions
     [OptionPrecedence(3)]
     string YtDlp { get; set; }
 
-    [Option("download-path", HelpText = $"Path to download and to convert comments. If not set, download path is set to {nameof(YouTubeCommentsToFile)} directory.")]
+    [Option("deno", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
     [OptionPrecedence(4)]
+    string Deno { get; set; }
+
+    [Option("download-path", HelpText = $"Path to download and to convert comments. If not set, download path is set to {nameof(YouTubeCommentsToFile)} directory.")]
+    [OptionPrecedence(5)]
     string DownloadPath { get; set; }
 
     [Option("max-comments", HelpText = "Maximum number of top-level comments and replies to extract. If not set, extracts all.")]
@@ -286,6 +294,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions
     public string JsonFile { get; set; }
     public string URL { get; set; }
     public string YtDlp { get; set; }
+    public string Deno { get; set; }
 
     public override Settings ToSettings()
     {
@@ -294,6 +303,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions
         settings.JsonFile = JsonFile;
         settings.URL = URL;
         settings.YtDlp = YtDlp;
+        settings.Deno = Deno;
         return settings;
     }
 }
@@ -303,6 +313,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
 {
     public string URL { get; set; }
     public string YtDlp { get; set; }
+    public string Deno { get; set; }
     public string DownloadPath { get; set; }
     public uint? MaxComments { get; set; }
     public uint? MaxParents { get; set; }
@@ -324,6 +335,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
         settings.Download = true;
         settings.URL = URL;
         settings.YtDlp = YtDlp;
+        settings.Deno = Deno;
         settings.DownloadPath = DownloadPath;
         settings.MaxComments = MaxComments;
         settings.MaxParents = MaxParents;
@@ -547,12 +559,14 @@ internal class ConvertHelpOptions : IConvertOptions
     public string JsonFile { get; set; }
     public string URL { get; set; }
     public string YtDlp { get; set; }
+    public string Deno { get; set; }
 }
 
 internal class DownloadHelpOptions : IDownloadOptions
 {
     public string URL { get; set; }
     public string YtDlp { get; set; }
+    public string Deno { get; set; }
     public string DownloadPath { get; set; }
     public bool FilenameSanitization { get; set; }
     public uint? MaxComments { get; set; }
@@ -675,12 +689,13 @@ internal class ConvertUsage
             );
 
             yield return new Example(
-                "3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, description",
+                "3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description",
                 new ConvertOptions
                 {
                     JsonFile = @"C:\Path\To\Comments File.json",
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     ToHTML = true,
                     ShowCommentNavigationLinks = true,
                     ShowCopyLinks = true,
@@ -726,6 +741,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder"
                 }
             );
@@ -736,6 +752,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     ToHTML = true
                 }
@@ -747,6 +764,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     ToHTML = true,
                     ShowCommentNavigationLinks = true,
@@ -770,6 +788,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     SortTop = true
                 }
@@ -781,6 +800,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     MaxComments = 10000,
                     MaxRepliesPerThread = 100
@@ -793,6 +813,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     MaxReplies = 1000,
                     MaxRepliesPerThread = 10,
@@ -806,6 +827,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     MaxParents = 1000,
                     MaxReplies = 0,
@@ -819,6 +841,7 @@ internal class DownloadUsage
                 {
                     URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
                     YtDlp = @"C:\Path\To\yt-dlp.exe",
+                    Deno = @"C:\Path\To\deno.exe",
                     DownloadPath = @"C:\Path\To\Downloads Folder",
                     YtDlpOptions = @"--config-locations ""C:\Path\To\yt-dlp.conf"" --cookies cookies.txt"
                 }

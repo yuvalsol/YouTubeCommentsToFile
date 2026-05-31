@@ -95,16 +95,13 @@ public partial class CommentsWriter(Settings settings)
 
     #endregion
 
-    #region yt-dlp
+    #region yt-dlp and deno
 
-    private const int COMMENTS_TIMEOUT = 10 * 60 * 1000;
-    private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
-
-    private static Process GetYtDlpProcess(string ytDlp, string ytDlpCommandLine, Encoding encoding = null)
+    private static Process GetProcess(string program, string arguments, Encoding encoding = null)
     {
         var process = new Process();
-        process.StartInfo.FileName = ytDlp;
-        process.StartInfo.Arguments = ytDlpCommandLine;
+        process.StartInfo.FileName = program;
+        process.StartInfo.Arguments = arguments;
         process.StartInfo.CreateNoWindow = true;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
@@ -114,10 +111,23 @@ public partial class CommentsWriter(Settings settings)
         return process;
     }
 
-    [GeneratedRegex(@"^\d+[.-]\d+[.-]\d+$")]
+    [GeneratedRegex(@"^\d+(?:[.-]\d+){2,}$")]
     private static partial Regex RegexYtDlpVersion();
 
     private static bool IsYtDlpAccessible()
+    {
+        return IsProgramAccessible("yt-dlp", "--version", RegexYtDlpVersion());
+    }
+
+    [GeneratedRegex(@"^deno \d+(?:[.-]\d+){2,}$")]
+    private static partial Regex RegexDenoVersion();
+
+    private static bool IsDenoAccessible()
+    {
+        return IsProgramAccessible("deno", "-version", RegexDenoVersion());
+    }
+
+    private static bool IsProgramAccessible(string program, string versionArgument, Regex regexVersion)
     {
         try
         {
@@ -125,7 +135,7 @@ public partial class CommentsWriter(Settings settings)
             int exitCode = -1;
 
             {
-                using var process = GetYtDlpProcess("yt-dlp", "--version");
+                using var process = GetProcess(program, versionArgument);
                 process.Start();
                 process.WaitForExit(VIDEO_INFO_TIMEOUT);
                 version = process.StandardOutput.ReadToEnd().Trim();
@@ -135,7 +145,7 @@ public partial class CommentsWriter(Settings settings)
             return
                 exitCode == 0 &&
                 string.IsNullOrEmpty(version) == false &&
-                RegexYtDlpVersion().IsMatch(version);
+                regexVersion.IsMatch(version);
         }
         catch
         {
@@ -153,11 +163,13 @@ public partial class CommentsWriter(Settings settings)
 
         FixDownloadPath();
 
-        FixYtDlp();
+        FixYtDlpAndDeno();
 
         bool isYtDlpAccessible;
         if (isYtDlpAccessible = string.IsNullOrEmpty(settings.YtDlp) && IsYtDlpAccessible())
             settings.YtDlp = "yt-dlp";
+
+        bool isDenoAccessible = string.IsNullOrEmpty(settings.Deno) && IsDenoAccessible();
 
         if (ValidateAndCleanURL() == false)
             throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URL));
@@ -177,6 +189,18 @@ public partial class CommentsWriter(Settings settings)
 
                 if (File.Exists(settings.YtDlp) == false)
                     throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+            }
+
+            if (isDenoAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.Deno) == false)
+                {
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno", StringComparison.OrdinalIgnoreCase) != 0)
+                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
+
+                    if (File.Exists(settings.Deno) == false)
+                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
+                }
             }
 
             if (string.IsNullOrEmpty(settings.DownloadPath))
@@ -205,6 +229,18 @@ public partial class CommentsWriter(Settings settings)
 
                     if (File.Exists(settings.YtDlp) == false)
                         throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+                }
+            }
+
+            if (isDenoAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.Deno) == false)
+                {
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno", StringComparison.OrdinalIgnoreCase) != 0)
+                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
+
+                    if (File.Exists(settings.Deno) == false)
+                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
                 }
             }
         }
@@ -444,14 +480,24 @@ public partial class CommentsWriter(Settings settings)
         settings.DownloadPath = Path.TrimEndingDirectorySeparator(settings.DownloadPath);
     }
 
-    private void FixYtDlp()
+    private void FixYtDlpAndDeno()
     {
-        if (string.IsNullOrEmpty(settings.YtDlp) == false)
+        if (string.IsNullOrEmpty(settings.YtDlp) == false && string.IsNullOrEmpty(settings.Deno) == false)
             return;
 
-        settings.YtDlp =
-            Directory.GetFiles(AppContext.BaseDirectory)
-            .FirstOrDefault(file => string.Compare(Path.GetFileName(file), "yt-dlp.exe", StringComparison.OrdinalIgnoreCase) == 0);
+#if LINUX_BUILD
+        string programYtDlp = "yt-dlp";
+        string programDeno = "deno";
+#else
+        string programYtDlp = "yt-dlp.exe";
+        string programDeno = "deno.exe";
+#endif
+
+        string[] files = Directory.GetFiles(AppContext.BaseDirectory);
+        if (string.IsNullOrEmpty(settings.YtDlp))
+            settings.YtDlp = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), programYtDlp, StringComparison.OrdinalIgnoreCase) == 0);
+        if (string.IsNullOrEmpty(settings.Deno))
+            settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), programDeno, StringComparison.OrdinalIgnoreCase) == 0);
     }
 
     private bool ValidateAndCleanURL()
@@ -610,6 +656,8 @@ public partial class CommentsWriter(Settings settings)
 
     #region Download Comments
 
+    private const int COMMENTS_TIMEOUT = 10 * 60 * 1000;
+
     private const string JSON_TEMPLATE = "%(comments)#+j";
     private const string JSON_FILE = "%(uploader&{{}} - |)s%(title){0}s.json";
 
@@ -670,6 +718,9 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(settings.YtDlpOptions) == false)
             ytDlpCommandLine += $" {settings.YtDlpOptions}";
 
+        if (string.IsNullOrEmpty(settings.Deno) == false)
+            ytDlpCommandLine += $@" --js-runtimes ""deno:{settings.Deno}""";
+
         ytDlpCommandLine += $@" ""{settings.URL}""";
 
         return ytDlpCommandLine;
@@ -681,7 +732,7 @@ public partial class CommentsWriter(Settings settings)
         int exitCode = -1;
 
         {
-            using var process = GetYtDlpProcess(settings.YtDlp, ytDlpCommandLine, encoding);
+            using var process = GetProcess(settings.YtDlp, ytDlpCommandLine, encoding);
 
             process.OutputDataReceived += (sender, e) =>
             {
@@ -833,6 +884,8 @@ public partial class CommentsWriter(Settings settings)
 
     #region Download Video Info
 
+    private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
+
     private async Task<VideoInfo> GetVideoInfoAsync(CancellationToken ct)
     {
         try
@@ -845,7 +898,7 @@ public partial class CommentsWriter(Settings settings)
             int exitCode = -1;
 
             {
-                using var process = GetYtDlpProcess(settings.YtDlp, ytDlpCommandLine, encoding);
+                using var process = GetProcess(settings.YtDlp, ytDlpCommandLine, encoding);
                 process.Start();
                 await process.WaitForExitAsync(ct);
 
@@ -878,9 +931,15 @@ public partial class CommentsWriter(Settings settings)
     {
         if (string.IsNullOrEmpty(ytDlp))
         {
+#if LINUX_BUILD
+        string program = "yt-dlp";
+#else
+            string program = "yt-dlp.exe";
+#endif
+
             ytDlp =
                 Directory.GetFiles(AppContext.BaseDirectory)
-                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), "yt-dlp.exe", StringComparison.OrdinalIgnoreCase) == 0);
+                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), program, StringComparison.OrdinalIgnoreCase) == 0);
         }
 
         if (string.IsNullOrEmpty(ytDlp) && IsYtDlpAccessible())
@@ -897,7 +956,7 @@ public partial class CommentsWriter(Settings settings)
         int exitCode = -1;
 
         {
-            using var process = GetYtDlpProcess(ytDlp, ytDlpCommandLine, encoding);
+            using var process = GetProcess(ytDlp, ytDlpCommandLine, encoding);
             process.Start();
             process.WaitForExit(VIDEO_INFO_TIMEOUT);
             outputText = process.StandardOutput.ReadToEnd();

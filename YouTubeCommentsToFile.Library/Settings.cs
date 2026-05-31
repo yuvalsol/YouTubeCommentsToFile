@@ -26,6 +26,7 @@ public class Settings
     // Shared
     public string URL { get; set; }
     public string YtDlp { get; set; }
+    public string Deno { get; set; }
     public bool ToHTML { get; set; }
     public bool ToHTMLAndText { get; set; }
     public bool DarkTheme { get; set; }
