@@ -27,7 +27,10 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
     public int CommentNumber { get; set; }
     public int ReplyNumber { get; set; }
-    public bool IsHighlight { get; set; }
+    public bool IsHighlightUploader { get; set; }
+    public bool IsHighlightAuthor { get; set; }
+    public bool IsHighlightText { get; set; }
+    public bool IsHighlight => IsHighlightUploader || IsHighlightAuthor || IsHighlightText;
 
     #endregion
 
@@ -176,9 +179,10 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         if (writeToHTML == false && IsHighlight)
             lineCh -= 4; // "│ " + line + " │"
 
-        string openHighlightBorderTop = (writeToHTML && IsHighlight ? $"<span class='highlight highlight-border-top width-{lineCh}'>" : null);
-        string openHighlightBorderMiddle = (writeToHTML && IsHighlight ? $"<span class='highlight highlight-border-middle width-{lineCh}'>" : null);
-        string openHighlightBorderBottom = (writeToHTML && IsHighlight ? $"<span class='highlight highlight-border-bottom width-{lineCh}'>" : null);
+        string highlightClass = (writeToHTML && IsHighlight ? (IsHighlightUploader ? "highlight-uploader" : (IsHighlightAuthor ? "highlight-author" : "highlight-text")) : null);
+        string openHighlightBorderTop = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-top width-{lineCh}'>" : null);
+        string openHighlightBorderMiddle = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-middle width-{lineCh}'>" : null);
+        string openHighlightBorderBottom = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-bottom width-{lineCh}'>" : null);
         string closeHighlightBorder = (writeToHTML && IsHighlight ? "</span>" : null);
 
         string id = (writeToHTML ? $"c{CommentNumber}{(IsReply ? $"r{ReplyNumber}" : null)}" : null);

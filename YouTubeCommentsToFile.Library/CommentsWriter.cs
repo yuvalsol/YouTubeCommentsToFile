@@ -15,7 +15,9 @@ public partial class CommentsWriter(Settings settings)
     private string jsonFile;
     private List<Comment> comments;
     private List<string> allAuthors;
-    private bool hasHighlight;
+    private bool hasHighlightUploader;
+    private bool hasHighlightAuthor;
+    private bool hasHighlightText;
     private bool hasYouTube;
 
 #if DEBUG
@@ -52,12 +54,16 @@ public partial class CommentsWriter(Settings settings)
     private static readonly Color TextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color BackgroundLightThemeColor = Color.White;
     private static readonly Color AuthorLightThemeColor = Color.FromArgb(15, 128, 15);
-    private static readonly Color SmallElemLightThemeColor = Color.FromArgb(96, 96, 96);
-    private static readonly Color FavoritedBgLightThemeColor = Color.FromArgb(229, 235, 238);
-    private static readonly Color HeaderBgLightThemeColor = Color.FromArgb(242, 242, 242);
-    private static readonly Color HighlightLightThemeColor = Color.FromArgb(15, 15, 15);
-    private static readonly Color HighlightBgLightThemeColor = Color.FromArgb(255, 249, 224);
-    private static readonly Color HighlightBorderLightThemeColor = Color.FromArgb(183, 136, 0);
+    private static readonly Color SmallElementsLightThemeColor = Color.FromArgb(96, 96, 96);
+    private static readonly Color FavoritedBackgroundLightThemeColor = Color.FromArgb(229, 235, 238);
+    private static readonly Color HeaderBackgroundLightThemeColor = Color.FromArgb(242, 242, 242);
+    private static readonly Color HighlightTextLightThemeColor = Color.FromArgb(15, 15, 15);
+    private static readonly Color HighlightUploaderBackgroundLightThemeColor = Color.FromArgb(255, 250, 238);
+    private static readonly Color HighlightUploaderBorderLightThemeColor = Color.FromArgb(183, 136, 0);
+    private static readonly Color HighlightAuthorBackgroundLightThemeColor = Color.FromArgb(252, 241, 237);
+    private static readonly Color HighlightAuthorBorderLightThemeColor = Color.FromArgb(255, 67, 5);
+    private static readonly Color HighlightTextBackgroundLightThemeColor = Color.FromArgb(231, 239, 252);
+    private static readonly Color HighlightTextBorderLightThemeColor = Color.FromArgb(34, 110, 233);
     private static readonly Color LinkLightThemeColor = Color.FromArgb(0, 0, 238);
     private static readonly Color CopyTextSuccessLightThemeColor = Color.FromArgb(15, 170, 15);
     private static readonly Color CopyTextFailureLightThemeColor = Color.FromArgb(255, 15, 15);
@@ -65,19 +71,23 @@ public partial class CommentsWriter(Settings settings)
     private static readonly Color TextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color BackgroundDarkThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color AuthorDarkThemeColor = Color.FromArgb(15, 128, 15);
-    private static readonly Color SmallElemDarkThemeColor = Color.FromArgb(170, 170, 170);
-    private static readonly Color FavoritedBgDarkThemeColor = Color.FromArgb(96, 96, 96);
-    private static readonly Color HeaderBgDarkThemeColor = Color.FromArgb(39, 39, 39);
-    private static readonly Color HighlightDarkThemeColor = Color.FromArgb(15, 15, 15);
-    private static readonly Color HighlightBgDarkThemeColor = Color.FromArgb(105, 137, 134);
-    private static readonly Color HighlightBorderDarkThemeColor = Color.FromArgb(0, 114, 124);
+    private static readonly Color SmallElementsDarkThemeColor = Color.FromArgb(170, 170, 170);
+    private static readonly Color FavoritedBackgroundDarkThemeColor = Color.FromArgb(96, 96, 96);
+    private static readonly Color HeaderBackgroundDarkThemeColor = Color.FromArgb(39, 39, 39);
+    private static readonly Color HighlightTextDarkThemeColor = Color.FromArgb(241, 241, 241);
+    private static readonly Color HighlightUploaderBackgroundDarkThemeColor = Color.FromArgb(140, 33, 23);
+    private static readonly Color HighlightUploaderBorderDarkThemeColor = Color.FromArgb(252, 225, 150);
+    private static readonly Color HighlightAuthorBackgroundDarkThemeColor = Color.FromArgb(137, 57, 16);
+    private static readonly Color HighlightAuthorBorderDarkThemeColor = Color.FromArgb(255, 165, 0);
+    private static readonly Color HighlightTextBackgroundDarkThemeColor = Color.FromArgb(13, 57, 132);
+    private static readonly Color HighlightTextBorderDarkThemeColor = Color.FromArgb(231, 239, 252);
     private static readonly Color LinkDarkThemeColor = Color.FromArgb(62, 166, 255);
     private static readonly Color CopyTextSuccessDarkThemeColor = Color.FromArgb(15, 170, 15);
     private static readonly Color CopyTextFailureDarkThemeColor = Color.FromArgb(213, 15, 15);
 
     private static readonly Color HeartColor = Color.FromArgb(255, 0, 51);
-    private static readonly Color YouTubeColor = Color.White;
-    private static readonly Color YouTubeBgColor = Color.Red;
+    private static readonly Color YouTubeTextColor = Color.White;
+    private static readonly Color YouTubeBackgroundColor = Color.Red;
 
     #endregion
 
@@ -415,7 +425,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            ProcessComments(out string uploaderId, out allAuthors, out hasHighlight, out hasYouTube, out commentsCount, out totalComments);
+            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out hasYouTube, out commentsCount, out totalComments);
 
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
@@ -1056,7 +1066,9 @@ public partial class CommentsWriter(Settings settings)
     private void ProcessComments(
         out string uploaderId,
         out List<string> allAuthors,
-        out bool hasHighlight,
+        out bool hasHighlightUploader,
+        out bool hasHighlightAuthor,
+        out bool hasHighlightText,
         out bool hasYouTube,
         out int commentsCount,
         out int totalComments)
@@ -1088,7 +1100,7 @@ public partial class CommentsWriter(Settings settings)
 
         FilterComments();
 
-        EnumerateAndHighlightComments(out commentsCount, out hasHighlight);
+        EnumerateAndHighlightComments(out commentsCount, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText);
     }
 
     private void AddRepliesToComments()
@@ -1211,10 +1223,12 @@ public partial class CommentsWriter(Settings settings)
             RemoveUnfilteredReplies(reply, filteredComments);
     }
 
-    private void EnumerateAndHighlightComments(out int commentsCount, out bool hasHighlight)
+    private void EnumerateAndHighlightComments(out int commentsCount, out bool hasHighlightUploader, out bool hasHighlightAuthor, out bool hasHighlightText)
     {
         commentsCount = 0;
-        hasHighlight = false;
+        hasHighlightUploader = false;
+        hasHighlightAuthor = false;
+        hasHighlightText = false;
 
         if (comments.IsNullOrEmpty())
             return;
@@ -1223,34 +1237,44 @@ public partial class CommentsWriter(Settings settings)
         foreach (var comment in comments)
         {
             int replyNumber = 0;
-            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount, ref hasHighlight);
+            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount, ref hasHighlightUploader, ref hasHighlightAuthor, ref hasHighlightText);
         }
     }
 
-    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount, ref bool hasHighlight)
+    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount, ref bool hasHighlightUploader, ref bool hasHighlightAuthor, ref bool hasHighlightText)
     {
         comment.CommentNumber = commentNumber;
         comment.ReplyNumber = replyNumber++;
         commentsCount++;
 
-        comment.IsHighlight =
-            settings.SearchItems.Where(s => s.Highlight)
+        comment.IsHighlightUploader = settings.SearchItems
+            .Where(s => s.IsSearchUploader && s.Highlight)
+            .HasAny(s => s.IsMatch(comment));
+
+        comment.IsHighlightAuthor = settings.SearchItems
+            .Where(s => s.IsSearchAuthor && s.Highlight)
+            .HasAny(s => s.IsMatch(comment));
+
+        comment.IsHighlightText = settings.SearchItems
+            .Where(s => s.IsSearchText && s.Highlight)
             .HasAny(s => s.IsMatch(comment));
 
 #if DEBUG
         if (HighlightAllComments)
-            comment.IsHighlight = true;
+            comment.IsHighlightText = true;
         else if (FilterAndHighlightCommentsWithEmoji)
-            comment.IsHighlight = comment.Text.HasEmoji();
+            comment.IsHighlightText = comment.Text.HasEmoji();
 #endif
 
-        hasHighlight |= comment.IsHighlight;
+        hasHighlightUploader |= comment.IsHighlightUploader;
+        hasHighlightAuthor |= comment.IsHighlightAuthor;
+        hasHighlightText |= comment.IsHighlightText;
 
         if (comment.Count == 0)
             return;
 
         foreach (var reply in comment)
-            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount, ref hasHighlight);
+            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount, ref hasHighlightUploader, ref hasHighlightAuthor, ref hasHighlightText);
     }
 
     #endregion
@@ -1303,12 +1327,16 @@ public partial class CommentsWriter(Settings settings)
             Color textColor = (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor);
             Color backgroundColor = (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor);
             Color authorColor = (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor);
-            Color smallElemColor = (settings.DarkTheme ? SmallElemDarkThemeColor : SmallElemLightThemeColor);
-            Color favoritedBgColor = (settings.DarkTheme ? FavoritedBgDarkThemeColor : FavoritedBgLightThemeColor);
-            Color headerBgColor = (settings.DarkTheme ? HeaderBgDarkThemeColor : HeaderBgLightThemeColor);
-            Color highlightColor = (settings.DarkTheme ? HighlightDarkThemeColor : HighlightLightThemeColor);
-            Color highlightBgColor = (settings.DarkTheme ? HighlightBgDarkThemeColor : HighlightBgLightThemeColor);
-            Color highlightBorderColor = (settings.DarkTheme ? HighlightBorderDarkThemeColor : HighlightBorderLightThemeColor);
+            Color smallElementsColor = (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor);
+            Color favoritedBackgroundColor = (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor);
+            Color headerBackgroundColor = (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor);
+            Color highlightTextColor = (settings.DarkTheme ? HighlightTextDarkThemeColor : HighlightTextLightThemeColor);
+            Color highlightUploaderBackgroundColor = (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor);
+            Color highlightUploaderBorderColor = (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor);
+            Color highlightAuthorBackgroundColor = (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor);
+            Color highlightAuthorBorderColor = (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor);
+            Color highlightTextBackgroundColor = (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor);
+            Color highlightTextBorderColor = (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor);
             Color linkColor = (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor);
             Color copyTextSuccess = (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor);
             Color copyTextFailure = (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor);
@@ -1338,24 +1366,32 @@ public partial class CommentsWriter(Settings settings)
             foreach (var widthCh in widthsCh)
                 writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? $"{(settings.HideCommentSeparators ? null : ", hr")}{(settings.HideHeader ? null : ", .header")}" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
             if (settings.HideHeader == false)
-                writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBgColor.ToRgb()}); }}");
+                writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBackgroundColor.ToRgb()}); }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             if (hasYouTube)
-                writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeColor.ToRgb()}); background-color: rgb({YouTubeBgColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+                writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeTextColor.ToRgb()}); background-color: rgb({YouTubeBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: rgb({textColor.ToRgb()}); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
             writer.WriteLine($"{s8}.other-author {{ color: rgb({authorColor.ToRgb()}); }}");
-            writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: rgb({smallElemColor.ToRgb()}); font-size: smaller; }}");
-            writer.WriteLine($"{s8}.favorited {{ color: rgb({textColor.ToRgb()}); background-color: rgb({favoritedBgColor.ToRgb()}); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
+            writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: rgb({smallElementsColor.ToRgb()}); font-size: smaller; }}");
+            writer.WriteLine($"{s8}.favorited {{ color: rgb({textColor.ToRgb()}); background-color: rgb({favoritedBackgroundColor.ToRgb()}); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
             writer.WriteLine($"{s8}.heart {{ color: rgb({HeartColor.ToRgb()}); }}");
 
-            if (hasHighlight)
+            if (hasHighlightUploader || hasHighlightAuthor || hasHighlightText)
             {
-                writer.WriteLine($"{s8}.highlight {{ color: rgb({highlightColor.ToRgb()}); background-color: rgb({highlightBgColor.ToRgb()}); }}");
-                writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border: solid 1px rgb({highlightBorderColor.ToRgb()}); padding-left: 1px; padding-right: 1px; }}");
+                if (hasHighlightUploader)
+                    writer.WriteLine($"{s8}.highlight-uploader {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightUploaderBackgroundColor.ToRgb()}); border-color: rgb({highlightUploaderBorderColor.ToRgb()}); }}");
+
+                if (hasHighlightAuthor)
+                    writer.WriteLine($"{s8}.highlight-author {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightAuthorBackgroundColor.ToRgb()}); border-color: rgb({highlightAuthorBorderColor.ToRgb()}); }}");
+
+                if (hasHighlightText)
+                    writer.WriteLine($"{s8}.highlight-text {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightTextBackgroundColor.ToRgb()}); border-color: rgb({highlightTextBorderColor.ToRgb()}); }}");
+
+                writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
                 writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");

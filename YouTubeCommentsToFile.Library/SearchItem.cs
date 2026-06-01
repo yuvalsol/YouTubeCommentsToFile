@@ -5,6 +5,10 @@ public abstract class SearchItem(bool highlight, bool filter)
     public bool Highlight { get; protected set; } = highlight;
     public bool Filter { get; protected set; } = filter;
 
+    public virtual bool IsSearchUploader => false;
+    public virtual bool IsSearchAuthor => false;
+    public virtual bool IsSearchText => false;
+
     internal abstract bool IsMatch(Comment comment);
 }
 
@@ -25,6 +29,8 @@ public class SearchUploader(bool highlight, bool filter)
         : this(highlight: true, filter: false)
     { }
 
+    public override bool IsSearchUploader => true;
+
     internal override bool IsMatch(Comment comment)
     {
         return comment.AuthorIsUploader;
@@ -42,6 +48,8 @@ public class SearchAuthor(string author, bool highlight, bool filter, bool ignor
     public SearchAuthor(string author, bool ignoreCase = false)
         : this(author, highlight: true, filter: false, ignoreCase)
     { }
+
+    public override bool IsSearchAuthor => true;
 
     internal override bool IsMatch(Comment comment)
     {
@@ -68,6 +76,8 @@ public class SearchText(string text, bool highlight, bool filter, bool ignoreCas
     public SearchText(string text, bool ignoreCase = false)
         : this(text, highlight: true, filter: false, ignoreCase)
     { }
+
+    public override bool IsSearchText => true;
 
     internal override bool IsMatch(Comment comment)
     {
