@@ -53,15 +53,19 @@ public partial class CommentsWriter(Settings settings)
 
     private static readonly Color TextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color BackgroundLightThemeColor = Color.White;
-    private static readonly Color AuthorLightThemeColor = Color.FromArgb(15, 128, 15);
+    private static readonly Color AuthorLightThemeColor = Color.FromArgb(15, 15, 15);
+    private static readonly Color RepliedAuthorLightThemeColor = Color.FromArgb(15, 128, 15);
+    private static readonly Color OtherAuthorLightThemeColor = Color.FromArgb(15, 15, 255);
     private static readonly Color SmallElementsLightThemeColor = Color.FromArgb(96, 96, 96);
     private static readonly Color FavoritedBackgroundLightThemeColor = Color.FromArgb(229, 235, 238);
     private static readonly Color HeaderBackgroundLightThemeColor = Color.FromArgb(242, 242, 242);
-    private static readonly Color HighlightTextLightThemeColor = Color.FromArgb(15, 15, 15);
+    private static readonly Color HighlightUploaderTextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color HighlightUploaderBackgroundLightThemeColor = Color.FromArgb(255, 250, 238);
     private static readonly Color HighlightUploaderBorderLightThemeColor = Color.FromArgb(183, 136, 0);
+    private static readonly Color HighlightAuthorTextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color HighlightAuthorBackgroundLightThemeColor = Color.FromArgb(252, 241, 237);
     private static readonly Color HighlightAuthorBorderLightThemeColor = Color.FromArgb(255, 67, 5);
+    private static readonly Color HighlightTextTextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color HighlightTextBackgroundLightThemeColor = Color.FromArgb(231, 239, 252);
     private static readonly Color HighlightTextBorderLightThemeColor = Color.FromArgb(34, 110, 233);
     private static readonly Color LinkLightThemeColor = Color.FromArgb(0, 0, 238);
@@ -70,15 +74,19 @@ public partial class CommentsWriter(Settings settings)
 
     private static readonly Color TextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color BackgroundDarkThemeColor = Color.FromArgb(15, 15, 15);
-    private static readonly Color AuthorDarkThemeColor = Color.FromArgb(15, 128, 15);
+    private static readonly Color AuthorDarkThemeColor = Color.FromArgb(241, 241, 241);
+    private static readonly Color RepliedAuthorDarkThemeColor = Color.FromArgb(15, 128, 15);
+    private static readonly Color OtherAuthorDarkThemeColor = Color.FromArgb(191, 15, 255);
     private static readonly Color SmallElementsDarkThemeColor = Color.FromArgb(170, 170, 170);
     private static readonly Color FavoritedBackgroundDarkThemeColor = Color.FromArgb(96, 96, 96);
     private static readonly Color HeaderBackgroundDarkThemeColor = Color.FromArgb(39, 39, 39);
-    private static readonly Color HighlightTextDarkThemeColor = Color.FromArgb(241, 241, 241);
+    private static readonly Color HighlightUploaderTextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color HighlightUploaderBackgroundDarkThemeColor = Color.FromArgb(140, 33, 23);
     private static readonly Color HighlightUploaderBorderDarkThemeColor = Color.FromArgb(252, 225, 150);
+    private static readonly Color HighlightAuthorTextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color HighlightAuthorBackgroundDarkThemeColor = Color.FromArgb(137, 57, 16);
     private static readonly Color HighlightAuthorBorderDarkThemeColor = Color.FromArgb(255, 165, 0);
+    private static readonly Color HighlightTextTextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color HighlightTextBackgroundDarkThemeColor = Color.FromArgb(13, 57, 132);
     private static readonly Color HighlightTextBorderDarkThemeColor = Color.FromArgb(231, 239, 252);
     private static readonly Color LinkDarkThemeColor = Color.FromArgb(62, 166, 255);
@@ -1324,22 +1332,26 @@ public partial class CommentsWriter(Settings settings)
 
         if (writeToHTML)
         {
-            Color textColor = (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor);
-            Color backgroundColor = (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor);
-            Color authorColor = (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor);
-            Color smallElementsColor = (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor);
-            Color favoritedBackgroundColor = (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor);
-            Color headerBackgroundColor = (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor);
-            Color highlightTextColor = (settings.DarkTheme ? HighlightTextDarkThemeColor : HighlightTextLightThemeColor);
-            Color highlightUploaderBackgroundColor = (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor);
-            Color highlightUploaderBorderColor = (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor);
-            Color highlightAuthorBackgroundColor = (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor);
-            Color highlightAuthorBorderColor = (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor);
-            Color highlightTextBackgroundColor = (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor);
-            Color highlightTextBorderColor = (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor);
-            Color linkColor = (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor);
-            Color copyTextSuccess = (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor);
-            Color copyTextFailure = (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor);
+            Color textColor = (settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor));
+            Color backgroundColor = (settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor));
+            Color authorColor = (settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor));
+            Color repliedAuthorColor = (settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor));
+            Color otherAuthorColor = (settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor));
+            Color smallElementsColor = (settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor));
+            Color favoritedBackgroundColor = (settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor));
+            Color headerBackgroundColor = (settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor));
+            Color highlightUploaderTextColor = (settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor));
+            Color highlightUploaderBackgroundColor = (settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor));
+            Color highlightUploaderBorderColor = (settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor));
+            Color highlightAuthorTextColor = (settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor));
+            Color highlightAuthorBackgroundColor = (settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor));
+            Color highlightAuthorBorderColor = (settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor));
+            Color highlightTextTextColor = (settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor));
+            Color highlightTextBackgroundColor = (settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor));
+            Color highlightTextBorderColor = (settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor));
+            Color linkColor = (settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor));
+            Color copyTextSuccessColor = (settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor));
+            Color copyTextFailureColor = (settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor));
 
             var widthsCh =
                 comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0, writeToHTML))
@@ -1373,9 +1385,9 @@ public partial class CommentsWriter(Settings settings)
             if (hasYouTube)
                 writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeTextColor.ToRgb()}); background-color: rgb({YouTubeBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
-            writer.WriteLine($"{s8}.author {{ color: rgb({textColor.ToRgb()}); font-weight: bold; }}");
-            writer.WriteLine($"{s8}.replied-author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
-            writer.WriteLine($"{s8}.other-author {{ color: rgb({authorColor.ToRgb()}); }}");
+            writer.WriteLine($"{s8}.author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
+            writer.WriteLine($"{s8}.replied-author {{ color: rgb({repliedAuthorColor.ToRgb()}); font-weight: bold; }}");
+            writer.WriteLine($"{s8}.other-author {{ color: rgb({otherAuthorColor.ToRgb()}); }}");
             writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: rgb({smallElementsColor.ToRgb()}); font-size: smaller; }}");
             writer.WriteLine($"{s8}.favorited {{ color: rgb({textColor.ToRgb()}); background-color: rgb({favoritedBackgroundColor.ToRgb()}); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
             writer.WriteLine($"{s8}.heart {{ color: rgb({HeartColor.ToRgb()}); }}");
@@ -1383,13 +1395,13 @@ public partial class CommentsWriter(Settings settings)
             if (hasHighlightUploader || hasHighlightAuthor || hasHighlightText)
             {
                 if (hasHighlightUploader)
-                    writer.WriteLine($"{s8}.highlight-uploader {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightUploaderBackgroundColor.ToRgb()}); border-color: rgb({highlightUploaderBorderColor.ToRgb()}); }}");
+                    writer.WriteLine($"{s8}.highlight-uploader {{ color: rgb({highlightUploaderTextColor.ToRgb()}); background-color: rgb({highlightUploaderBackgroundColor.ToRgb()}); border-color: rgb({highlightUploaderBorderColor.ToRgb()}); }}");
 
                 if (hasHighlightAuthor)
-                    writer.WriteLine($"{s8}.highlight-author {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightAuthorBackgroundColor.ToRgb()}); border-color: rgb({highlightAuthorBorderColor.ToRgb()}); }}");
+                    writer.WriteLine($"{s8}.highlight-author {{ color: rgb({highlightAuthorTextColor.ToRgb()}); background-color: rgb({highlightAuthorBackgroundColor.ToRgb()}); border-color: rgb({highlightAuthorBorderColor.ToRgb()}); }}");
 
                 if (hasHighlightText)
-                    writer.WriteLine($"{s8}.highlight-text {{ color: rgb({highlightTextColor.ToRgb()}); background-color: rgb({highlightTextBackgroundColor.ToRgb()}); border-color: rgb({highlightTextBorderColor.ToRgb()}); }}");
+                    writer.WriteLine($"{s8}.highlight-text {{ color: rgb({highlightTextTextColor.ToRgb()}); background-color: rgb({highlightTextBackgroundColor.ToRgb()}); border-color: rgb({highlightTextBorderColor.ToRgb()}); }}");
 
                 writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
@@ -1400,8 +1412,8 @@ public partial class CommentsWriter(Settings settings)
             if (settings.ShowCopyLinks)
             {
                 writer.WriteLine($"{s8}.copy-text {{ color: rgb({linkColor.ToRgb()}); font-size: smaller; cursor: pointer; }}");
-                writer.WriteLine($"{s8}.copy-text-success {{ color: rgb({copyTextSuccess.ToRgb()}); }}");
-                writer.WriteLine($"{s8}.copy-text-failure {{ color: rgb({copyTextFailure.ToRgb()}); }}");
+                writer.WriteLine($"{s8}.copy-text-success {{ color: rgb({copyTextSuccessColor.ToRgb()}); }}");
+                writer.WriteLine($"{s8}.copy-text-failure {{ color: rgb({copyTextFailureColor.ToRgb()}); }}");
                 writer.WriteLine($"{s8}.copy-text-success, .copy-text-failure {{ font-weight: bold; pointer-events: none; cursor: default; }}");
             }
 

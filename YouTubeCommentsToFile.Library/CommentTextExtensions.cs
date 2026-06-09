@@ -151,21 +151,10 @@ internal static partial class CommentTextExtensions
         }
 
         bool hasOtherAuthors = otherAuthors.HasAny();
-        if (hasOtherAuthors)
+        if (hasOtherAuthors && hasRepliedAuthor)
         {
-            if (hasRepliedAuthor)
-            {
-                otherAuthors = otherAuthors.Except([repliedAuthor]);
-                hasOtherAuthors = otherAuthors.HasAny();
-            }
-            else if (checkForRepliedAuthor == false)
-            {
-                if (text.GetRepliedAuthor(out repliedAuthor))
-                {
-                    otherAuthors = otherAuthors.Except([repliedAuthor]);
-                    hasOtherAuthors = otherAuthors.HasAny();
-                }
-            }
+            otherAuthors = otherAuthors.Except([repliedAuthor]);
+            hasOtherAuthors = otherAuthors.HasAny();
         }
 
         bool hasLink = text.HasLink();
@@ -421,10 +410,10 @@ internal static partial class CommentTextExtensions
 
     // \u202C POP DIRECTIONAL FORMATTING
 
-    [GeneratedRegex(@"(@\s*)?(?<author>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
+    [GeneratedRegex(@"(@\s*)?(?<Author>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
     private static partial Regex RegexAuthor();
 
-    [GeneratedRegex(@"^\s*(@\s*)?(?<author>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
+    [GeneratedRegex(@"^\s*(@\s*)?(?<RepliedAuthor>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
     private static partial Regex RegexRepliedAuthor();
 
     public static IEnumerable<Author> GetAuthors(this string text)
@@ -434,7 +423,7 @@ internal static partial class CommentTextExtensions
 
         foreach (Match match in RegexAuthor().Matches(text))
         {
-            var group = match.Groups["author"];
+            var group = match.Groups["Author"];
             string author = group.Value;
 
             if (author.HasEmoji())
@@ -450,7 +439,7 @@ internal static partial class CommentTextExtensions
     {
         if (string.IsNullOrEmpty(text) == false && RegexRepliedAuthor().IsMatch(text))
         {
-            var group = RegexRepliedAuthor().Match(text).Groups["author"];
+            var group = RegexRepliedAuthor().Match(text).Groups["RepliedAuthor"];
             string author = group.Value;
 
             if (author.HasEmoji())
@@ -479,7 +468,7 @@ internal static partial class CommentTextExtensions
 
     public static bool HasEmoji(this string text)
     {
-        return !string.IsNullOrEmpty(text) && RegexEmoji().IsMatch(text);
+        return string.IsNullOrEmpty(text) == false && RegexEmoji().IsMatch(text);
     }
 
     public static MatchCollection GetEmojis(this string text)
@@ -509,7 +498,7 @@ internal static partial class CommentTextExtensions
 
     public static bool HasLink(this string text)
     {
-        return !string.IsNullOrEmpty(text) && RegexLink().IsMatch(text);
+        return string.IsNullOrEmpty(text) == false && RegexLink().IsMatch(text);
     }
 
     public static MatchCollection GetLinks(this string text)
@@ -526,7 +515,7 @@ internal static partial class CommentTextExtensions
 
     public static bool HasHashtag(this string text)
     {
-        return !string.IsNullOrEmpty(text) && RegexHashtag().IsMatch(text);
+        return string.IsNullOrEmpty(text) == false && RegexHashtag().IsMatch(text);
     }
 
     public static MatchCollection GetHashtags(this string text)
@@ -543,7 +532,7 @@ internal static partial class CommentTextExtensions
 
     public static bool HasTimestamp(this string text)
     {
-        return !string.IsNullOrEmpty(text) && RegexTimestamp().IsMatch(text);
+        return string.IsNullOrEmpty(text) == false && RegexTimestamp().IsMatch(text);
     }
 
     public static MatchCollection GetTimestamps(this string text)
@@ -560,7 +549,7 @@ internal static partial class CommentTextExtensions
 
     public static bool HasHeart(this string text)
     {
-        return !string.IsNullOrEmpty(text) && RegexHeart().IsMatch(text);
+        return string.IsNullOrEmpty(text) == false && RegexHeart().IsMatch(text);
     }
 
     public static MatchCollection GetHearts(this string text)

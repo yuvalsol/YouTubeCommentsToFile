@@ -72,4 +72,26 @@ public class Settings
     [CodePage(28591)] public bool WesternEuropeanISO1 { get; set; }
     [CodePage(28605)] public bool WesternEuropeanISO15 { get; set; }
     [CodePage(1252)] public bool WesternEuropeanWindows { get; set; }
+
+    // HTML Colors
+    public Color? TextColor { get; set; }
+    public Color? BackgroundColor { get; set; }
+    public Color? AuthorColor { get; set; }
+    public Color? RepliedAuthorColor { get; set; }
+    public Color? OtherAuthorColor { get; set; }
+    public Color? SmallElementsColor { get; set; }
+    public Color? FavoritedBackgroundColor { get; set; }
+    public Color? HeaderBackgroundColor { get; set; }
+    public Color? HighlightUploaderTextColor { get; set; }
+    public Color? HighlightUploaderBackgroundColor { get; set; }
+    public Color? HighlightUploaderBorderColor { get; set; }
+    public Color? HighlightAuthorTextColor { get; set; }
+    public Color? HighlightAuthorBackgroundColor { get; set; }
+    public Color? HighlightAuthorBorderColor { get; set; }
+    public Color? HighlightTextTextColor { get; set; }
+    public Color? HighlightTextBackgroundColor { get; set; }
+    public Color? HighlightTextBorderColor { get; set; }
+    public Color? LinkColor { get; set; }
+    public Color? CopyTextSuccessColor { get; set; }
+    public Color? CopyTextFailureColor { get; set; }
 }

@@ -498,13 +498,14 @@ static string GetHelpMessage(Parser parser, string[] args)
     var sb = new StringBuilder();
     sb.AppendLine(GetVersion());
     sb.AppendLine();
-    sb.AppendLine(GetHelpText<ConvertHelpOptions>(parser, args, optionsPrecedence, "Convert", OptionsHelper.ConvertHelpText, $"Uses verb '{OptionsHelper.ConvertVerb}'. Verb is {(OptionsHelper.ConvertIsDefaultVerb ? "optional" : "required")} to specify."));
-    sb.AppendLine(GetHelpText<DownloadHelpOptions>(parser, args, optionsPrecedence, "Download", OptionsHelper.DownloadHelpText, $"Uses verb '{OptionsHelper.DownloadVerb}'. Verb is {(OptionsHelper.DownloadIsDefaultVerb ? "optional" : "required")} to specify."));
-    sb.AppendLine(GetHelpText<SharedHelpOptions>(parser, args, optionsPrecedence, "Shared Options", "Shared options of Convert and Download."));
-    sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding Options"));
-    sb.AppendLine(GetHelpText<UploaderHelpOptions>(parser, args, optionsPrecedence, "Uploader Shared Options"));
-    sb.AppendLine(GetHelpText<AuthorsHelpOptions>(parser, args, optionsPrecedence, "Authors Shared Options", "Author name can be written with or without a leading @."));
-    sb.AppendLine(GetHelpText<TextsHelpOptions>(parser, args, optionsPrecedence, "Texts Shared Options"));
+    sb.AppendLine(GetHelpText<ConvertHelpOptions>(parser, args, optionsPrecedence, "Convert"));
+    sb.AppendLine(GetHelpText<DownloadHelpOptions>(parser, args, optionsPrecedence, "Download"));
+    sb.AppendLine(GetHelpText<SharedHelpOptions>(parser, args, optionsPrecedence, "Shared Options"));
+    sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding"));
+    sb.AppendLine(GetHelpText<UploaderHelpOptions>(parser, args, optionsPrecedence, "Uploader"));
+    sb.AppendLine(GetHelpText<AuthorsHelpOptions>(parser, args, optionsPrecedence, "Authors"));
+    sb.AppendLine(GetHelpText<TextsHelpOptions>(parser, args, optionsPrecedence, "Texts"));
+    sb.AppendLine(GetHelpText<HTMLColorsHelpOptions>(parser, args, optionsPrecedence, "HTML Colors"));
     sb.AppendLine(GetHelpText<ConvertUsage>(parser, args, optionsPrecedence, "Convert Usage"));
     sb.AppendLine();
     sb.AppendLine(GetHelpText<DownloadUsage>(parser, args, optionsPrecedence, "Download Usage"));
@@ -520,6 +521,10 @@ static string GetHelpText<T>(Parser parser, string[] args, string[] optionsPrece
         {
             if (descriptionLines.HasAny())
                 h.AddPreOptionsLines(descriptionLines);
+
+            var optionDescriptions = typeof(T).GetInterfaces().SelectMany(it => it.GetCustomAttributes<OptionDescriptionAttribute>().Select(x => x.Description));
+            if (optionDescriptions.HasAny())
+                h.AddPreOptionsLines(optionDescriptions);
 
             h.Heading = (
                 string.IsNullOrEmpty(heading) ?

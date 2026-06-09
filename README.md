@@ -86,6 +86,17 @@ YouTubeCommentsToFile [convert]
 
     [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
     [-t <texts>] [--thi <texts>]
+
+    [--text-color <color>] [--background-color <color>] [--author-color <color>]
+    [--replied-author-color <color>] [--other-author-color <color>]
+    [--small-elements-color <color>] [--favorited-background-color <color>]
+    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
+    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
+    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
+    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
+    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
+    [--link-color <color>] [--copy-text-success-color <color>]
+    [--copy-text-failure-color <color>]
 ```
 
 ### Convert Command Line Options
@@ -192,6 +203,17 @@ YouTubeCommentsToFile download
 
     [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
     [-t <texts>] [--thi <texts>]
+
+    [--text-color <color>] [--background-color <color>] [--author-color <color>]
+    [--replied-author-color <color>] [--other-author-color <color>]
+    [--small-elements-color <color>] [--favorited-background-color <color>]
+    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
+    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
+    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
+    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
+    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
+    [--link-color <color>] [--copy-text-success-color <color>]
+    [--copy-text-failure-color <color>]
 ```
 
 YouTubeCommentsToFile builds a yt-dlp command line for downloading comments out of the options provided by the user. Then, it runs yt-dlp to download the comments JSON file. Once the JSON file is downloaded, YouTubeCommentsToFile converts it to a text file or an HTML file or both. If the option is enabled, the JSON file is deleted.
@@ -531,6 +553,97 @@ Filter texts: Search for **any** of the specified texts in the comment or reply.
 --thfi       Highlight and filter texts. Text search is case-insensitive.
 -t, --thi    Highlight texts. Text search is case-insensitive.
 ```
+
+### HTML Colors
+
+These options set the colors of various HTML elements. A color value can be a known name (`Honeydew`), hex code (`#F0FFF0`; `F0FFF0`) or RGB (`240, 255, 240`; `240 255 240`).
+
+```console
+--text-color                            The text color of comments.
+--background-color                      The background color of comments.
+--author-color                          The text color of the author of the comment.
+--replied-author-color                  The text color of an author, of other comment,
+                                        appearing at the start of the comment.
+--other-author-color                    The text color of an author, of other comment,
+                                        appearing anywhere else but the start of the comment.
+--small-elements-color                  The text color of small elements, such as
+                                        pinned comment, comment time, likes.
+--favorited-background-color            The background color of favorited by the
+                                        uploader of the video.
+--header-background-color               The background color of the header.
+--highlight-uploader-text-color         The text color of highlighted comments
+                                        written by the uploader of the video.
+--highlight-uploader-background-color   The background color of highlighted comments
+                                        written by the uploader of the video.
+--highlight-uploader-border-color       The color of the border around highlighted comments
+                                        written by the uploader of the video.
+--highlight-author-text-color           The text color of highlighted comments
+                                        written by any of the searched authors.
+--highlight-author-background-color     The background color of highlighted comments
+                                        written by any of the searched authors.
+--highlight-author-border-color         The color of the border around highlighted comments
+                                        written by any of the searched authors.
+--highlight-text-text-color             The text color of highlighted comments
+                                        containing any of the searched texts.
+--highlight-text-background-color       The background color of highlighted comments
+                                        containing any of the searched texts.
+--highlight-text-border-color           The color of the border around highlighted comments
+                                        containing any of the searched texts.
+--link-color                            The text color of HTML links.
+--copy-text-success-color               The text color of a success message after copying
+                                        a comment to the clipboard.
+--copy-text-failure-color               The text color of an error message after failing
+                                        to copy a comment to the clipboard.
+```
+
+The colors of the HTML elements are determined by light theme (default theme) or dark theme (`--dark-theme`).
+The following are the colors of these themes.
+
+| Light Theme                    | RGB           | Hex     |
+|--------------------------------|---------------|---------|
+| Text                           | 15, 15, 15    | #0F0F0F |
+| Background                     | 255, 255, 255 | #FFFFFF |
+| Author                         | 15, 15, 15    | #0F0F0F |
+| Replied Author                 | 15, 128, 15   | #0F800F |
+| Other Author                   | 15, 15, 255   | #0F0FFF |
+| Small Elements                 | 96, 96, 96    | #606060 |
+| Favorited Background           | 229, 235, 238 | #E5EBEE |
+| Header Background              | 242, 242, 242 | #F2F2F2 |
+| Highlight Uploader: Text       | 15, 15, 15    | #0F0F0F |
+| Highlight Uploader: Background | 255, 250, 238 | #FFFAEE |
+| Highlight Uploader: Border     | 183, 136, 0   | #B78800 |
+| Highlight Author: Text         | 15, 15, 15    | #0F0F0F |
+| Highlight Author: Background   | 252, 241, 237 | #FCF1ED |
+| Highlight Author: Border       | 255, 67, 5    | #FF4305 |
+| Highlight Text: Text           | 15, 15, 15    | #0F0F0F |
+| Highlight Text: Background     | 231, 239, 252 | #E7EFFC |
+| Highlight Text: Border         | 34, 110, 233  | #226EE9 |
+| Link                           | 0, 0, 238     | #0000EE |
+| Copy Text: Success             | 15, 170, 15   | #0FAA0F |
+| Copy Text: Failure             | 255, 15, 15   | #FF0F0F |
+
+| Dark Theme                     | RGB           | Hex     |
+|--------------------------------|---------------|---------|
+| Text                           | 241, 241, 241 | #F1F1F1 |
+| Background                     | 15, 15, 15    | #0F0F0F |
+| Author                         | 241, 241, 241 | #F1F1F1 |
+| Replied Author                 | 15, 128, 15   | #0F800F |
+| Other Author                   | 191, 15, 255  | #BF0FFF |
+| Small Elements                 | 170, 170, 170 | #AAAAAA |
+| Favorited Background           | 96, 96, 96    | #606060 |
+| Header Background              | 39, 39, 39    | #272727 |
+| Highlight Uploader: Text       | 241, 241, 241 | #F1F1F1 |
+| Highlight Uploader: Background | 140, 33, 23   | #8C2117 |
+| Highlight Uploader: Border     | 252, 225, 150 | #FCE196 |
+| Highlight Author: Text         | 241, 241, 241 | #F1F1F1 |
+| Highlight Author: Background   | 137, 57, 16   | #893910 |
+| Highlight Author: Border       | 255, 165, 0   | #FFA500 |
+| Highlight Text: Text           | 241, 241, 241 | #F1F1F1 |
+| Highlight Text: Background     | 13, 57, 132   | #0D3984 |
+| Highlight Text: Border         | 231, 239, 252 | #E7EFFC |
+| Link                           | 62, 166, 255  | #3EA6FF |
+| Copy Text: Success             | 15, 170, 15   | #0FAA0F |
+| Copy Text: Failure             | 213, 15, 15   | #D50F0F |
 
 ## Acknowledgments
 

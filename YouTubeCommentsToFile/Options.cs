@@ -6,6 +6,8 @@ namespace YouTubeCommentsToFile;
 
 #region Interfaces
 
+[OptionDescription("Converts comments JSON file to text file or HTML file.")]
+[OptionDescription($"Uses verb 'convert'. Verb is optional to specify.")]
 internal interface IConvertOptions
 {
     [Option("json-file", HelpText = "Path to comments JSON file.")]
@@ -25,6 +27,8 @@ internal interface IConvertOptions
     string Deno { get; set; }
 }
 
+[OptionDescription("Downloads comments to text file or HTML file.")]
+[OptionDescription($"Uses verb 'download'. Verb is required to specify.")]
 internal interface IDownloadOptions
 {
     [Option("url", HelpText = "Video URL to download its comments.")]
@@ -89,6 +93,7 @@ internal interface IDownloadOptions
     string YtDlpOptions { get; set; }
 }
 
+[OptionDescription("Shared options of Convert and Download.")]
 internal interface ISharedOptions
 {
     [Option("to-html", HelpText = "Whether to write comments to HTML file. When both '--to-html' and '--to-html-and-text' are disabled, writes only to text file.")]
@@ -238,6 +243,7 @@ internal interface IUploaderOptions
     bool HighlightAndFilterUploader { get; set; }
 }
 
+[OptionDescription("Author name can be written with or without a leading @.")]
 internal interface IAuthorsOptions
 {
     [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
@@ -284,11 +290,95 @@ internal interface ITextsOptions
     IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
 }
 
+[OptionDescription("A color value can be a known name ('Honeydew'), hex code ('#F0FFF0'; 'F0FFF0') or RGB ('240, 255, 240'; '240 255 240').")]
+internal interface IHTMLColorsOptions
+{
+    [Option("text-color", HelpText = "The text color of comments.")]
+    [OptionPrecedence(71, 1)]
+    string TextColor { get; set; }
+
+    [Option("background-color", HelpText = "The background color of comments.")]
+    [OptionPrecedence(71, 2)]
+    string BackgroundColor { get; set; }
+
+    [Option("author-color", HelpText = "The text color of the author of the comment.")]
+    [OptionPrecedence(72, 1)]
+    string AuthorColor { get; set; }
+
+    [Option("replied-author-color", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
+    [OptionPrecedence(72, 2)]
+    string RepliedAuthorColor { get; set; }
+
+    [Option("other-author-color", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
+    [OptionPrecedence(72, 3)]
+    string OtherAuthorColor { get; set; }
+
+    [Option("small-elements-color", HelpText = "The text color of small elements, such as pinned comment, comment time, likes.")]
+    [OptionPrecedence(72, 4)]
+    string SmallElementsColor { get; set; }
+
+    [Option("favorited-background-color", HelpText = "The background color of favorited by the uploader of the video.")]
+    [OptionPrecedence(72, 5)]
+    string FavoritedBackgroundColor { get; set; }
+
+    [Option("header-background-color", HelpText = "The background color of the header.")]
+    [OptionPrecedence(72, 6)]
+    string HeaderBackgroundColor { get; set; }
+
+    [Option("highlight-uploader-text-color", HelpText = "The text color of highlighted comments written by the uploader of the video.")]
+    [OptionPrecedence(73, 1)]
+    string HighlightUploaderTextColor { get; set; }
+
+    [Option("highlight-uploader-background-color", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
+    [OptionPrecedence(73, 2)]
+    string HighlightUploaderBackgroundColor { get; set; }
+
+    [Option("highlight-uploader-border-color", HelpText = "The color of the border around highlighted comments written by the uploader of the video.")]
+    [OptionPrecedence(73, 3)]
+    string HighlightUploaderBorderColor { get; set; }
+
+    [Option("highlight-author-text-color", HelpText = "The text color of highlighted comments written by any of the searched authors.")]
+    [OptionPrecedence(73, 4)]
+    string HighlightAuthorTextColor { get; set; }
+
+    [Option("highlight-author-background-color", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
+    [OptionPrecedence(73, 5)]
+    string HighlightAuthorBackgroundColor { get; set; }
+
+    [Option("highlight-author-border-color", HelpText = "The color of the border around highlighted comments written by any of the searched authors.")]
+    [OptionPrecedence(73, 6)]
+    string HighlightAuthorBorderColor { get; set; }
+
+    [Option("highlight-text-text-color", HelpText = "The text color of highlighted comments containing any of the searched texts.")]
+    [OptionPrecedence(73, 7)]
+    string HighlightTextTextColor { get; set; }
+
+    [Option("highlight-text-background-color", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
+    [OptionPrecedence(73, 8)]
+    string HighlightTextBackgroundColor { get; set; }
+
+    [Option("highlight-text-border-color", HelpText = "The color of the border around highlighted comments containing any of the searched texts.")]
+    [OptionPrecedence(73, 9)]
+    string HighlightTextBorderColor { get; set; }
+
+    [Option("link-color", HelpText = "The text color of HTML links.")]
+    [OptionPrecedence(74, 1)]
+    string LinkColor { get; set; }
+
+    [Option("copy-text-success-color", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
+    [OptionPrecedence(75, 1)]
+    string CopyTextSuccessColor { get; set; }
+
+    [Option("copy-text-failure-color", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
+    [OptionPrecedence(75, 2)]
+    string CopyTextFailureColor { get; set; }
+}
+
 #endregion
 
 #region Options
 
-[Verb("convert", isDefault: true, HelpText = "Converts comments JSON file to text file or HTML file.")]
+[Verb("convert", isDefault: true)]
 internal class ConvertOptions : SharedOptions, IConvertOptions
 {
     public string JsonFile { get; set; }
@@ -308,7 +398,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions
     }
 }
 
-[Verb("download", HelpText = "Downloads comments to text file or HTML file.")]
+[Verb("download")]
 internal class DownloadOptions : SharedOptions, IDownloadOptions
 {
     public string URL { get; set; }
@@ -354,7 +444,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
     }
 }
 
-internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploaderOptions, IAuthorsOptions, ITextsOptions
+internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions, IUploaderOptions, IAuthorsOptions, ITextsOptions, IHTMLColorsOptions
 {
     public bool ToHTML { get; set; }
     public bool ToHTMLAndText { get; set; }
@@ -413,6 +503,26 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
     public IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
     public IEnumerable<string> FilterTextsIgnoreCase { get; set; }
     public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
+    public string TextColor { get; set; }
+    public string BackgroundColor { get; set; }
+    public string AuthorColor { get; set; }
+    public string RepliedAuthorColor { get; set; }
+    public string OtherAuthorColor { get; set; }
+    public string SmallElementsColor { get; set; }
+    public string FavoritedBackgroundColor { get; set; }
+    public string HeaderBackgroundColor { get; set; }
+    public string HighlightUploaderTextColor { get; set; }
+    public string HighlightUploaderBackgroundColor { get; set; }
+    public string HighlightUploaderBorderColor { get; set; }
+    public string HighlightAuthorTextColor { get; set; }
+    public string HighlightAuthorBackgroundColor { get; set; }
+    public string HighlightAuthorBorderColor { get; set; }
+    public string HighlightTextTextColor { get; set; }
+    public string HighlightTextBackgroundColor { get; set; }
+    public string HighlightTextBorderColor { get; set; }
+    public string LinkColor { get; set; }
+    public string CopyTextSuccessColor { get; set; }
+    public string CopyTextFailureColor { get; set; }
 
     public virtual Settings ToSettings()
     {
@@ -459,7 +569,27 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
             Vietnamese = Vietnamese,
             WesternEuropeanISO1 = WesternEuropeanISO1,
             WesternEuropeanISO15 = WesternEuropeanISO15,
-            WesternEuropeanWindows = WesternEuropeanWindows
+            WesternEuropeanWindows = WesternEuropeanWindows,
+            TextColor = StringToColor(TextColor),
+            BackgroundColor = StringToColor(BackgroundColor),
+            AuthorColor = StringToColor(AuthorColor),
+            RepliedAuthorColor = StringToColor(RepliedAuthorColor),
+            OtherAuthorColor = StringToColor(OtherAuthorColor),
+            SmallElementsColor = StringToColor(SmallElementsColor),
+            FavoritedBackgroundColor = StringToColor(FavoritedBackgroundColor),
+            HeaderBackgroundColor = StringToColor(HeaderBackgroundColor),
+            HighlightUploaderTextColor = StringToColor(HighlightUploaderTextColor),
+            HighlightUploaderBackgroundColor = StringToColor(HighlightUploaderBackgroundColor),
+            HighlightUploaderBorderColor = StringToColor(HighlightUploaderBorderColor),
+            HighlightAuthorTextColor = StringToColor(HighlightAuthorTextColor),
+            HighlightAuthorBackgroundColor = StringToColor(HighlightAuthorBackgroundColor),
+            HighlightAuthorBorderColor = StringToColor(HighlightAuthorBorderColor),
+            HighlightTextTextColor = StringToColor(HighlightTextTextColor),
+            HighlightTextBackgroundColor = StringToColor(HighlightTextBackgroundColor),
+            HighlightTextBorderColor = StringToColor(HighlightTextBorderColor),
+            LinkColor = StringToColor(LinkColor),
+            CopyTextSuccessColor = StringToColor(CopyTextSuccessColor),
+            CopyTextFailureColor = StringToColor(CopyTextFailureColor)
         };
 
         if (HighlightAndFilterUploader || (HighlightUploader && FilterUploader))
@@ -547,6 +677,40 @@ internal abstract class SharedOptions : ISharedOptions, IEncodingOptions, IUploa
     public override string ToString()
     {
         return $"{nameof(YouTubeCommentsToFile)} {Parser.Default.FormatCommandLine(this)}";
+    }
+
+    [GeneratedRegex(@"^\s*(?<R>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*[, ]\s*(?<G>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*[, ]\s*(?<B>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*$")]
+    private static partial Regex RegexColorInRGB();
+
+    [GeneratedRegex(@"^(?:[a-fA-F0-9]{6}|[a-fA-F0-9]{8})$")]
+    private static partial Regex RegexColorInHex();
+
+    private static Color? StringToColor(string colorStr)
+    {
+        if (string.IsNullOrEmpty(colorStr))
+            return null;
+
+        if (RegexColorInRGB().IsMatch(colorStr))
+        {
+            var match = RegexColorInRGB().Match(colorStr);
+            int r = Convert.ToInt32(match.Groups["R"].Value);
+            int g = Convert.ToInt32(match.Groups["G"].Value);
+            int b = Convert.ToInt32(match.Groups["B"].Value);
+            return Color.FromArgb(r, g, b);
+        }
+
+        if (RegexColorInHex().IsMatch(colorStr))
+            colorStr = $"#{colorStr}";
+
+        try
+        {
+            var tc = TypeDescriptor.GetConverter(typeof(Color));
+            return tc.ConvertFromString(colorStr) as Color?;
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 
@@ -660,6 +824,29 @@ internal class TextsHelpOptions : ITextsOptions
     public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
 }
 
+internal class HTMLColorsHelpOptions : IHTMLColorsOptions
+{
+    public string TextColor { get; set; }
+    public string BackgroundColor { get; set; }
+    public string AuthorColor { get; set; }
+    public string RepliedAuthorColor { get; set; }
+    public string OtherAuthorColor { get; set; }
+    public string SmallElementsColor { get; set; }
+    public string FavoritedBackgroundColor { get; set; }
+    public string HeaderBackgroundColor { get; set; }
+    public string HighlightUploaderTextColor { get; set; }
+    public string HighlightUploaderBackgroundColor { get; set; }
+    public string HighlightUploaderBorderColor { get; set; }
+    public string HighlightAuthorTextColor { get; set; }
+    public string HighlightAuthorBackgroundColor { get; set; }
+    public string HighlightAuthorBorderColor { get; set; }
+    public string HighlightTextTextColor { get; set; }
+    public string HighlightTextBackgroundColor { get; set; }
+    public string HighlightTextBorderColor { get; set; }
+    public string LinkColor { get; set; }
+    public string CopyTextSuccessColor { get; set; }
+    public string CopyTextFailureColor { get; set; }
+}
 #endregion
 
 #region Usage

@@ -4,21 +4,6 @@ namespace YouTubeCommentsToFile;
 
 internal static class OptionsHelper
 {
-    public static string ConvertVerb => GetVerbValue<ConvertOptions, string>("Name");
-    public static bool ConvertIsDefaultVerb => GetVerbValue<ConvertOptions, bool>("IsDefault");
-    public static string ConvertHelpText => GetVerbValue<ConvertOptions, string>("HelpText");
-    public static string DownloadVerb => GetVerbValue<DownloadOptions, string>("Name");
-    public static bool DownloadIsDefaultVerb => GetVerbValue<DownloadOptions, bool>("IsDefault");
-    public static string DownloadHelpText => GetVerbValue<DownloadOptions, string>("HelpText");
-
-    private static TReturn GetVerbValue<TOptions, TReturn>(string propertyName)
-        where TOptions : class
-    {
-        PropertyInfo property = typeof(VerbAttribute).GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty);
-        var attribute = typeof(TOptions).GetCustomAttribute<VerbAttribute>();
-        return (TReturn)property.GetValue(attribute);
-    }
-
     public static string[] GetOptionsPrecedence()
     {
         return [..
@@ -29,6 +14,7 @@ internal static class OptionsHelper
             .Concat(GetOptionsPrecedence<IUploaderOptions>())
             .Concat(GetOptionsPrecedence<IAuthorsOptions>())
             .Concat(GetOptionsPrecedence<ITextsOptions>())
+            .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
             .Distinct()
             .OrderBy(x => x.Group)
             .ThenBy(x => x.Ordinal)
@@ -58,6 +44,7 @@ internal static class OptionsHelper
             .Concat(GetLongNames<IUploaderOptions>())
             .Concat(GetLongNames<IAuthorsOptions>())
             .Concat(GetLongNames<ITextsOptions>())
+            .Concat(GetLongNames<IHTMLColorsOptions>())
             .FirstOrDefault(x => x.Name == settingName).LongName;
     }
 
