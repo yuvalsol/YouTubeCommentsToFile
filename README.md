@@ -1,5 +1,7 @@
 ![YouTube Comments To File](./Solution%20Items/Images/YouTubeCommentsToFile.gif "YouTube Comments To File")
 
+[Carl Sagan on The Demon-Haunted World and Science l Charlie Rose Rewind](https://www.youtube.com/watch?v=dtCwxFTMMDg "Carl Sagan on The Demon-Haunted World and Science l Charlie Rose Rewind")
+
 # YouTube Comments To File
 
 YouTube Comments To File converts YouTube comments JSON file to a text file or an HTML file. The comments JSON file must be produced by [yt-dlp](https://github.com/yt-dlp/yt-dlp "yt-dlp"). The program doesn't retrieve the comments by itself from YouTube. The output file is aim at readability, showing the comments and replies in a tree-like structure.
@@ -70,6 +72,14 @@ YouTubeCommentsToFile [convert]
     [--hide-video-description] [--indent-size] [--show-comment-link]
     [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
 
+    [-u] [--uh] [--uf] [--uhf]
+
+    [--ah <authors>] [--af <authors>] [--afi <authors>]
+    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
+
+    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
+    [-t <texts>] [--thi <texts>]
+
     [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
     [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
     [--central-european] [--chinese-simplified] [--chinese-traditional]
@@ -78,14 +88,6 @@ YouTubeCommentsToFile [convert]
     [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
     [--turkish-windows] [--vietnamese] [--western-european-iso-1]
     [--western-european-iso-15] [--western-european-windows]
-
-    [-u] [--uh] [--uf] [--uhf]
-
-    [--ah <authors>] [--af <authors>] [--afi <authors>]
-    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
-
-    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
-    [-t <texts>] [--thi <texts>]
 
     [--text-color <color>] [--background-color <color>] [--author-color <color>]
     [--replied-author-color <color>] [--other-author-color <color>]
@@ -187,6 +189,14 @@ YouTubeCommentsToFile download
     [--hide-video-description] [--indent-size] [--show-comment-link]
     [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
 
+    [-u] [--uh] [--uf] [--uhf]
+
+    [--ah <authors>] [--af <authors>] [--afi <authors>]
+    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
+
+    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
+    [-t <texts>] [--thi <texts>]
+
     [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
     [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
     [--central-european] [--chinese-simplified] [--chinese-traditional]
@@ -195,14 +205,6 @@ YouTubeCommentsToFile download
     [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
     [--turkish-windows] [--vietnamese] [--western-european-iso-1]
     [--western-european-iso-15] [--western-european-windows]
-
-    [-u] [--uh] [--uf] [--uhf]
-
-    [--ah <authors>] [--af <authors>] [--afi <authors>]
-    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
-
-    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
-    [-t <texts>] [--thi <texts>]
 
     [--text-color <color>] [--background-color <color>] [--author-color <color>]
     [--replied-author-color <color>] [--other-author-color <color>]
@@ -461,6 +463,50 @@ Delete JSON file after comments were written successfully to the output file.
                                  on successful completion.
 ```
 
+### Uploader
+
+Highlight uploader: Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.
+
+Filter uploader: Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
+
+```console
+-u, --uh     Highlight uploader.
+--uf         Filter uploader.
+--uhf        Highlight and filter uploader.
+```
+
+### Authors
+
+Highlight authors: Search for comments and replies written by **any** of the specified authors. If found, highlight the comment or reply.
+
+Filter authors: Search for comments and replies written by **any** of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
+
+Author name can be written with or without a leading @.
+
+```console
+--ah         Highlight authors.
+--af         Filter authors.
+--afi        Filter authors. Author search is case-insensitive.
+--ahf        Highlight and filter authors.
+--ahfi       Highlight and filter authors. Author search is case-insensitive.
+-a, --ahi    Highlight authors. Author search is case-insensitive.
+```
+
+### Texts
+
+Highlight texts: Search for **any** of the specified texts in the comment or reply. If found, highlight the comment or reply.
+
+Filter texts: Search for **any** of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
+
+```console
+--th         Highlight texts.
+--tf         Filter texts.
+--tfi        Filter texts. Text search is case-insensitive.
+--thf        Highlight and filter texts.
+--thfi       Highlight and filter texts. Text search is case-insensitive.
+-t, --thi    Highlight texts. Text search is case-insensitive.
+```
+
 ### Encoding
 
 If the video page is not in English (the title, the description, majority of the comments) and downloading comments fails or comes out garbled, use this option to change the encoding. You need to find beforehand what is the code page of the non-English language.
@@ -508,50 +554,6 @@ Or, use one of these predefined encodings.
                               English, French, German, Spanish, Finnish, Danish,
                               Swedish, Italian, Dutch.
 --western-european-windows    Western European (Windows-1252). Code page 1252.
-```
-
-### Uploader
-
-Highlight uploader: Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.
-
-Filter uploader: Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
-
-```console
--u, --uh     Highlight uploader.
---uf         Filter uploader.
---uhf        Highlight and filter uploader.
-```
-
-### Authors
-
-Highlight authors: Search for comments and replies written by **any** of the specified authors. If found, highlight the comment or reply.
-
-Filter authors: Search for comments and replies written by **any** of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
-
-Author name can be written with or without a leading @.
-
-```console
---ah         Highlight authors.
---af         Filter authors.
---afi        Filter authors. Author search is case-insensitive.
---ahf        Highlight and filter authors.
---ahfi       Highlight and filter authors. Author search is case-insensitive.
--a, --ahi    Highlight authors. Author search is case-insensitive.
-```
-
-### Texts
-
-Highlight texts: Search for **any** of the specified texts in the comment or reply. If found, highlight the comment or reply.
-
-Filter texts: Search for **any** of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
-
-```console
---th         Highlight texts.
---tf         Filter texts.
---tfi        Filter texts. Text search is case-insensitive.
---thf        Highlight and filter texts.
---thfi       Highlight and filter texts. Text search is case-insensitive.
--t, --thi    Highlight texts. Text search is case-insensitive.
 ```
 
 ### HTML Colors

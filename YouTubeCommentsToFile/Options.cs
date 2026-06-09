@@ -147,10 +147,71 @@ internal interface ISharedOptions
     int? TextLineLength { get; set; }
 }
 
+internal interface IUploaderOptions
+{
+    [Option('u', "uh", HelpText = "Highlight uploader. Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.")]
+    [OptionPrecedence(31, 1)]
+    bool HighlightUploader { get; set; }
+
+    [Option("uf", HelpText = "Filter uploader. Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
+    [OptionPrecedence(31, 2)]
+    bool FilterUploader { get; set; }
+
+    [Option("uhf", HelpText = "Highlight and filter uploader.")]
+    bool HighlightAndFilterUploader { get; set; }
+}
+
+[OptionDescription("Author name can be written with or without a leading @.")]
+internal interface IAuthorsOptions
+{
+    [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
+    [OptionPrecedence(41, 1)]
+    IEnumerable<string> HighlightAuthors { get; set; }
+
+    [Option("af", HelpText = "Filter authors. Search for comments and replies written by any of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
+    [OptionPrecedence(41, 2)]
+    IEnumerable<string> FilterAuthors { get; set; }
+
+    [Option("ahf", HelpText = "Highlight and filter authors.")]
+    IEnumerable<string> HighlightAndFilterAuthors { get; set; }
+
+    [Option('a', "ahi", HelpText = "Highlight authors. Author search is case-insensitive.")]
+    IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
+
+    [Option("afi", HelpText = "Filter authors. Author search is case-insensitive.")]
+    IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
+
+    [Option("ahfi", HelpText = "Highlight and filter authors. Author search is case-insensitive.")]
+    IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
+}
+
+internal interface ITextsOptions
+{
+    [Option("th", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
+    [OptionPrecedence(51, 1)]
+    IEnumerable<string> HighlightTexts { get; set; }
+
+    [Option("tf", HelpText = "Filter texts. Search for any of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
+    [OptionPrecedence(51, 2)]
+    IEnumerable<string> FilterTexts { get; set; }
+
+    [Option("thf", HelpText = "Highlight and filter texts.")]
+    IEnumerable<string> HighlightAndFilterTexts { get; set; }
+
+    [Option('t', "thi", HelpText = "Highlight texts. Text search is case-insensitive.")]
+    IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
+
+    [Option("tfi", HelpText = "Filter texts. Text search is case-insensitive.")]
+    IEnumerable<string> FilterTextsIgnoreCase { get; set; }
+
+    [Option("thfi", HelpText = "Highlight and filter texts. Text search is case-insensitive.")]
+    IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
+}
+
 internal interface IEncodingOptions
 {
     [Option("encoding-code-page", HelpText = "The code page of the video page encoding.")]
-    [OptionPrecedence(31, 1)]
+    [OptionPrecedence(61, 1)]
     int? EncodingCodePage { get; set; }
 
     [Option("arabic-iso", HelpText = "Arabic (ISO-8859-6). Code page 28596. Arabic, Persian, Urdu.")]
@@ -227,67 +288,6 @@ internal interface IEncodingOptions
 
     [Option("western-european-windows", HelpText = "Western European (Windows-1252). Code page 1252.")]
     bool WesternEuropeanWindows { get; set; }
-}
-
-internal interface IUploaderOptions
-{
-    [Option('u', "uh", HelpText = "Highlight uploader. Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.")]
-    [OptionPrecedence(41, 1)]
-    bool HighlightUploader { get; set; }
-
-    [Option("uf", HelpText = "Filter uploader. Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(41, 2)]
-    bool FilterUploader { get; set; }
-
-    [Option("uhf", HelpText = "Highlight and filter uploader.")]
-    bool HighlightAndFilterUploader { get; set; }
-}
-
-[OptionDescription("Author name can be written with or without a leading @.")]
-internal interface IAuthorsOptions
-{
-    [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
-    [OptionPrecedence(51, 1)]
-    IEnumerable<string> HighlightAuthors { get; set; }
-
-    [Option("af", HelpText = "Filter authors. Search for comments and replies written by any of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(51, 2)]
-    IEnumerable<string> FilterAuthors { get; set; }
-
-    [Option("ahf", HelpText = "Highlight and filter authors.")]
-    IEnumerable<string> HighlightAndFilterAuthors { get; set; }
-
-    [Option('a', "ahi", HelpText = "Highlight authors. Author search is case-insensitive.")]
-    IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
-
-    [Option("afi", HelpText = "Filter authors. Author search is case-insensitive.")]
-    IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
-
-    [Option("ahfi", HelpText = "Highlight and filter authors. Author search is case-insensitive.")]
-    IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
-}
-
-internal interface ITextsOptions
-{
-    [Option("th", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
-    [OptionPrecedence(61, 1)]
-    IEnumerable<string> HighlightTexts { get; set; }
-
-    [Option("tf", HelpText = "Filter texts. Search for any of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(61, 2)]
-    IEnumerable<string> FilterTexts { get; set; }
-
-    [Option("thf", HelpText = "Highlight and filter texts.")]
-    IEnumerable<string> HighlightAndFilterTexts { get; set; }
-
-    [Option('t', "thi", HelpText = "Highlight texts. Text search is case-insensitive.")]
-    IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
-
-    [Option("tfi", HelpText = "Filter texts. Text search is case-insensitive.")]
-    IEnumerable<string> FilterTextsIgnoreCase { get; set; }
-
-    [Option("thfi", HelpText = "Highlight and filter texts. Text search is case-insensitive.")]
-    IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
 }
 
 [OptionDescription("A color value can be a known name ('Honeydew'), hex code ('#F0FFF0'; 'F0FFF0') or RGB ('240, 255, 240'; '240 255 240').")]
@@ -444,8 +444,9 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
     }
 }
 
-internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions, IUploaderOptions, IAuthorsOptions, ITextsOptions, IHTMLColorsOptions
+internal abstract partial class SharedOptions : ISharedOptions, IUploaderOptions, IAuthorsOptions, ITextsOptions, IEncodingOptions, IHTMLColorsOptions
 {
+    // Shared
     public bool ToHTML { get; set; }
     public bool ToHTMLAndText { get; set; }
     public bool DarkTheme { get; set; }
@@ -462,6 +463,29 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
     public bool ShowCommentNavigationLinks { get; set; }
     public bool ShowCopyLinks { get; set; }
     public int? TextLineLength { get; set; }
+
+    // Uploader
+    public bool HighlightUploader { get; set; }
+    public bool FilterUploader { get; set; }
+    public bool HighlightAndFilterUploader { get; set; }
+
+    // Authors
+    public IEnumerable<string> HighlightAuthors { get; set; }
+    public IEnumerable<string> FilterAuthors { get; set; }
+    public IEnumerable<string> HighlightAndFilterAuthors { get; set; }
+    public IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
+    public IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
+    public IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
+
+    // Texts
+    public IEnumerable<string> HighlightTexts { get; set; }
+    public IEnumerable<string> FilterTexts { get; set; }
+    public IEnumerable<string> HighlightAndFilterTexts { get; set; }
+    public IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
+    public IEnumerable<string> FilterTextsIgnoreCase { get; set; }
+    public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
+
+    // Encoding
     public int? EncodingCodePage { get; set; }
     public bool ArabicISO { get; set; }
     public bool ArabicWindows { get; set; }
@@ -488,21 +512,8 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
     public bool WesternEuropeanISO1 { get; set; }
     public bool WesternEuropeanISO15 { get; set; }
     public bool WesternEuropeanWindows { get; set; }
-    public bool HighlightUploader { get; set; }
-    public bool FilterUploader { get; set; }
-    public bool HighlightAndFilterUploader { get; set; }
-    public IEnumerable<string> HighlightAuthors { get; set; }
-    public IEnumerable<string> FilterAuthors { get; set; }
-    public IEnumerable<string> HighlightAndFilterAuthors { get; set; }
-    public IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
-    public IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
-    public IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
-    public IEnumerable<string> HighlightTexts { get; set; }
-    public IEnumerable<string> FilterTexts { get; set; }
-    public IEnumerable<string> HighlightAndFilterTexts { get; set; }
-    public IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
-    public IEnumerable<string> FilterTextsIgnoreCase { get; set; }
-    public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
+
+    // HTML Colors
     public string TextColor { get; set; }
     public string BackgroundColor { get; set; }
     public string AuthorColor { get; set; }
@@ -528,6 +539,7 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
     {
         var settings = new Settings
         {
+            // Shared
             ToHTML = ToHTML,
             ToHTMLAndText = ToHTMLAndText,
             DarkTheme = DarkTheme,
@@ -544,6 +556,8 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
             ShowCommentNavigationLinks = ShowCommentNavigationLinks,
             ShowCopyLinks = ShowCopyLinks,
             TextLineLength = TextLineLength,
+
+            // Encoding
             EncodingCodePage = EncodingCodePage,
             ArabicISO = ArabicISO,
             ArabicWindows = ArabicWindows,
@@ -570,6 +584,8 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
             WesternEuropeanISO1 = WesternEuropeanISO1,
             WesternEuropeanISO15 = WesternEuropeanISO15,
             WesternEuropeanWindows = WesternEuropeanWindows,
+
+            // HTML Colors
             TextColor = StringToColor(TextColor),
             BackgroundColor = StringToColor(BackgroundColor),
             AuthorColor = StringToColor(AuthorColor),
@@ -592,6 +608,7 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
             CopyTextFailureColor = StringToColor(CopyTextFailureColor)
         };
 
+        // Uploader
         if (HighlightAndFilterUploader || (HighlightUploader && FilterUploader))
             settings.SearchItems.Add(new SearchUploader(highlight: true, filter: true));
         else if (HighlightUploader)
@@ -599,6 +616,7 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
         else if (FilterUploader)
             settings.SearchItems.Add(SearchUploader.FilterUploader);
 
+        // Authors
         if (HighlightAuthors.HasAny())
         {
             foreach (var author in HighlightAuthors)
@@ -635,6 +653,7 @@ internal abstract partial class SharedOptions : ISharedOptions, IEncodingOptions
                 settings.SearchItems.Add(new SearchAuthor(author, highlight: true, filter: true, ignoreCase: true));
         }
 
+        // Texts
         if (HighlightTexts.HasAny())
         {
             foreach (var text in HighlightTexts)
@@ -767,6 +786,33 @@ internal class SharedHelpOptions : ISharedOptions
     public int? TextLineLength { get; set; }
 }
 
+internal class UploaderHelpOptions : IUploaderOptions
+{
+    public bool HighlightUploader { get; set; }
+    public bool FilterUploader { get; set; }
+    public bool HighlightAndFilterUploader { get; set; }
+}
+
+internal class AuthorsHelpOptions : IAuthorsOptions
+{
+    public IEnumerable<string> HighlightAuthors { get; set; }
+    public IEnumerable<string> FilterAuthors { get; set; }
+    public IEnumerable<string> HighlightAndFilterAuthors { get; set; }
+    public IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
+    public IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
+    public IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
+}
+
+internal class TextsHelpOptions : ITextsOptions
+{
+    public IEnumerable<string> HighlightTexts { get; set; }
+    public IEnumerable<string> FilterTexts { get; set; }
+    public IEnumerable<string> HighlightAndFilterTexts { get; set; }
+    public IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
+    public IEnumerable<string> FilterTextsIgnoreCase { get; set; }
+    public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
+}
+
 internal class EncodingHelpOptions : IEncodingOptions
 {
     public int? EncodingCodePage { get; set; }
@@ -797,33 +843,6 @@ internal class EncodingHelpOptions : IEncodingOptions
     public bool WesternEuropeanWindows { get; set; }
 }
 
-internal class UploaderHelpOptions : IUploaderOptions
-{
-    public bool HighlightUploader { get; set; }
-    public bool FilterUploader { get; set; }
-    public bool HighlightAndFilterUploader { get; set; }
-}
-
-internal class AuthorsHelpOptions : IAuthorsOptions
-{
-    public IEnumerable<string> HighlightAuthors { get; set; }
-    public IEnumerable<string> FilterAuthors { get; set; }
-    public IEnumerable<string> HighlightAndFilterAuthors { get; set; }
-    public IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
-    public IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
-    public IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
-}
-
-internal class TextsHelpOptions : ITextsOptions
-{
-    public IEnumerable<string> HighlightTexts { get; set; }
-    public IEnumerable<string> FilterTexts { get; set; }
-    public IEnumerable<string> HighlightAndFilterTexts { get; set; }
-    public IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
-    public IEnumerable<string> FilterTextsIgnoreCase { get; set; }
-    public IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
-}
-
 internal class HTMLColorsHelpOptions : IHTMLColorsOptions
 {
     public string TextColor { get; set; }
@@ -847,6 +866,7 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
     public string CopyTextSuccessColor { get; set; }
     public string CopyTextFailureColor { get; set; }
 }
+
 #endregion
 
 #region Usage

@@ -10,10 +10,10 @@ internal static class OptionsHelper
             GetOptionsPrecedence<IConvertOptions>()
             .Concat(GetOptionsPrecedence<IDownloadOptions>())
             .Concat(GetOptionsPrecedence<ISharedOptions>())
-            .Concat(GetOptionsPrecedence<IEncodingOptions>())
             .Concat(GetOptionsPrecedence<IUploaderOptions>())
             .Concat(GetOptionsPrecedence<IAuthorsOptions>())
             .Concat(GetOptionsPrecedence<ITextsOptions>())
+            .Concat(GetOptionsPrecedence<IEncodingOptions>())
             .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
             .Distinct()
             .OrderBy(x => x.Group)
@@ -40,10 +40,10 @@ internal static class OptionsHelper
             GetLongNames<IConvertOptions>()
             .Concat(GetLongNames<IDownloadOptions>())
             .Concat(GetLongNames<ISharedOptions>())
-            .Concat(GetLongNames<IEncodingOptions>())
             .Concat(GetLongNames<IUploaderOptions>())
             .Concat(GetLongNames<IAuthorsOptions>())
             .Concat(GetLongNames<ITextsOptions>())
+            .Concat(GetLongNames<IEncodingOptions>())
             .Concat(GetLongNames<IHTMLColorsOptions>())
             .FirstOrDefault(x => x.Name == settingName).LongName;
     }

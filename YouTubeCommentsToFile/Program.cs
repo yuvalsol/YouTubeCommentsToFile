@@ -501,10 +501,10 @@ static string GetHelpMessage(Parser parser, string[] args)
     sb.AppendLine(GetHelpText<ConvertHelpOptions>(parser, args, optionsPrecedence, "Convert"));
     sb.AppendLine(GetHelpText<DownloadHelpOptions>(parser, args, optionsPrecedence, "Download"));
     sb.AppendLine(GetHelpText<SharedHelpOptions>(parser, args, optionsPrecedence, "Shared Options"));
-    sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding"));
     sb.AppendLine(GetHelpText<UploaderHelpOptions>(parser, args, optionsPrecedence, "Uploader"));
     sb.AppendLine(GetHelpText<AuthorsHelpOptions>(parser, args, optionsPrecedence, "Authors"));
     sb.AppendLine(GetHelpText<TextsHelpOptions>(parser, args, optionsPrecedence, "Texts"));
+    sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding"));
     sb.AppendLine(GetHelpText<HTMLColorsHelpOptions>(parser, args, optionsPrecedence, "HTML Colors"));
     sb.AppendLine(GetHelpText<ConvertUsage>(parser, args, optionsPrecedence, "Convert Usage"));
     sb.AppendLine();
