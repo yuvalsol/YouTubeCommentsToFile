@@ -869,9 +869,23 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
 
 #endregion
 
-#region Usage
+#region Examples
 
-internal class ConvertUsage
+internal abstract class BaseExamples
+{
+    protected const string JSON_FILE = @"C:\Path\To\Comments File.json";
+    protected const string URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg";
+    protected const string YT_DLP = @"C:\Path\To\yt-dlp.exe";
+    protected const string DENO = @"C:\Path\To\deno.exe";
+    protected const string DOWNLOAD_PATH = @"C:\Path\To\Downloads Folder";
+    protected const string ALICE = "Alice";
+    protected const string BOB = "Bob";
+    protected const string PHRASE1 = "Alice and Bob";
+    protected const string PHRASE2 = "are entangled";
+    protected const string NEW_LINE = "\n   ";
+}
+
+internal class ConvertExamples : BaseExamples
 {
     [Usage(ApplicationAlias = nameof(YouTubeCommentsToFile))]
     public static IEnumerable<Example> Examples
@@ -882,7 +896,7 @@ internal class ConvertUsage
                 "1. Convert to text file",
                 new ConvertOptions
                 {
-                    JsonFile = @"C:\Path\To\Comments File.json"
+                    JsonFile = JSON_FILE
                 }
             );
 
@@ -890,7 +904,7 @@ internal class ConvertUsage
                 "2. Convert to HTML file",
                 new ConvertOptions
                 {
-                    JsonFile = @"C:\Path\To\Comments File.json",
+                    JsonFile = JSON_FILE,
                     ToHTML = true
                 }
             );
@@ -899,10 +913,10 @@ internal class ConvertUsage
                 "3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description",
                 new ConvertOptions
                 {
-                    JsonFile = @"C:\Path\To\Comments File.json",
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
+                    JsonFile = JSON_FILE,
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
                     ToHTML = true,
                     ShowCommentNavigationLinks = true,
                     ShowCopyLinks = true,
@@ -914,10 +928,10 @@ internal class ConvertUsage
                 "4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted",
                 new ConvertOptions
                 {
-                    JsonFile = @"C:\Path\To\Comments File.json",
+                    JsonFile = JSON_FILE,
                     HighlightUploader = true,
-                    HighlightAuthors = ["@Alice", "Bob"],
-                    HighlightTexts = ["Alice and Bob", "are entangled"]
+                    HighlightAuthors = [$"@{ALICE}", BOB],
+                    HighlightTexts = [PHRASE1, PHRASE2]
                 }
             );
 
@@ -925,17 +939,17 @@ internal class ConvertUsage
                 "5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed",
                 new ConvertOptions
                 {
-                    JsonFile = @"C:\Path\To\Comments File.json",
+                    JsonFile = JSON_FILE,
                     FilterUploader = true,
-                    FilterAuthors = ["@Alice", "Bob"],
-                    FilterTexts = ["Alice and Bob", "are entangled"]
+                    FilterAuthors = [$"@{ALICE}", BOB],
+                    FilterTexts = [PHRASE1, PHRASE2]
                 }
             );
         }
     }
 }
 
-internal class DownloadUsage
+internal class DownloadExamples : BaseExamples
 {
     [Usage(ApplicationAlias = nameof(YouTubeCommentsToFile))]
     public static IEnumerable<Example> Examples
@@ -946,10 +960,10 @@ internal class DownloadUsage
                 "1. Download to text file",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder"
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH
                 }
             );
 
@@ -957,10 +971,10 @@ internal class DownloadUsage
                 "2. Download to HTML file",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     ToHTML = true
                 }
             );
@@ -969,10 +983,10 @@ internal class DownloadUsage
                 "3. Download to more robust HTML file",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     ToHTML = true,
                     ShowCommentNavigationLinks = true,
                     ShowCopyLinks = true,
@@ -984,8 +998,8 @@ internal class DownloadUsage
                 $"4. The '--yt-dlp' option can be omitted if yt-dlp is at the same directory as {nameof(YouTubeCommentsToFile)}",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    DownloadPath = @"C:\Path\To\Downloads Folder"
+                    URL = URL,
+                    DownloadPath = DOWNLOAD_PATH
                 }
             );
 
@@ -993,10 +1007,10 @@ internal class DownloadUsage
                 "5. Download all comments, sort by top comments first",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     SortTop = true
                 }
             );
@@ -1005,10 +1019,10 @@ internal class DownloadUsage
                 "6. Download up to 10,000 top-level comments and replies, at most 100 replies for each top-level comment, sort by new comments first (default)",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     MaxComments = 10000,
                     MaxRepliesPerThread = 100
                 }
@@ -1018,10 +1032,10 @@ internal class DownloadUsage
                 "7. Download all top-level comments, up to 1000 replies, at most 10 replies for each top-level comment, sort by new comments first",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     MaxReplies = 1000,
                     MaxRepliesPerThread = 10,
                     SortNew = true
@@ -1032,10 +1046,10 @@ internal class DownloadUsage
                 "8. Download up to 1000 top-level comments, no replies, sort by top comments first",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     MaxParents = 1000,
                     MaxReplies = 0,
                     SortTop = true
@@ -1046,11 +1060,105 @@ internal class DownloadUsage
                 "9. Download to text file, use configuration file for yt-dlp, use cookies file for restricted video",
                 new DownloadOptions
                 {
-                    URL = "https://www.youtube.com/watch?v=dtCwxFTMMDg",
-                    YtDlp = @"C:\Path\To\yt-dlp.exe",
-                    Deno = @"C:\Path\To\deno.exe",
-                    DownloadPath = @"C:\Path\To\Downloads Folder",
+                    URL = URL,
+                    YtDlp = YT_DLP,
+                    Deno = DENO,
+                    DownloadPath = DOWNLOAD_PATH,
                     YtDlpOptions = @"--config-locations ""C:\Path\To\yt-dlp.conf"" --cookies cookies.txt"
+                }
+            );
+        }
+    }
+}
+
+internal class UploaderExamples : BaseExamples
+{
+    [Usage(ApplicationAlias = nameof(YouTubeCommentsToFile))]
+    public static IEnumerable<Example> Examples
+    {
+        get
+        {
+            yield return new Example(
+                "1. Highlight all comments written by the uploader of the video",
+                new DownloadOptions
+                {
+                    HighlightUploader = true
+                }
+            );
+
+            yield return new Example(
+                "2. Show only conversations that the uploader of the video participated in",
+                new DownloadOptions
+                {
+                    FilterUploader = true
+                }
+            );
+        }
+    }
+}
+
+internal class AuthorsExamples : BaseExamples
+{
+    [Usage(ApplicationAlias = nameof(YouTubeCommentsToFile))]
+    public static IEnumerable<Example> Examples
+    {
+        get
+        {
+            yield return new Example(
+                $"1. Highlight all comments written by either @{ALICE} or @{BOB}.{NEW_LINE}Search for author names is case sensitive",
+                new DownloadOptions
+                {
+                    HighlightAuthors = [$"@{ALICE}", BOB]
+                }
+            );
+
+            yield return new Example(
+                $"2. Highlight all comments written by either @{ALICE} or @{BOB}.{NEW_LINE}Search for author names is case insensitive",
+                new DownloadOptions
+                {
+                    HighlightAuthorsIgnoreCase = [ALICE.ToLower(), $"@{BOB.ToLower()}"]
+                }
+            );
+
+            yield return new Example(
+                $"3. Show only conversations that either @{ALICE} or @{BOB} participated in.{NEW_LINE}Search for author names is case insensitive",
+                new DownloadOptions
+                {
+                    FilterAuthorsIgnoreCase = [ALICE.ToLower(), BOB.ToLower()]
+                }
+            );
+        }
+    }
+}
+
+internal class TextsExamples : BaseExamples
+{
+    [Usage(ApplicationAlias = nameof(YouTubeCommentsToFile))]
+    public static IEnumerable<Example> Examples
+    {
+        get
+        {
+            yield return new Example(
+                $@"1. Highlight all comments that contain any of the text phrases ""{PHRASE1}"" and ""{PHRASE2}"".{NEW_LINE}Search for text phrases is case sensitive",
+                new DownloadOptions
+                {
+                    HighlightTexts = [PHRASE1, PHRASE2]
+                }
+            );
+
+            yield return new Example(
+                $@"2. Highlight all comments that contain any of the text phrases ""{PHRASE1}"" and ""{PHRASE2}"".{NEW_LINE}Search for text phrases is case insensitive",
+                new DownloadOptions
+                {
+                    HighlightTextsIgnoreCase = [PHRASE1.ToLower(), PHRASE2.ToLower()]
+                }
+            );
+
+            yield return new Example(
+                $@"3. Show only conversations with comments that contain any of the text phrases ""{PHRASE1}"" and ""{PHRASE2}"".{NEW_LINE}Search for text phrases is case sensitive",
+                new DownloadOptions
+                {
+                    FilterTexts = [PHRASE1, PHRASE2]
                 }
             );
         }

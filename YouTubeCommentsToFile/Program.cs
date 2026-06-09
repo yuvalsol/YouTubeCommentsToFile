@@ -506,9 +506,15 @@ static string GetHelpMessage(Parser parser, string[] args)
     sb.AppendLine(GetHelpText<TextsHelpOptions>(parser, args, optionsPrecedence, "Texts"));
     sb.AppendLine(GetHelpText<EncodingHelpOptions>(parser, args, optionsPrecedence, "Encoding"));
     sb.AppendLine(GetHelpText<HTMLColorsHelpOptions>(parser, args, optionsPrecedence, "HTML Colors"));
-    sb.AppendLine(GetHelpText<ConvertUsage>(parser, args, optionsPrecedence, "Convert Usage"));
+    sb.AppendLine(GetHelpText<ConvertExamples>(parser, args, optionsPrecedence, "Convert Examples"));
     sb.AppendLine();
-    sb.AppendLine(GetHelpText<DownloadUsage>(parser, args, optionsPrecedence, "Download Usage"));
+    sb.AppendLine(GetHelpText<DownloadExamples>(parser, args, optionsPrecedence, "Download Examples"));
+    sb.AppendLine();
+    sb.AppendLine(GetHelpText<UploaderExamples>(parser, args, optionsPrecedence, "Uploader Examples"));
+    sb.AppendLine();
+    sb.AppendLine(GetHelpText<AuthorsExamples>(parser, args, optionsPrecedence, "Authors Examples"));
+    sb.AppendLine();
+    sb.AppendLine(GetHelpText<TextsExamples>(parser, args, optionsPrecedence, "Texts Examples"));
     sb.AppendLine();
     return sb.ToString();
 }

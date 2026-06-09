@@ -127,7 +127,7 @@ Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile direc
 --deno                    Path to Deno.
 ```
 
-### Convert Usage
+### Convert Examples
 
 1. Convert to text file:
 
@@ -338,7 +338,7 @@ Quick reminder, double quotes in double quotes need to be escaped with a backsla
 --yt-dlp-options "--config-locations \"C:\A Path\With\A Space\yt-dlp.conf\" --cookies cookies.txt"
 ```
 
-### Download Usage
+### Download Examples
 
 1. Download to text file:
 
@@ -475,6 +475,20 @@ Filter uploader: Search for comments and replies written by the uploader of the 
 --uhf        Highlight and filter uploader.
 ```
 
+#### Uploader Examples
+
+1. Highlight all comments written by the uploader of the video:
+
+```console
+YouTubeCommentsToFile download --uh
+```
+
+2. Show only conversations that the uploader of the video participated in:
+
+```console
+YouTubeCommentsToFile download --uf
+```
+
 ### Authors
 
 Highlight authors: Search for comments and replies written by **any** of the specified authors. If found, highlight the comment or reply.
@@ -492,6 +506,26 @@ Author name can be written with or without a leading @.
 -a, --ahi    Highlight authors. Author search is case-insensitive.
 ```
 
+#### Authors Examples
+
+1. Highlight all comments written by either `@Alice` or `@Bob`. Search for author names is case sensitive:
+
+```console
+YouTubeCommentsToFile download --ah @Alice Bob
+```
+
+2. Highlight all comments written by either `@Alice` or `@Bob`. Search for author names is case insensitive:
+
+```console
+YouTubeCommentsToFile download --ahi alice @bob
+```
+
+3. Show only conversations that either `@Alice` or `@Bob` participated in. Search for author names is case insensitive:
+
+```console
+YouTubeCommentsToFile download --afi alice bob
+```
+
 ### Texts
 
 Highlight texts: Search for **any** of the specified texts in the comment or reply. If found, highlight the comment or reply.
@@ -505,6 +539,26 @@ Filter texts: Search for **any** of the specified texts in the comment or reply.
 --thf        Highlight and filter texts.
 --thfi       Highlight and filter texts. Text search is case-insensitive.
 -t, --thi    Highlight texts. Text search is case-insensitive.
+```
+
+#### Texts Examples
+
+1. Highlight all comments that contain any of the text phrases `Alice and Bob` and `are entangled`. Search for text phrases is case sensitive:
+
+```console
+YouTubeCommentsToFile download --th "Alice and Bob" "are entangled"
+```
+
+2. Highlight all comments that contain any of the text phrases `Alice and Bob` and `are entangled`. Search for text phrases is case insensitive:
+
+```console
+YouTubeCommentsToFile download --thi "alice and bob" "are entangled"
+```
+
+3. Show only conversations with comments that contain any of the text phrases `Alice and Bob` and `are entangled`. Search for text phrases is case sensitive:
+
+```console
+YouTubeCommentsToFile download --tf "Alice and Bob" "are entangled"
 ```
 
 ### Encoding
