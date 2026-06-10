@@ -24,7 +24,7 @@ This is a little tutorial how to "Install" this program and use a script to down
 
 1. Download YouTubeCommentsToFile from [Releases](https://github.com/yuvalsol/YouTubeCommentsToFile/releases "YouTubeCommentsToFile Releases").
 2. [Download yt-dlp](https://github.com/yt-dlp/yt-dlp#installation "yt-dlp Installation").
-3. [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download deno-x86_64-pc-windows-msvc.zip from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
+3. [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
 4. Place YouTubeCommentsToFile, yt-dlp and Deno in the same directory. Make sure that directory **doesn't** need administrative rights (For example, on Windows, **not** under `C:\Program Files`) because you want to update yt-dlp with no prompts.
 5. Create this script file [`DownloadComments.cmd`](./Solution%20Items/DownloadComments.cmd "DownloadComments.cmd") in the same directory as YouTubeCommentsToFile. This script downloads comments to HTML file and the comments are sorted by top comments first.
 
@@ -121,7 +121,9 @@ Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile d
 --yt-dlp                  Path to yt-dlp.
 ```
 
-Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default. [Read more here](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
+Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default.
+- [Setup Guide](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
+- [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
 
 ```console
 --deno                    Path to Deno.
