@@ -663,7 +663,7 @@ The following are the colors of these themes.
 | Background                     | 255, 255, 255 | #FFFFFF |
 | Author                         | 15, 15, 15    | #0F0F0F |
 | Replied Author                 | 15, 128, 15   | #0F800F |
-| Other Author                   | 15, 15, 255   | #0F0FFF |
+| Other Author                   | 128, 15, 255  | #800FFF |
 | Small Elements                 | 96, 96, 96    | #606060 |
 | Favorited Background           | 229, 235, 238 | #E5EBEE |
 | Header Background              | 242, 242, 242 | #F2F2F2 |
