@@ -449,7 +449,7 @@ internal static partial class CommentTextExtensions
     // FalseStart: consecutive at signs followed by at most 2 chars
     // AtSigns: precedes with consecutive at signs, if any: @*
     // RepliedAuthor: same as Author
-    [GeneratedRegex(@"^\s*(?<FalseStart>@+(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){0,2}\s+)?(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
+    [GeneratedRegex(@"^\s*(?<FalseStart>@+(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){0,3}\s+)?(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
     private static partial Regex RegexRepliedAuthor();
 
     public static IEnumerable<Author> GetAuthors(this string text)
