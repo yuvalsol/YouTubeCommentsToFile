@@ -4,61 +4,79 @@ namespace System;
 
 public static partial class ExceptionExtensions
 {
-    public static string GetUnhandledExceptionErrorWithApplicationTerminationMessage(this Exception ex)
-    {
-        return GetExceptionErrorMessage(ex,
-            string.Format("An unhandled error occurred.{0}The application will terminate now.{0}", Environment.NewLine)
-        );
-    }
-
-    public static string GetUnhandledExceptionErrorMessage(this Exception ex)
-    {
-        return GetExceptionErrorMessage(ex,
-            string.Format("An unhandled error occurred.{0}", Environment.NewLine)
-        );
-    }
-
-    public static string GetExceptionErrorMessage(this Exception ex, string mainMessage = null)
+    public static StringBuilder GetUnhandledExceptionErrorWithApplicationTerminationMessage(this Exception ex, bool withoutDebuggingInfo = false)
     {
         if (ex == null)
             return null;
 
-        string errorMessage = mainMessage;
+        var errorMessage = new StringBuilder();
+        errorMessage.AppendLine("An unhandled error occurred.");
+        errorMessage.AppendLine("The application will terminate now.");
+        errorMessage.AppendLine();
+        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+    }
 
-        AppendToExceptionErrorMessage(ref errorMessage, ex);
+    public static StringBuilder GetUnhandledExceptionErrorMessage(this Exception ex, bool withoutDebuggingInfo = false)
+    {
+        if (ex == null)
+            return null;
+
+        var errorMessage = new StringBuilder();
+        errorMessage.AppendLine("An unhandled error occurred.");
+        errorMessage.AppendLine();
+        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+    }
+
+    public static StringBuilder GetExceptionErrorMessage(this Exception ex, string mainMessage = null, bool withoutDebuggingInfo = false)
+    {
+        if (ex == null)
+            return null;
+
+        var errorMessage = new StringBuilder();
+        if (string.IsNullOrEmpty(mainMessage) == false)
+            errorMessage.AppendLine(mainMessage);
+        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+    }
+
+    private static StringBuilder GetExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo)
+    {
+        AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
 
         while (ex.InnerException != null)
         {
             ex = ex.InnerException;
-            AppendToExceptionErrorMessage(ref errorMessage, ex);
+            AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
         }
 
-        errorMessage = errorMessage.Trim();
+        TrimEndNewLine(errorMessage);
 
         return errorMessage;
     }
 
-    private static void AppendToExceptionErrorMessage(ref string errorMessage, Exception ex)
+    private static void AppendToExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo)
     {
-        errorMessage += string.Format("{0}ERROR: {1}{0}ERROR TYPE: {2}",
-            Environment.NewLine,
-            ex.Message,
-            ex.GetType()
-        );
+        errorMessage.Append("ERROR: ");
+        errorMessage.AppendLine(ex.Message);
 
-        string formattedStackTrace = ex.GetFormattedStackTrace();
-        if (string.IsNullOrEmpty(formattedStackTrace) == false)
+        if (withoutDebuggingInfo)
+            return;
+
+        errorMessage.Append("ERROR TYPE: ");
+        errorMessage.AppendLine(ex.GetType().ToString());
+
+        var stackTrace = ex.GetFormattedStackTrace();
+        if (stackTrace.Length > 0)
         {
-            errorMessage += string.Format("{0}STACK TRACE:{0}{1}",
-                Environment.NewLine,
-                formattedStackTrace
-            );
+            errorMessage.AppendLine("STACK TRACE:");
+            errorMessage.Append(stackTrace);
+            errorMessage.AppendLine();
         }
     }
 
-    public static string GetFormattedStackTrace(this Exception ex)
+    public static StringBuilder GetFormattedStackTrace(this Exception ex)
     {
-        var sb = new StringBuilder();
+        var stackTrace = new StringBuilder();
+
         bool isFoundNamespaceNotSystem = false;
 
         var st = new StackTrace(ex, true);
@@ -82,17 +100,18 @@ public static partial class ExceptionExtensions
                             MethodInfo mi = method as MethodInfo;
                             if (mi != null)
                             {
-                                sb.Append((i + 1) + ". ");
-                                sb.Append(mi.GetSignature());
+                                stackTrace.Append(i + 1);
+                                stackTrace.Append(". ");
+                                stackTrace.Append(mi.GetSignature());
 
                                 int lineNumber = sf.GetFileLineNumber();
                                 if (lineNumber > 0)
                                 {
-                                    sb.Append(" at line ");
-                                    sb.Append(lineNumber);
+                                    stackTrace.Append(" at line ");
+                                    stackTrace.Append(lineNumber);
                                 }
 
-                                sb.Append(Environment.NewLine);
+                                stackTrace.Append(Environment.NewLine);
                             }
                         }
                         else
@@ -104,9 +123,24 @@ public static partial class ExceptionExtensions
             }
         }
 
-        if (sb.Length == 0)
-            return null;
+        TrimEndNewLine(stackTrace);
 
-        return sb.ToString().Trim();
+        return stackTrace;
+    }
+
+    private static void TrimEndNewLine(StringBuilder sb)
+    {
+        int countCharsToRemove = 0;
+
+        if (sb.Length >= 2 && sb[^2] == '\r')
+            countCharsToRemove++;
+
+        if (sb.Length >= 1 && sb[^1] == '\n')
+            countCharsToRemove++;
+
+        if (countCharsToRemove == 0)
+            return;
+
+        sb.Length -= countCharsToRemove;
     }
 }

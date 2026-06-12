@@ -111,6 +111,12 @@ static void RemoveQuotationsFromYtDlpOptions(DownloadOptions options)
 
 static void WriteCommentsToFile(Settings settings)
 {
+#if RELEASE
+    bool withoutDebuggingInfo = true;
+#elif DEBUG
+    bool withoutDebuggingInfo = false;
+#endif
+
     var commentsWriter = new CommentsWriter(settings);
 
     commentsWriter.Start += (sender, e) =>
@@ -185,21 +191,7 @@ static void WriteCommentsToFile(Settings settings)
         else
         {
             Console.WriteLine();
-
-#if RELEASE
-            WriteWarningLine("Failed to download video information.");
-            WriteWarningLine($"Error: {e.Error.Message}");
-
-            Exception ex = e.Error.InnerException;
-            while (ex != null)
-            {
-                WriteWarningLine($"Error: {ex.Message}");
-                ex = ex.InnerException;
-            }
-#elif DEBUG
-            WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information."));
-#endif
-
+            WriteWarningStringBuilder(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
             pauseOnErrors = true;
         }
     };
@@ -271,11 +263,11 @@ static void WriteCommentsToFile(Settings settings)
     };
 
     int lostComments = 0;
-    var warningMessages = new List<string>();
+    var warningMessages = new List<StringBuilder>();
 
     commentsWriter.WriteCommentError += (sender, e) =>
     {
-        warningMessages.Add(e.Error.GetExceptionErrorMessage($"COMMENT:{Environment.NewLine}{e.Comment}"));
+        warningMessages.Add(e.Error.GetExceptionErrorMessage($"{(string.IsNullOrEmpty(e.Id) ? null : $"COMMENT ID: {e.Id}{Environment.NewLine}")}{(string.IsNullOrEmpty(e.Parent) ? null : $"PARENT ID: {e.Parent}{Environment.NewLine}")}COMMENT:{Environment.NewLine}{e.Comment}", withoutDebuggingInfo));
         lostComments += e.LostComments;
         pauseOnErrors = true;
     };
@@ -341,20 +333,7 @@ static void WriteCommentsToFile(Settings settings)
         }
         else
         {
-#if RELEASE
-            WriteErrorLine("Failed to write comments file.");
-            WriteErrorLine($"Error: {e.Error.Message}");
-
-            Exception ex = e.Error.InnerException;
-            while (ex != null)
-            {
-                WriteErrorLine($"Error: {ex.Message}");
-                ex = ex.InnerException;
-            }
-#elif DEBUG
-            WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file."));
-#endif
-
+            WriteErrorStringBuilder(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo));
             pauseOnErrors = true;
         }
     };
@@ -459,11 +438,27 @@ static void WriteErrorLine(string line = null)
     Console.ForegroundColor = foregroundColor;
 }
 
+static void WriteErrorStringBuilder(StringBuilder sb)
+{
+    ConsoleColor foregroundColor = Console.ForegroundColor;
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.Error.WriteLine(sb);
+    Console.ForegroundColor = foregroundColor;
+}
+
 static void WriteWarningLine(string line = null)
 {
     ConsoleColor foregroundColor = Console.ForegroundColor;
     Console.ForegroundColor = ConsoleColor.Yellow;
     Console.WriteLine(line);
+    Console.ForegroundColor = foregroundColor;
+}
+
+static void WriteWarningStringBuilder(StringBuilder sb)
+{
+    ConsoleColor foregroundColor = Console.ForegroundColor;
+    Console.ForegroundColor = ConsoleColor.Yellow;
+    Console.WriteLine(sb);
     Console.ForegroundColor = foregroundColor;
 }
 
@@ -598,15 +593,22 @@ static string UnhandledException(Exception ex)
 
     try
     {
-        errorMessage.AppendLine(ex.GetUnhandledExceptionErrorMessage());
+        errorMessage.Append(ex.GetUnhandledExceptionErrorMessage());
+        errorMessage.AppendLine();
     }
     catch
     {
         while (ex != null)
         {
             errorMessage.AppendLine();
-            errorMessage.AppendLine($"ERROR TYPE: {ex.GetType()}");
-            errorMessage.AppendLine($"ERROR: {ex.Message}");
+
+            errorMessage.Append("ERROR: ");
+            errorMessage.AppendLine(ex.Message);
+
+#if DEBUG
+            errorMessage.Append("ERROR TYPE: ");
+            errorMessage.AppendLine(ex.GetType().ToString());
+#endif
 
             ex = ex.InnerException;
         }

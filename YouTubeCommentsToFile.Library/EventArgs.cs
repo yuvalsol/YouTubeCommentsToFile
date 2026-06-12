@@ -64,8 +64,10 @@ public sealed class StartWriteCommentsEventArgs(VideoInfo videoInfo, string comm
     public bool WriteToHTML => writeToHTML;
 }
 
-public sealed class WriteCommentErrorEventArgs(string comment, Exception error, int lostComments) : EventArgs
+public sealed class WriteCommentErrorEventArgs(string id, string parent, string comment, Exception error, int lostComments) : EventArgs
 {
+    public string Id => id;
+    public string Parent => parent;
     public string Comment => comment;
     public Exception Error => error;
     public int LostComments => lostComments;

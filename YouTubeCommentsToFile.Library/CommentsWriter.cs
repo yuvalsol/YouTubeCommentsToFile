@@ -1767,7 +1767,7 @@ public partial class CommentsWriter(Settings settings)
         {
             int lostComments = 0;
             CountLostComments(comment, ref lostComments);
-            WriteCommentError?.Raise(this, () => new WriteCommentErrorEventArgs(comment.ToError(), ex, lostComments));
+            WriteCommentError?.Raise(this, () => new WriteCommentErrorEventArgs(comment.Id, comment.Parent, comment.ToError(), ex, lostComments));
             return;
         }
 

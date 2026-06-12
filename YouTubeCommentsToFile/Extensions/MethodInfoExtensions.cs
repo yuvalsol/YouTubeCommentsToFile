@@ -17,36 +17,43 @@ public static partial class MethodInfoExtensions
     /// <returns>
     /// Method signature.
     /// </returns>
-    public static string GetSignature(this PropertyInfo property)
+    public static StringBuilder GetSignature(this PropertyInfo property)
     {
+        var sigBuilder = new StringBuilder();
+
         var getter = property.GetGetMethod();
         var setter = property.GetSetMethod();
-
-        var sigBuilder = new StringBuilder();
         var primaryDef = LeastRestrictiveVisibility(getter, setter);
 
-
         BuildReturnSignature(sigBuilder, primaryDef);
+
         sigBuilder.Append(" { ");
+
         if (getter != null)
         {
             if (primaryDef != getter)
             {
-                sigBuilder.Append(Visibility(getter) + " ");
+                sigBuilder.Append(Visibility(getter));
+                sigBuilder.Append(' ');
             }
+
             sigBuilder.Append("get; ");
         }
+
         if (setter != null)
         {
             if (primaryDef != setter)
             {
-                sigBuilder.Append(Visibility(setter) + " ");
+                sigBuilder.Append(Visibility(setter));
+                sigBuilder.Append(' ');
             }
+
             sigBuilder.Append("set; ");
         }
-        sigBuilder.Append('}');
-        return sigBuilder.ToString();
 
+        sigBuilder.Append('}');
+
+        return sigBuilder;
     }
 
     /// <summary>
@@ -63,24 +70,22 @@ public static partial class MethodInfoExtensions
     /// <returns>
     /// Method signature.
     /// </returns>
-    public static string GetSignature(this MethodInfo method, bool callable = false)
+    public static StringBuilder GetSignature(this MethodInfo method, bool callable = false)
     {
-
         var sigBuilder = new StringBuilder();
 
         BuildReturnSignature(sigBuilder, method, callable);
 
         sigBuilder.Append('(');
-        var firstParam = true;
-        var secondParam = false;
 
-        var parameters = method.GetParameters();
-
-        foreach (var param in parameters)
+        bool firstParam = true;
+        bool secondParam = false;
+        foreach (var param in method.GetParameters())
         {
             if (firstParam)
             {
                 firstParam = false;
+
                 if (method.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false))
                 {
                     if (callable)
@@ -88,95 +93,88 @@ public static partial class MethodInfoExtensions
                         secondParam = true;
                         continue;
                     }
+
                     sigBuilder.Append("this ");
                 }
             }
-            else if (secondParam == true)
+            else if (secondParam)
+            {
                 secondParam = false;
+            }
             else
+            {
                 sigBuilder.Append(", ");
+            }
+
             if (param.IsOut)
                 sigBuilder.Append("out ");
             else if (param.ParameterType.IsByRef)
                 sigBuilder.Append("ref ");
 
-            if (IsParamArray(param))
-            {
+            bool isParamArray = param.GetCustomAttribute(typeof(ParamArrayAttribute), true) != null;
+            if (isParamArray)
                 sigBuilder.Append("params ");
-            }
 
             if (!callable)
             {
-                sigBuilder.Append(TypeName(param.ParameterType));
+                TypeName(sigBuilder, param.ParameterType);
                 sigBuilder.Append(' ');
             }
-
 
             sigBuilder.Append(param.Name);
 
             if (param.IsOptional)
             {
-                sigBuilder.Append(" = " +
-                    (param.DefaultValue ?? "null")
-                );
+                sigBuilder.Append(" = ");
+                sigBuilder.Append(param.DefaultValue ?? "null");
             }
         }
+
         sigBuilder.Append(')');
 
         // generic constraints
-
-
         foreach (var arg in method.GetGenericArguments())
         {
             List<string> constraints = [];
             foreach (var constraint in arg.GetGenericParameterConstraints())
             {
-                constraints.Add(TypeName(constraint));
+                var sb = new StringBuilder();
+                TypeName(sb, constraint);
+                constraints.Add(sb.ToString());
             }
 
             var attrs = arg.GenericParameterAttributes;
+            GenericParameterAttributes specialConstraints = attrs & GenericParameterAttributes.SpecialConstraintMask;
 
-            if (attrs.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint))
-            {
+            if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) == GenericParameterAttributes.ReferenceTypeConstraint)
                 constraints.Add("class");
-            }
-            if (attrs.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint))
-            {
+
+            if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) == GenericParameterAttributes.NotNullableValueTypeConstraint)
                 constraints.Add("struct");
-            }
-            if (attrs.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint))
-            {
+
+            if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == GenericParameterAttributes.DefaultConstructorConstraint)
                 constraints.Add("new()");
-            }
+
             if (constraints.Count > 0)
             {
-                sigBuilder.Append(" where " + TypeName(arg) + ": " + String.Join(", ", constraints));
+                sigBuilder.Append(" where ");
+                TypeName(sigBuilder, arg);
+                sigBuilder.Append(": ");
+                sigBuilder.Append(string.Join(", ", constraints));
             }
         }
 
-
-
-
-        return sigBuilder.ToString();
+        return sigBuilder;
     }
 
-    /// <summary>
-    /// Get full type name with full namespace names.
-    /// </summary>
-    ///
-    /// <param name="type">
-    /// Type. May be generic or nullable.
-    /// </param>
-    ///
-    /// <returns>
-    /// Full type name, fully qualified namespaces.
-    /// </returns>
-    public static string TypeName(Type type)
+    private static void TypeName(StringBuilder sigBuilder, Type type)
     {
         var nullableType = Nullable.GetUnderlyingType(type);
         if (nullableType != null)
         {
-            return TypeName(nullableType) + "?";
+            TypeName(sigBuilder, nullableType);
+            sigBuilder.Append('?');
+            return;
         }
 
         string typeName = type.Name;
@@ -187,158 +185,127 @@ public static partial class MethodInfoExtensions
         {
             if (type.IsArray)
             {
-                return TypeName(type.GetElementType()) + "[]";
+                TypeName(sigBuilder, type.GetElementType());
+                sigBuilder.Append("[]");
+                return;
             }
 
-            switch (typeName)
+            sigBuilder.Append(typeName switch
             {
-                case "Boolean":
-                case "System.Boolean": return "bool";
-                case "Byte":
-                case "System.Byte": return "byte";
-                case "Char":
-                case "System.Char": return "char";
-                case "Decimal":
-                case "System.Decimal": return "decimal";
-                case "Double":
-                case "System.Double": return "double";
-                case "Int32":
-                case "System.Int32": return "int";
-                case "Int64":
-                case "System.Int64": return "long";
-                case "Object":
-                case "System.Object": return "object";
-                case "SByte":
-                case "System.SByte": return "sbyte";
-                case "Int16":
-                case "System.Int16": return "short";
-                case "String":
-                case "System.String": return "string";
-                case "UInt32":
-                case "System.UInt32": return "uint";
-                case "UInt64":
-                case "System.UInt64": return "ulong";
-                case "UInt16":
-                case "System.UInt16": return "ushort";
-                case "Void": return "void";
-                default:
-                    {
-                        return string.IsNullOrWhiteSpace(type.FullName) ? typeName : type.FullName.TrimEnd('&');
-                    }
-            }
+                "Boolean" or "System.Boolean" => "bool",
+                "Byte" or "System.Byte" => "byte",
+                "Char" or "System.Char" => "char",
+                "Decimal" or "System.Decimal" => "decimal",
+                "Double" or "System.Double" => "double",
+                "Int32" or "System.Int32" => "int",
+                "Int64" or "System.Int64" => "long",
+                "Object" or "System.Object" => "object",
+                "SByte" or "System.SByte" => "sbyte",
+                "Int16" or "System.Int16" => "short",
+                "String" or "System.String" => "string",
+                "UInt32" or "System.UInt32" => "uint",
+                "UInt64" or "System.UInt64" => "ulong",
+                "UInt16" or "System.UInt16" => "ushort",
+                "Void" => "void",
+                _ => string.IsNullOrWhiteSpace(type.FullName) ? typeName : type.FullName.TrimEnd('&')
+            });
+
+            return;
         }
 
-        var sb = new StringBuilder(typeName[..typeName.IndexOf('`')]);
+        sigBuilder.Append(typeName[..typeName.IndexOf('`')]);
+        sigBuilder.Append('<');
 
-        sb.Append('<');
-        var first = true;
+        bool first = true;
         foreach (var t in type.GetGenericArguments())
         {
             if (!first)
-                sb.Append(',');
-            sb.Append(TypeName(t));
+                sigBuilder.Append(',');
+            TypeName(sigBuilder, t);
             first = false;
         }
-        sb.Append('>');
-        return sb.ToString();
+
+        sigBuilder.Append('>');
     }
 
     private static void BuildReturnSignature(StringBuilder sigBuilder, MethodInfo method, bool callable = false)
     {
-        var firstParam = true;
-        if (callable == false)
+        if (!callable)
         {
-            sigBuilder.Append(Visibility(method) + " ");
-
+            sigBuilder.Append(Visibility(method));
+            sigBuilder.Append(' ');
             if (method.IsStatic)
                 sigBuilder.Append("static ");
-            sigBuilder.Append(TypeName(method.ReturnType));
+            TypeName(sigBuilder, method.ReturnType);
             sigBuilder.Append(' ');
         }
+
         sigBuilder.Append(method.Name);
 
-        // Add method generics
+        // add method generics
         if (method.IsGenericMethod)
         {
             sigBuilder.Append('<');
+
+            bool firstParam = true;
             foreach (var g in method.GetGenericArguments())
             {
                 if (firstParam)
                     firstParam = false;
                 else
                     sigBuilder.Append(", ");
-                sigBuilder.Append(TypeName(g));
+
+                TypeName(sigBuilder, g);
             }
+
             sigBuilder.Append('>');
-        }
-
-    }
-
-    private static string Visibility(MethodInfo method)
-    {
-        if (method.IsPublic)
-            return "public";
-        else if (method.IsFamily)
-            return "protected";
-        else if (method.IsAssembly)
-            return "internal";
-        else if (method.IsFamilyOrAssembly)
-            return "protected internal";
-        else if (method.IsFamilyAndAssembly)
-            return "private protected";
-        else if (method.IsPrivate)
-            return "private";
-        else
-        {
-            throw new Exception("I wasn't able to parse the visibility of this method.");
         }
     }
 
     private static MethodInfo LeastRestrictiveVisibility(MethodInfo member1, MethodInfo member2)
     {
         if (member1 != null && member2 == null)
-        {
             return member1;
-        }
-        else if (member2 != null && member1 == null)
-        {
-            return member2;
-        }
 
-        int vis1 = VisibilityValue(member1);
-        int vis2 = VisibilityValue(member2);
-        if (vis1 < vis2)
-        {
-            return member1;
-        }
-        else
-        {
+        if (member2 != null && member1 == null)
             return member2;
-        }
+
+        return (VisibilityValue(member1) < VisibilityValue(member2) ? member1 : member2);
+    }
+
+    private static string Visibility(MethodInfo method)
+    {
+        if (method.IsPublic)
+            return "public";
+        if (method.IsFamily)
+            return "protected";
+        if (method.IsAssembly)
+            return "internal";
+        if (method.IsFamilyOrAssembly)
+            return "protected internal";
+        if (method.IsFamilyAndAssembly)
+            return "private protected";
+        if (method.IsPrivate)
+            return "private";
+
+        throw new ArgumentException($"Method {method.Name} is missing visibility.", nameof(method));
     }
 
     private static int VisibilityValue(MethodInfo method)
     {
         if (method.IsPublic)
             return 1;
-        else if (method.IsFamily)
+        if (method.IsFamily)
             return 2;
-        else if (method.IsAssembly)
+        if (method.IsAssembly)
             return 3;
-        else if (method.IsFamilyOrAssembly)
+        if (method.IsFamilyOrAssembly)
             return 4;
-        else if (method.IsFamilyAndAssembly)
+        if (method.IsFamilyAndAssembly)
             return 5;
-        else if (method.IsPrivate)
+        if (method.IsPrivate)
             return 6;
-        else
-        {
-            throw new Exception("I wasn't able to parse the visibility of this method.");
-        }
-    }
 
-    private static bool IsParamArray(ParameterInfo info)
-    {
-        return info.GetCustomAttribute(typeof(ParamArrayAttribute), true) != null;
+        throw new ArgumentException($"Method {method.Name} is missing visibility.", nameof(method));
     }
 }
