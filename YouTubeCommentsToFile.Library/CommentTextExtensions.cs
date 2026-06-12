@@ -83,6 +83,24 @@ internal static partial class CommentTextExtensions
             text = sb.ToString();
         }
 
+        if (text.GetRepliedAuthor(out var repliedAuthor))
+        {
+            if (repliedAuthor.AtSigns != null)
+                text = text.Remove(repliedAuthor.AtSigns.Index, repliedAuthor.AtSigns.Length);
+
+            if (repliedAuthor.FalseStart != null)
+                text = text.Remove(repliedAuthor.FalseStart.Index, repliedAuthor.FalseStart.Length);
+        }
+
+        var authorAtSigns =
+            text.GetAuthors()
+            .Where(author => author.AtSigns != null)
+            .Select(author => author.AtSigns)
+            .OrderByDescending(atSigns => atSigns.Index);
+
+        foreach (var atSigns in authorAtSigns)
+            text = text.Remove(atSigns.Index, atSigns.Length);
+
         return text;
     }
 
@@ -178,7 +196,7 @@ internal static partial class CommentTextExtensions
             {
                 IsRepliedAuthor = true,
                 FromIndex = repliedAuthor.Index,
-                ToIndex = repliedAuthor.Index + repliedAuthor.Name.Length,
+                ToIndex = repliedAuthor.Index + repliedAuthor.Length,
                 Value = repliedAuthor.Name
             });
         }
@@ -190,7 +208,7 @@ internal static partial class CommentTextExtensions
                 {
                     IsOtherAuthor = true,
                     FromIndex = otherAuthor.Index,
-                    ToIndex = otherAuthor.Index + otherAuthor.Name.Length,
+                    ToIndex = otherAuthor.Index + otherAuthor.Length,
                     Value = otherAuthor.Name
                 })
             );
@@ -410,10 +428,28 @@ internal static partial class CommentTextExtensions
 
     // \u202C POP DIRECTIONAL FORMATTING
 
-    [GeneratedRegex(@"(@\s*)?(?<Author>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
+    // precedes with start of line ^ or at least one space \s+. this prevents capturing an email address name@domain
+    // AtSigns: precedes with consecutive at signs, if any: @*
+    // Author:
+    // starts with at sign: @
+    // (
+    //   any char: .
+    //   that is not: (?<!
+    //     punctuations: [\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]
+    //     or: |
+    //     emoji: \p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*
+    //   )
+    // )
+    // between 3-30 chars: {3,30}
+    [GeneratedRegex(@"(?<=^|\s+)(?<AtSigns>@*)(?<Author>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
     private static partial Regex RegexAuthor();
 
-    [GeneratedRegex(@"^\s*(@\s*)?(?<RepliedAuthor>@[^\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]+)")]
+    // start of line: ^
+    // precedes with spaces, if any: \s*
+    // FalseStart: consecutive at signs followed by at most 2 chars
+    // AtSigns: precedes with consecutive at signs, if any: @*
+    // RepliedAuthor: same as Author
+    [GeneratedRegex(@"^\s*(?<FalseStart>@+(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){0,2}\s+)?(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
     private static partial Regex RegexRepliedAuthor();
 
     public static IEnumerable<Author> GetAuthors(this string text)
@@ -421,40 +457,48 @@ internal static partial class CommentTextExtensions
         if (string.IsNullOrEmpty(text))
             yield break;
 
-        foreach (Match match in RegexAuthor().Matches(text))
-        {
-            var group = match.Groups["Author"];
-            string author = group.Value;
+        var authors =
+            RegexAuthor().Matches(text)
+            .Select(match => new
+            {
+                gAuthor = match.Groups["Author"],
+                gAtSigns = match.Groups["AtSigns"]
+            })
+            .Select(x => new Author(x.gAuthor.Value, x.gAuthor.Index, x.gAuthor.Length)
+            {
+                AtSigns = (x.gAtSigns.Success && x.gAtSigns.Length > 0 ? new AtSigns(x.gAtSigns.Index, x.gAtSigns.Length) : null)
+            });
 
-            if (author.HasEmoji())
-                author = author[..RegexEmoji().Match(author).Index].TrimEnd();
-
-            // Between 3–30 characters
-            if (4 <= author.Length && author.Length <= 31)
-                yield return new Author(author, group.Index);
-        }
+        foreach (var author in authors)
+            yield return author;
     }
 
     public static bool GetRepliedAuthor(this string text, out Author repliedAuthor)
     {
-        if (string.IsNullOrEmpty(text) == false && RegexRepliedAuthor().IsMatch(text))
+        if (string.IsNullOrEmpty(text))
         {
-            var group = RegexRepliedAuthor().Match(text).Groups["RepliedAuthor"];
-            string author = group.Value;
-
-            if (author.HasEmoji())
-                author = author[..RegexEmoji().Match(author).Index].TrimEnd();
-
-            // Between 3–30 characters
-            if (4 <= author.Length && author.Length <= 31)
-            {
-                repliedAuthor = new Author(author, group.Index);
-                return true;
-            }
+            repliedAuthor = null;
+            return false;
         }
 
-        repliedAuthor = null;
-        return false;
+        var match = RegexRepliedAuthor().Match(text);
+        if (match.Success == false)
+        {
+            repliedAuthor = null;
+            return false;
+        }
+
+        var gRepliedAuthor = match.Groups["RepliedAuthor"];
+        var gAtSigns = match.Groups["AtSigns"];
+        var gFalseStart = match.Groups["FalseStart"];
+
+        repliedAuthor = new Author(gRepliedAuthor.Value, gRepliedAuthor.Index, gRepliedAuthor.Length)
+        {
+            AtSigns = (gAtSigns.Success && gAtSigns.Length > 0 ? new AtSigns(gAtSigns.Index, gAtSigns.Length) : null),
+            FalseStart = (gFalseStart.Success && gFalseStart.Length > 0 ? new FalseStart(gFalseStart.Index, gFalseStart.Length) : null)
+        };
+
+        return true;
     }
 
     #endregion

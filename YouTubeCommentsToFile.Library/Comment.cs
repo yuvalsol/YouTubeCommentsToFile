@@ -392,7 +392,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
         if (lines.HasAny() && lines[0].GetRepliedAuthor(out var repliedAuthor))
         {
-            int index = repliedAuthor.Index + repliedAuthor.Name.Length;
+            int index = repliedAuthor.Index + repliedAuthor.Length;
             string line1 = lines[0][..index].TrimEnd();
             string line2 = lines[0][index..].TrimStart();
             if (string.IsNullOrWhiteSpace(line2) == false)
