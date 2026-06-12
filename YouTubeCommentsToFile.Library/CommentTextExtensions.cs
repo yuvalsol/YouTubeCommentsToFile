@@ -446,7 +446,7 @@ internal static partial class CommentTextExtensions
 
     // start of line: ^
     // precedes with spaces, if any: \s*
-    // FalseStart: consecutive at signs followed by at most 2 chars
+    // FalseStart: consecutive at signs followed by at most 3 chars
     // AtSigns: precedes with consecutive at signs, if any: @*
     // RepliedAuthor: same as Author
     [GeneratedRegex(@"^\s*(?<FalseStart>@+(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){0,3}\s+)?(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
