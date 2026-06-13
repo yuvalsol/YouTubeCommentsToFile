@@ -50,15 +50,20 @@ static int ParseArgs(string[] args)
                     WriteErrorLine(GetVersion());
                     WriteErrorLine();
 
+                    WriteErrorLine($"{nameof(YouTubeCommentsToFile)} {string.Join(' ', args.Select(arg => arg.Contains(' ') ? $@"""{arg}""" : arg))}");
+                    WriteErrorLine();
+
                     WriteErrorLine($"{nameof(YouTubeCommentsToFile)} Errors:");
                     foreach (Error error in errors)
                     {
+                        string tag = RegexCamelToWords().Replace(error.Tag.ToString(), "$1 $2");
+
                         if (error is TokenError tokenError)
-                            WriteErrorLine($"{tokenError.Tag} {tokenError.Token}");
+                            WriteErrorLine($"{tag}: {tokenError.Token}");
                         else if (error is NamedError namedError)
-                            WriteErrorLine($"{namedError.Tag} {namedError.NameInfo.NameText}");
+                            WriteErrorLine($"{tag}: {namedError.NameInfo.NameText}");
                         else
-                            WriteErrorLine(error.Tag.ToString());
+                            WriteErrorLine(tag);
                     }
                     WriteErrorLine();
                 }
@@ -615,4 +620,10 @@ static string UnhandledException(Exception ex)
     }
 
     return errorMessage.ToString();
+}
+
+partial class Program
+{
+    [GeneratedRegex(@"([a-z0-9])([A-Z])")]
+    private static partial Regex RegexCamelToWords();
 }
