@@ -7,15 +7,183 @@ namespace System.Reflection;
 public static partial class MethodInfoExtensions
 {
     /// <summary>
-    /// Return the method signature as a string.
+    /// Returns the method signature as a string.
     /// </summary>
     ///
-    /// <param name="property">
-    /// The property to act on.
+    /// <param name="method">
+    /// The method.
+    /// </param>
+    /// <param name="callable">
+    /// Return as an callable string ('public void a(string b)' would return 'a(b)').
     /// </param>
     ///
     /// <returns>
     /// Method signature.
+    /// </returns>
+    public static StringBuilder GetSignature(this MethodInfo method, bool callable = false)
+    {
+        var sigBuilder = new StringBuilder();
+
+        BuildReturnSignature(sigBuilder, method, callable);
+
+        BuildSignature(
+            sigBuilder,
+            parameters: method.GetParameters(),
+            isExtensionMethod: method.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false),
+            method.IsGenericMethod,
+            genericArguments: (method.IsGenericMethod ? method.GetGenericArguments() : null),
+            callable
+        );
+
+        return sigBuilder;
+    }
+
+    /// <summary>
+    /// Returns the constructor signature as a string.
+    /// </summary>
+    ///
+    /// <param name="constructor">
+    /// The constructor.
+    /// </param>
+    /// <param name="callable">
+    /// Return as an callable string ('public a(string b)' would return 'a(b)').
+    /// </param>
+    ///
+    /// <returns>
+    /// Constructor signature.
+    /// </returns>
+    public static StringBuilder GetSignature(this ConstructorInfo constructor, bool callable = false)
+    {
+        var sigBuilder = new StringBuilder();
+
+        BuildReturnSignature(sigBuilder, constructor, callable);
+
+        BuildSignature(
+            sigBuilder,
+            parameters: constructor.GetParameters(),
+            isExtensionMethod: false,
+            constructor.IsGenericMethod,
+            genericArguments: (constructor.IsGenericMethod ? constructor.GetGenericArguments() : null),
+            callable
+        );
+
+        return sigBuilder;
+    }
+
+    private static void BuildSignature(
+        StringBuilder sigBuilder,
+        ParameterInfo[] parameters,
+        bool isExtensionMethod,
+        bool isGenericMethod,
+        Type[] genericArguments,
+        bool callable)
+    {
+        sigBuilder.Append('(');
+
+        bool firstParam = true;
+        bool secondParam = false;
+        foreach (var param in parameters)
+        {
+            if (firstParam)
+            {
+                firstParam = false;
+
+                if (isExtensionMethod)
+                {
+                    if (callable)
+                    {
+                        secondParam = true;
+                        continue;
+                    }
+
+                    sigBuilder.Append("this ");
+                }
+            }
+            else if (secondParam)
+            {
+                secondParam = false;
+            }
+            else
+            {
+                sigBuilder.Append(", ");
+            }
+
+            if (param.ParameterType.IsByRef)
+            {
+                if (param.IsIn)
+                    sigBuilder.Append("in ");
+                else if (param.IsOut)
+                    sigBuilder.Append("out ");
+                else
+                    sigBuilder.Append("ref ");
+            }
+
+            bool isParamArray = param.GetCustomAttribute(typeof(ParamArrayAttribute), true) != null;
+            if (isParamArray)
+                sigBuilder.Append("params ");
+
+            if (callable == false)
+            {
+                BuildTypeSignature(sigBuilder, param.ParameterType);
+                sigBuilder.Append(' ');
+            }
+
+            sigBuilder.Append(param.Name);
+
+            if (param.IsOptional)
+            {
+                sigBuilder.Append(" = ");
+                sigBuilder.Append(param.DefaultValue ?? "null");
+            }
+        }
+
+        sigBuilder.Append(')');
+
+        if (isGenericMethod == false)
+            return;
+
+        foreach (var arg in genericArguments)
+        {
+            List<string> constraints = [];
+            foreach (var constraint in arg.GetGenericParameterConstraints())
+            {
+                var sb = new StringBuilder();
+                BuildTypeSignature(sb, constraint);
+                constraints.Add(sb.ToString());
+            }
+
+            var attrs = arg.GenericParameterAttributes;
+            GenericParameterAttributes specialConstraints = attrs & GenericParameterAttributes.SpecialConstraintMask;
+
+            if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) == GenericParameterAttributes.ReferenceTypeConstraint)
+                constraints.Add("class");
+
+            if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) == GenericParameterAttributes.NotNullableValueTypeConstraint)
+                constraints.Add("struct");
+
+            if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == GenericParameterAttributes.DefaultConstructorConstraint)
+                constraints.Add("new()");
+
+            if (constraints.Count > 0)
+            {
+                sigBuilder.Append(" where ");
+                BuildTypeSignature(sigBuilder, arg);
+                sigBuilder.Append(": ");
+                sigBuilder.Append(string.Join(", ", constraints));
+            }
+        }
+    }
+
+    /// <summary>
+    /// Returns the property signature as a string.
+    /// </summary>
+    ///
+    /// <param name="property">
+    /// The property.
+    /// </param>
+    ///
+    /// <returns>
+    /// Property signature.
     /// </returns>
     public static StringBuilder GetSignature(this PropertyInfo property)
     {
@@ -25,7 +193,7 @@ public static partial class MethodInfoExtensions
         var setter = property.GetSetMethod();
         var primaryDef = LeastRestrictiveVisibility(getter, setter);
 
-        BuildReturnSignature(sigBuilder, primaryDef);
+        BuildReturnSignature(sigBuilder, primaryDef, false);
 
         sigBuilder.Append(" { ");
 
@@ -56,123 +224,12 @@ public static partial class MethodInfoExtensions
         return sigBuilder;
     }
 
-    /// <summary>
-    /// Return the method signature as a string.
-    /// </summary>
-    ///
-    /// <param name="method">
-    /// The Method.
-    /// </param>
-    /// <param name="callable">
-    /// Return as an callable string(public void a(string b) would return a(b))
-    /// </param>
-    ///
-    /// <returns>
-    /// Method signature.
-    /// </returns>
-    public static StringBuilder GetSignature(this MethodInfo method, bool callable = false)
-    {
-        var sigBuilder = new StringBuilder();
-
-        BuildReturnSignature(sigBuilder, method, callable);
-
-        sigBuilder.Append('(');
-
-        bool firstParam = true;
-        bool secondParam = false;
-        foreach (var param in method.GetParameters())
-        {
-            if (firstParam)
-            {
-                firstParam = false;
-
-                if (method.IsDefined(typeof(System.Runtime.CompilerServices.ExtensionAttribute), false))
-                {
-                    if (callable)
-                    {
-                        secondParam = true;
-                        continue;
-                    }
-
-                    sigBuilder.Append("this ");
-                }
-            }
-            else if (secondParam)
-            {
-                secondParam = false;
-            }
-            else
-            {
-                sigBuilder.Append(", ");
-            }
-
-            if (param.IsOut)
-                sigBuilder.Append("out ");
-            else if (param.ParameterType.IsByRef)
-                sigBuilder.Append("ref ");
-
-            bool isParamArray = param.GetCustomAttribute(typeof(ParamArrayAttribute), true) != null;
-            if (isParamArray)
-                sigBuilder.Append("params ");
-
-            if (!callable)
-            {
-                TypeName(sigBuilder, param.ParameterType);
-                sigBuilder.Append(' ');
-            }
-
-            sigBuilder.Append(param.Name);
-
-            if (param.IsOptional)
-            {
-                sigBuilder.Append(" = ");
-                sigBuilder.Append(param.DefaultValue ?? "null");
-            }
-        }
-
-        sigBuilder.Append(')');
-
-        // generic constraints
-        foreach (var arg in method.GetGenericArguments())
-        {
-            List<string> constraints = [];
-            foreach (var constraint in arg.GetGenericParameterConstraints())
-            {
-                var sb = new StringBuilder();
-                TypeName(sb, constraint);
-                constraints.Add(sb.ToString());
-            }
-
-            var attrs = arg.GenericParameterAttributes;
-            GenericParameterAttributes specialConstraints = attrs & GenericParameterAttributes.SpecialConstraintMask;
-
-            if ((specialConstraints & GenericParameterAttributes.ReferenceTypeConstraint) == GenericParameterAttributes.ReferenceTypeConstraint)
-                constraints.Add("class");
-
-            if ((specialConstraints & GenericParameterAttributes.NotNullableValueTypeConstraint) == GenericParameterAttributes.NotNullableValueTypeConstraint)
-                constraints.Add("struct");
-
-            if ((specialConstraints & GenericParameterAttributes.DefaultConstructorConstraint) == GenericParameterAttributes.DefaultConstructorConstraint)
-                constraints.Add("new()");
-
-            if (constraints.Count > 0)
-            {
-                sigBuilder.Append(" where ");
-                TypeName(sigBuilder, arg);
-                sigBuilder.Append(": ");
-                sigBuilder.Append(string.Join(", ", constraints));
-            }
-        }
-
-        return sigBuilder;
-    }
-
-    private static void TypeName(StringBuilder sigBuilder, Type type)
+    private static void BuildTypeSignature(StringBuilder sigBuilder, Type type)
     {
         var nullableType = Nullable.GetUnderlyingType(type);
         if (nullableType != null)
         {
-            TypeName(sigBuilder, nullableType);
+            BuildTypeSignature(sigBuilder, nullableType);
             sigBuilder.Append('?');
             return;
         }
@@ -181,11 +238,27 @@ public static partial class MethodInfoExtensions
         if (typeName.EndsWith('&'))
             typeName = typeName.TrimEnd('&');
 
-        if (!type.IsGenericType)
+        if (type.IsGenericType)
+        {
+            sigBuilder.Append(typeName[..typeName.IndexOf('`')]);
+            sigBuilder.Append('<');
+
+            bool first = true;
+            foreach (var t in type.GetGenericArguments())
+            {
+                if (first == false)
+                    sigBuilder.Append(',');
+                BuildTypeSignature(sigBuilder, t);
+                first = false;
+            }
+
+            sigBuilder.Append('>');
+        }
+        else
         {
             if (type.IsArray)
             {
-                TypeName(sigBuilder, type.GetElementType());
+                BuildTypeSignature(sigBuilder, type.GetElementType());
                 sigBuilder.Append("[]");
                 return;
             }
@@ -209,103 +282,149 @@ public static partial class MethodInfoExtensions
                 "Void" => "void",
                 _ => string.IsNullOrWhiteSpace(type.FullName) ? typeName : type.FullName.TrimEnd('&')
             });
+        }
+    }
 
-            return;
+    private static void BuildReturnSignature(StringBuilder sigBuilder, MethodInfo method, bool callable)
+    {
+        BuildReturnSignature(
+            sigBuilder,
+            visibility: (callable ? null : Visibility(method)),
+            method.IsStatic,
+            isSealed: method.IsVirtual && method.IsFinal,
+            isAbstract: method.IsAbstract,
+            isVirtual: method.IsVirtual && method.IsAbstract == false && method.GetBaseDefinition().DeclaringType == method.DeclaringType,
+            isOverride: method.IsVirtual && method.IsAbstract == false && method.GetBaseDefinition().DeclaringType != method.DeclaringType,
+            returnType: (callable ? null : method.ReturnType),
+            method.Name,
+            method.IsGenericMethod,
+            genericArguments: (method.IsGenericMethod ? method.GetGenericArguments() : null),
+            callable
+        );
+    }
+
+    private static void BuildReturnSignature(StringBuilder sigBuilder, ConstructorInfo constructor, bool callable)
+    {
+        BuildReturnSignature(
+            sigBuilder,
+            visibility: (callable ? null : Visibility(constructor)),
+            constructor.IsStatic,
+            isSealed: false,
+            isAbstract: false,
+            isVirtual: false,
+            isOverride: false,
+            returnType: null,
+            name: constructor.DeclaringType.ToString(),
+            constructor.IsGenericMethod,
+            genericArguments: (constructor.IsGenericMethod ? constructor.GetGenericArguments() : null),
+            callable
+        );
+    }
+
+    private static void BuildReturnSignature(
+        StringBuilder sigBuilder,
+        string visibility,
+        bool isStatic,
+        bool isSealed,
+        bool isAbstract,
+        bool isVirtual,
+        bool isOverride,
+        Type returnType,
+        string name,
+        bool isGenericMethod,
+        Type[] genericArguments,
+        bool callable)
+    {
+        if (callable == false)
+        {
+            sigBuilder.Append(visibility);
+            sigBuilder.Append(' ');
+
+            if (isStatic)
+                sigBuilder.Append("static ");
+
+            if (isSealed)
+                sigBuilder.Append("sealed ");
+
+            if (isAbstract)
+                sigBuilder.Append("abstract ");
+
+            if (isVirtual)
+                sigBuilder.Append("virtual ");
+
+            if (isOverride)
+                sigBuilder.Append("override ");
+
+            if (returnType != null)
+            {
+                BuildTypeSignature(sigBuilder, returnType);
+                sigBuilder.Append(' ');
+            }
         }
 
-        sigBuilder.Append(typeName[..typeName.IndexOf('`')]);
+        sigBuilder.Append(name);
+
+        if (isGenericMethod == false)
+            return;
+
         sigBuilder.Append('<');
 
-        bool first = true;
-        foreach (var t in type.GetGenericArguments())
+        bool firstParam = true;
+        foreach (var g in genericArguments)
         {
-            if (!first)
-                sigBuilder.Append(',');
-            TypeName(sigBuilder, t);
-            first = false;
+            if (firstParam)
+                firstParam = false;
+            else
+                sigBuilder.Append(", ");
+
+            BuildTypeSignature(sigBuilder, g);
         }
 
         sigBuilder.Append('>');
     }
 
-    private static void BuildReturnSignature(StringBuilder sigBuilder, MethodInfo method, bool callable = false)
+    private static MethodInfo LeastRestrictiveVisibility(MethodInfo method1, MethodInfo method2)
     {
-        if (!callable)
-        {
-            sigBuilder.Append(Visibility(method));
-            sigBuilder.Append(' ');
-            if (method.IsStatic)
-                sigBuilder.Append("static ");
-            TypeName(sigBuilder, method.ReturnType);
-            sigBuilder.Append(' ');
-        }
+        if (method1 != null && method2 == null)
+            return method1;
 
-        sigBuilder.Append(method.Name);
+        if (method1 == null && method2 != null)
+            return method2;
 
-        // add method generics
-        if (method.IsGenericMethod)
-        {
-            sigBuilder.Append('<');
-
-            bool firstParam = true;
-            foreach (var g in method.GetGenericArguments())
-            {
-                if (firstParam)
-                    firstParam = false;
-                else
-                    sigBuilder.Append(", ");
-
-                TypeName(sigBuilder, g);
-            }
-
-            sigBuilder.Append('>');
-        }
+        return (VisibilityValue(method1) < VisibilityValue(method2) ? method1 : method2);
     }
 
-    private static MethodInfo LeastRestrictiveVisibility(MethodInfo member1, MethodInfo member2)
+    private static int VisibilityValue(MethodInfo method)
     {
-        if (member1 != null && member2 == null)
-            return member1;
-
-        if (member2 != null && member1 == null)
-            return member2;
-
-        return (VisibilityValue(member1) < VisibilityValue(member2) ? member1 : member2);
+        if (method.IsPublic) // public
+            return 1;
+        if (method.IsAssembly) // internal
+            return 2;
+        if (method.IsFamily) // protected
+            return 3;
+        if (method.IsFamilyOrAssembly) // protected internal
+            return 4;
+        if (method.IsFamilyAndAssembly) // private protected
+            return 5;
+        if (method.IsPrivate) // private
+            return 6;
+        return -1;
     }
 
-    private static string Visibility(MethodInfo method)
+    private static string Visibility(MethodBase method)
     {
         if (method.IsPublic)
             return "public";
-        if (method.IsFamily)
-            return "protected";
         if (method.IsAssembly)
             return "internal";
+        if (method.IsFamily)
+            return "protected";
         if (method.IsFamilyOrAssembly)
             return "protected internal";
         if (method.IsFamilyAndAssembly)
             return "private protected";
         if (method.IsPrivate)
             return "private";
-
-        throw new ArgumentException($"Method {method.Name} is missing visibility.", nameof(method));
-    }
-
-    private static int VisibilityValue(MethodInfo method)
-    {
-        if (method.IsPublic)
-            return 1;
-        if (method.IsFamily)
-            return 2;
-        if (method.IsAssembly)
-            return 3;
-        if (method.IsFamilyOrAssembly)
-            return 4;
-        if (method.IsFamilyAndAssembly)
-            return 5;
-        if (method.IsPrivate)
-            return 6;
-
-        throw new ArgumentException($"Method {method.Name} is missing visibility.", nameof(method));
+        return string.Empty;
     }
 }

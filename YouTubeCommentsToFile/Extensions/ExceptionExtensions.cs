@@ -4,48 +4,46 @@ namespace System;
 
 public static partial class ExceptionExtensions
 {
-    public static StringBuilder GetUnhandledExceptionErrorWithApplicationTerminationMessage(this Exception ex, bool withoutDebuggingInfo = false)
+    public static StringBuilder GetUnhandledExceptionErrorWithApplicationTerminationMessage(this Exception ex, bool withoutDebuggingInfo = false, bool callable = false)
     {
         if (ex == null)
             return null;
 
-        var errorMessage = new StringBuilder();
-        errorMessage.AppendLine("An unhandled error occurred.");
-        errorMessage.AppendLine("The application will terminate now.");
-        errorMessage.AppendLine();
-        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+        return GetExceptionErrorMessage(new StringBuilder()
+            .AppendLine("An unhandled error occurred.")
+            .AppendLine("The application will terminate now.")
+            .AppendLine(), ex, withoutDebuggingInfo, callable);
     }
 
-    public static StringBuilder GetUnhandledExceptionErrorMessage(this Exception ex, bool withoutDebuggingInfo = false)
+    public static StringBuilder GetUnhandledExceptionErrorMessage(this Exception ex, bool withoutDebuggingInfo = false, bool callable = false)
     {
         if (ex == null)
             return null;
 
-        var errorMessage = new StringBuilder();
-        errorMessage.AppendLine("An unhandled error occurred.");
-        errorMessage.AppendLine();
-        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+        return GetExceptionErrorMessage(new StringBuilder()
+            .AppendLine("An unhandled error occurred.")
+            .AppendLine(), ex, withoutDebuggingInfo, callable);
     }
 
-    public static StringBuilder GetExceptionErrorMessage(this Exception ex, string mainMessage = null, bool withoutDebuggingInfo = false)
+    public static StringBuilder GetExceptionErrorMessage(this Exception ex, string mainMessage = null, bool withoutDebuggingInfo = false, bool callable = false)
     {
         if (ex == null)
             return null;
 
-        var errorMessage = new StringBuilder();
-        if (string.IsNullOrEmpty(mainMessage) == false)
-            errorMessage.AppendLine(mainMessage);
-        return GetExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+        return GetExceptionErrorMessage(
+            string.IsNullOrEmpty(mainMessage) ? new StringBuilder() : new StringBuilder().AppendLine(mainMessage),
+            ex, withoutDebuggingInfo, callable
+        );
     }
 
-    private static StringBuilder GetExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo)
+    private static StringBuilder GetExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo, bool callable)
     {
-        AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+        AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo, callable);
 
         while (ex.InnerException != null)
         {
             ex = ex.InnerException;
-            AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo);
+            AppendToExceptionErrorMessage(errorMessage, ex, withoutDebuggingInfo, callable);
         }
 
         TrimEndNewLine(errorMessage);
@@ -53,74 +51,74 @@ public static partial class ExceptionExtensions
         return errorMessage;
     }
 
-    private static void AppendToExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo)
+    private static void AppendToExceptionErrorMessage(StringBuilder errorMessage, Exception ex, bool withoutDebuggingInfo, bool callable)
     {
-        errorMessage.Append("ERROR: ");
-        errorMessage.AppendLine(ex.Message);
+        errorMessage.Append("ERROR: ").AppendLine(ex.Message);
 
         if (withoutDebuggingInfo)
             return;
 
-        errorMessage.Append("ERROR TYPE: ");
-        errorMessage.AppendLine(ex.GetType().ToString());
+        errorMessage.Append("ERROR TYPE: ").AppendLine(ex.GetType().ToString());
 
-        var stackTrace = ex.GetFormattedStackTrace();
-        if (stackTrace.Length > 0)
-        {
-            errorMessage.AppendLine("STACK TRACE:");
-            errorMessage.Append(stackTrace);
-            errorMessage.AppendLine();
-        }
+        var stackTrace = ex.GetFormattedStackTrace(callable);
+        if (stackTrace?.Length > 0)
+            errorMessage.AppendLine("STACK TRACE:").Append(stackTrace).AppendLine();
     }
 
-    public static StringBuilder GetFormattedStackTrace(this Exception ex)
+    public static StringBuilder GetFormattedStackTrace(this Exception ex, bool callable = false)
     {
+        if (ex == null)
+            return null;
+
         var stackTrace = new StringBuilder();
+
+        var st = new StackTrace(ex, true);
+
+        var frames =
+            Enumerable.Range(0, st.FrameCount)
+            .Select(i => new
+            {
+                frameNumber = i + 1,
+                frame = st.GetFrame(i)
+            })
+            .Select(f => new
+            {
+                f.frameNumber,
+                f.frame,
+                method = f.frame.GetMethod()
+            })
+            .Where(f => f.method != null)
+            .Select(f => new
+            {
+                f.frameNumber,
+                f.frame,
+                f.method,
+                isSystemNamespace = f.method.ReflectedType?.Namespace?.StartsWith("System") ?? false
+            });
 
         bool isFoundNamespaceNotSystem = false;
 
-        var st = new StackTrace(ex, true);
-        for (int i = 0; i < st.FrameCount; i++)
+        foreach (var f in frames)
         {
-            StackFrame sf = st.GetFrame(i);
-            if (sf != null)
-            {
-                MethodBase method = sf.GetMethod();
-                if (method != null)
-                {
-                    Type reflectedType = method.ReflectedType;
-                    if (reflectedType != null)
-                    {
-                        bool isNotSystemNamespace = string.IsNullOrEmpty(reflectedType.Namespace) || reflectedType.Namespace.StartsWith("System") == false;
+            if (isFoundNamespaceNotSystem && f.isSystemNamespace)
+                break;
 
-                        if (isFoundNamespaceNotSystem == false || isNotSystemNamespace)
-                        {
-                            isFoundNamespaceNotSystem = isNotSystemNamespace;
+            isFoundNamespaceNotSystem = f.isSystemNamespace == false;
 
-                            MethodInfo mi = method as MethodInfo;
-                            if (mi != null)
-                            {
-                                stackTrace.Append(i + 1);
-                                stackTrace.Append(". ");
-                                stackTrace.Append(mi.GetSignature());
+            StringBuilder signature = null;
+            if (f.method is MethodInfo mi)
+                signature = mi.GetSignature(callable);
+            else if (f.method is ConstructorInfo ci)
+                signature = ci.GetSignature(callable);
 
-                                int lineNumber = sf.GetFileLineNumber();
-                                if (lineNumber > 0)
-                                {
-                                    stackTrace.Append(" at line ");
-                                    stackTrace.Append(lineNumber);
-                                }
+            if (signature == null)
+                continue;
 
-                                stackTrace.Append(Environment.NewLine);
-                            }
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-                }
-            }
+            int lineNumber = f.frame.GetFileLineNumber();
+            if (lineNumber > 0)
+                stackTrace.Append(f.frameNumber).Append(". ").Append(signature).Append(" at line ").Append(lineNumber).AppendLine();
+            else
+                stackTrace.Append(f.frameNumber).Append(". ").Append(signature).AppendLine();
         }
 
         TrimEndNewLine(stackTrace);
