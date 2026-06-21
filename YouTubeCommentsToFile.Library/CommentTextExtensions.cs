@@ -421,35 +421,62 @@ internal static partial class CommentTextExtensions
 
     #region Authors
 
-    // Handle name:
-    // Between 3–30 characters
-    // Alphabet letters or numbers from one of 75 supported languages
-    // underscores (_), hyphens (-), periods (.), Latin middle dots (·)
+    /* Handle name:
+     * Between 3–30 characters
+     * Alphabet letters or numbers from one of 75 supported languages
+     * underscores (_), hyphens (-), periods (.), Latin middle dots (·)
+     */
 
-    // \u202C POP DIRECTIONAL FORMATTING
-
-    // precedes with start of line ^ or at least one space \s+. this prevents capturing an email address name@domain
-    // AtSigns: precedes with consecutive at signs, if any: @*
-    // Author:
-    // starts with at sign: @
-    // (
-    //   any char: .
-    //   that is not: (?<!
-    //     punctuations: [\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]
-    //     or: |
-    //     emoji: \p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*
-    //   )
-    // )
-    // between 3-30 chars: {3,30}
+    /* RegexAuthor:
+     *
+     * line start or at least one space: ^|\s+
+     * <AtSigns>: precede with at signs, if any: @*
+     * <Author>: author
+     *     at sign: @
+     *     3-30 chars that are not punctuation or emoji
+     */
     [GeneratedRegex(@"(?<=^|\s+)(?<AtSigns>@*)(?<Author>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
     private static partial Regex RegexAuthor();
 
-    // start of line: ^
-    // precedes with spaces, if any: \s*
-    // FalseStart: consecutive at signs followed by at most 3 chars
-    // AtSigns: precedes with consecutive at signs, if any: @*
-    // RepliedAuthor: same as Author
-    [GeneratedRegex(@"^\s*(?<FalseStart>@+(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){0,3}\s+)?(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
+    /* RegexRepliedAuthor:
+     *
+     * first pattern: replied author with false start
+     *     line start: ^
+     *     precede with spaces, if any: \s*
+     *     <FalseStart>: at least one at sign followed by 1-3 chars that are not punctuation or emoji followed by at least one space
+     *         at least one at sign: @+
+     *         <Start>: 1-3 chars that are not
+     *             punctuation: [\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]
+     *             or
+     *             emoji: \p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*
+     *         at least one space: \s+
+     *     <AtSigns>: precede with at signs, if any: @*
+     *     <RepliedAuthor>: replied author starts with 1-3 case-insensitive chars from <FalseStart>
+     *         at sign: @
+     *         case-insensitive <Start>: (?i:\k<Start>)
+     *         3-30 chars that are not punctuation or emoji
+     *
+     * it is possible for replied author to be more than 30 chars, at most 3+30=33 chars
+     *
+     * "@U @Username": FalseStart="@U " RepliedAuthor="@Username"
+     * "@us @Username": FalseStart="@us " RepliedAuthor="@Username"
+     * "@@@Use @@@Username": FalseStart="@@@Use " AtSigns="@@" RepliedAuthor="@Username"
+     * "@X @Username": no match. "Username" doesn't start with "X" or "x"
+     *
+     * second pattern: replied author without false start
+     *     line start: ^
+     *     precede with spaces, if any: \s*
+     *     <AtSigns>: precede with at signs, if any: @*
+     *     <RepliedAuthor>: replied author
+     *         at sign: @
+     *         3-30 chars that are not punctuation or emoji
+     *
+     * "@Username": RepliedAuthor="@Username"
+     * "@@@Username": AtSigns="@@" RepliedAuthor="@Username"
+     * "@X @Username": no match. "X" is only 1 char. the minimum is 3 chars
+     * "@Xyz @Username": RepliedAuthor="@Xyz"
+     */
+    [GeneratedRegex(@"^\s*(?<FalseStart>@+(?<Start>(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){1,3})\s+)(?<AtSigns>@*)(?<RepliedAuthor>@(?i:\k<Start>)(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})|^\s*(?<AtSigns>@*)(?<RepliedAuthor>@(?:.(?<![\s—–―‒~!@#$%^&*()=+[\]{};:'""\\|,<>/?`´‘’‚‛“”„‟\u202C]|\p{So}|\p{Cs}\p{Cs}(\p{Cf}\p{Cs}\p{Cs})*)){3,30})")]
     private static partial Regex RegexRepliedAuthor();
 
     public static IEnumerable<Author> GetAuthors(this string text)
