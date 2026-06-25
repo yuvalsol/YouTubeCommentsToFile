@@ -7,7 +7,7 @@ namespace YouTubeCommentsToFile;
 #region Interfaces
 
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
-[OptionDescription($"Uses verb 'convert'. Verb is optional to specify.")]
+[OptionDescription($"Uses verb '{ConvertOptions.Verb}'. Verb is {(ConvertOptions.IsDefault ? "optional" : "required")} to specify.")]
 internal interface IConvertOptions
 {
     [Option("json-file", HelpText = "Path to comments JSON file.")]
@@ -28,7 +28,7 @@ internal interface IConvertOptions
 }
 
 [OptionDescription("Downloads comments to text file or HTML file.")]
-[OptionDescription($"Uses verb 'download'. Verb is required to specify.")]
+[OptionDescription($"Uses verb '{DownloadOptions.Verb}'. Verb is {(DownloadOptions.IsDefault ? "optional" : "required")} to specify.")]
 internal interface IDownloadOptions
 {
     [Option("url", HelpText = "Video URL to download its comments.")]
@@ -374,13 +374,23 @@ internal interface IHTMLColorsOptions
     string CopyTextFailureColor { get; set; }
 }
 
+internal interface IConfigurationOptions
+{
+    [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files with file extension '.conf'. Can be used multiple times and inside other configuration files.")]
+    [OptionPrecedence(81, 1)]
+    IEnumerable<string> ConfigLocations { get; set; }
+}
+
 #endregion
 
 #region Options
 
-[Verb("convert", isDefault: true)]
+[Verb(Verb, IsDefault)]
 internal class ConvertOptions : SharedOptions, IConvertOptions
 {
+    public const string Verb = "convert";
+    public const bool IsDefault = true;
+
     public string JsonFile { get; set; }
     public string URL { get; set; }
     public string YtDlp { get; set; }
@@ -396,11 +406,26 @@ internal class ConvertOptions : SharedOptions, IConvertOptions
         settings.Deno = Deno;
         return settings;
     }
+
+    public void MergeOptions(ConvertOptions options)
+    {
+        if (options == null)
+            return;
+
+        base.MergeOptions(options);
+        if (string.IsNullOrEmpty(JsonFile)) JsonFile = options.JsonFile;
+        if (string.IsNullOrEmpty(URL)) URL = options.URL;
+        if (string.IsNullOrEmpty(YtDlp)) YtDlp = options.YtDlp;
+        if (string.IsNullOrEmpty(Deno)) Deno = options.Deno;
+    }
 }
 
-[Verb("download")]
+[Verb(Verb, IsDefault)]
 internal class DownloadOptions : SharedOptions, IDownloadOptions
 {
+    public const string Verb = "download";
+    public const bool IsDefault = false;
+
     public string URL { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
@@ -442,9 +467,41 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
         settings.YtDlpOptions = YtDlpOptions;
         return settings;
     }
+
+    public void MergeOptions(DownloadOptions options)
+    {
+        if (options == null)
+            return;
+
+        base.MergeOptions(options);
+        if (string.IsNullOrEmpty(URL)) URL = options.URL;
+        if (string.IsNullOrEmpty(YtDlp)) YtDlp = options.YtDlp;
+        if (string.IsNullOrEmpty(Deno)) Deno = options.Deno;
+        if (string.IsNullOrEmpty(DownloadPath)) DownloadPath = options.DownloadPath;
+        MaxComments ??= options.MaxComments;
+        MaxParents ??= options.MaxParents;
+        MaxReplies ??= options.MaxReplies;
+        MaxRepliesPerThread ??= options.MaxRepliesPerThread;
+        SortNew |= options.SortNew;
+        SortTop |= options.SortTop;
+        FilenameSanitization |= options.FilenameSanitization;
+        OnlyDownloadComments |= options.OnlyDownloadComments;
+        RestrictFilenames |= options.RestrictFilenames;
+        TrimTitle ??= options.TrimTitle;
+        UpdateYtDlp |= options.UpdateYtDlp;
+        WindowsFilenames |= options.WindowsFilenames;
+        if (string.IsNullOrEmpty(YtDlpOptions)) YtDlpOptions = options.YtDlpOptions;
+    }
 }
 
-internal abstract partial class SharedOptions : ISharedOptions, IUploaderOptions, IAuthorsOptions, ITextsOptions, IEncodingOptions, IHTMLColorsOptions
+internal abstract class SharedOptions :
+    ISharedOptions,
+    IUploaderOptions,
+    IAuthorsOptions,
+    ITextsOptions,
+    IEncodingOptions,
+    IHTMLColorsOptions,
+    IConfigurationOptions
 {
     // Shared
     public bool ToHTML { get; set; }
@@ -535,6 +592,9 @@ internal abstract partial class SharedOptions : ISharedOptions, IUploaderOptions
     public string CopyTextSuccessColor { get; set; }
     public string CopyTextFailureColor { get; set; }
 
+    // Configuration
+    public IEnumerable<string> ConfigLocations { get; set; }
+
     public virtual Settings ToSettings()
     {
         var settings = new Settings
@@ -586,26 +646,26 @@ internal abstract partial class SharedOptions : ISharedOptions, IUploaderOptions
             WesternEuropeanWindows = WesternEuropeanWindows,
 
             // HTML Colors
-            TextColor = StringToColor(TextColor),
-            BackgroundColor = StringToColor(BackgroundColor),
-            AuthorColor = StringToColor(AuthorColor),
-            RepliedAuthorColor = StringToColor(RepliedAuthorColor),
-            OtherAuthorColor = StringToColor(OtherAuthorColor),
-            SmallElementsColor = StringToColor(SmallElementsColor),
-            FavoritedBackgroundColor = StringToColor(FavoritedBackgroundColor),
-            HeaderBackgroundColor = StringToColor(HeaderBackgroundColor),
-            HighlightUploaderTextColor = StringToColor(HighlightUploaderTextColor),
-            HighlightUploaderBackgroundColor = StringToColor(HighlightUploaderBackgroundColor),
-            HighlightUploaderBorderColor = StringToColor(HighlightUploaderBorderColor),
-            HighlightAuthorTextColor = StringToColor(HighlightAuthorTextColor),
-            HighlightAuthorBackgroundColor = StringToColor(HighlightAuthorBackgroundColor),
-            HighlightAuthorBorderColor = StringToColor(HighlightAuthorBorderColor),
-            HighlightTextTextColor = StringToColor(HighlightTextTextColor),
-            HighlightTextBackgroundColor = StringToColor(HighlightTextBackgroundColor),
-            HighlightTextBorderColor = StringToColor(HighlightTextBorderColor),
-            LinkColor = StringToColor(LinkColor),
-            CopyTextSuccessColor = StringToColor(CopyTextSuccessColor),
-            CopyTextFailureColor = StringToColor(CopyTextFailureColor)
+            TextColor = ColorHelper.StringToColor(TextColor),
+            BackgroundColor = ColorHelper.StringToColor(BackgroundColor),
+            AuthorColor = ColorHelper.StringToColor(AuthorColor),
+            RepliedAuthorColor = ColorHelper.StringToColor(RepliedAuthorColor),
+            OtherAuthorColor = ColorHelper.StringToColor(OtherAuthorColor),
+            SmallElementsColor = ColorHelper.StringToColor(SmallElementsColor),
+            FavoritedBackgroundColor = ColorHelper.StringToColor(FavoritedBackgroundColor),
+            HeaderBackgroundColor = ColorHelper.StringToColor(HeaderBackgroundColor),
+            HighlightUploaderTextColor = ColorHelper.StringToColor(HighlightUploaderTextColor),
+            HighlightUploaderBackgroundColor = ColorHelper.StringToColor(HighlightUploaderBackgroundColor),
+            HighlightUploaderBorderColor = ColorHelper.StringToColor(HighlightUploaderBorderColor),
+            HighlightAuthorTextColor = ColorHelper.StringToColor(HighlightAuthorTextColor),
+            HighlightAuthorBackgroundColor = ColorHelper.StringToColor(HighlightAuthorBackgroundColor),
+            HighlightAuthorBorderColor = ColorHelper.StringToColor(HighlightAuthorBorderColor),
+            HighlightTextTextColor = ColorHelper.StringToColor(HighlightTextTextColor),
+            HighlightTextBackgroundColor = ColorHelper.StringToColor(HighlightTextBackgroundColor),
+            HighlightTextBorderColor = ColorHelper.StringToColor(HighlightTextBorderColor),
+            LinkColor = ColorHelper.StringToColor(LinkColor),
+            CopyTextSuccessColor = ColorHelper.StringToColor(CopyTextSuccessColor),
+            CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor)
         };
 
         // Uploader
@@ -693,43 +753,104 @@ internal abstract partial class SharedOptions : ISharedOptions, IUploaderOptions
         return settings;
     }
 
+    public virtual void MergeOptions(SharedOptions options)
+    {
+        if (options == null)
+            return;
+
+        // Shared
+        ToHTML |= options.ToHTML;
+        ToHTMLAndText |= options.ToHTMLAndText;
+        DarkTheme |= options.DarkTheme;
+        DeleteJsonFile |= options.DeleteJsonFile;
+        DisableThreading |= options.DisableThreading;
+        HideCommentSeparators |= options.HideCommentSeparators;
+        HideHeader |= options.HideHeader;
+        HideLikes |= options.HideLikes;
+        HideReplies |= options.HideReplies;
+        HideTime |= options.HideTime;
+        HideVideoDescription |= options.HideVideoDescription;
+        IndentSize ??= options.IndentSize;
+        ShowCommentLink |= options.ShowCommentLink;
+        ShowCommentNavigationLinks |= options.ShowCommentNavigationLinks;
+        ShowCopyLinks |= options.ShowCopyLinks;
+        TextLineLength ??= options.TextLineLength;
+
+        // Uploader
+        HighlightUploader |= options.HighlightUploader;
+        FilterUploader |= options.FilterUploader;
+        HighlightAndFilterUploader |= options.HighlightAndFilterUploader;
+
+        // Authors
+        if (HighlightAuthors.IsNullOrEmpty()) HighlightAuthors = options.HighlightAuthors;
+        if (FilterAuthors.IsNullOrEmpty()) FilterAuthors = options.FilterAuthors;
+        if (HighlightAndFilterAuthors.IsNullOrEmpty()) HighlightAndFilterAuthors = options.HighlightAndFilterAuthors;
+        if (HighlightAuthorsIgnoreCase.IsNullOrEmpty()) HighlightAuthorsIgnoreCase = options.HighlightAuthorsIgnoreCase;
+        if (FilterAuthorsIgnoreCase.IsNullOrEmpty()) FilterAuthorsIgnoreCase = options.FilterAuthorsIgnoreCase;
+        if (HighlightAndFilterAuthorsIgnoreCase.IsNullOrEmpty()) HighlightAndFilterAuthorsIgnoreCase = options.HighlightAndFilterAuthorsIgnoreCase;
+
+        // Texts
+        if (HighlightTexts.IsNullOrEmpty()) HighlightTexts = options.HighlightTexts;
+        if (FilterTexts.IsNullOrEmpty()) FilterTexts = options.FilterTexts;
+        if (HighlightAndFilterTexts.IsNullOrEmpty()) HighlightAndFilterTexts = options.HighlightAndFilterTexts;
+        if (HighlightTextsIgnoreCase.IsNullOrEmpty()) HighlightTextsIgnoreCase = options.HighlightTextsIgnoreCase;
+        if (FilterTextsIgnoreCase.IsNullOrEmpty()) FilterTextsIgnoreCase = options.FilterTextsIgnoreCase;
+        if (HighlightAndFilterTextsIgnoreCase.IsNullOrEmpty()) HighlightAndFilterTextsIgnoreCase = options.HighlightAndFilterTextsIgnoreCase;
+
+        // Encoding
+        EncodingCodePage ??= options.EncodingCodePage;
+        ArabicISO |= options.ArabicISO;
+        ArabicWindows |= options.ArabicWindows;
+        BalticISO4 |= options.BalticISO4;
+        BalticISO13 |= options.BalticISO13;
+        BalticWindows |= options.BalticWindows;
+        CentralEuropean |= options.CentralEuropean;
+        ChineseSimplified |= options.ChineseSimplified;
+        ChineseTraditional |= options.ChineseTraditional;
+        CyrillicISO |= options.CyrillicISO;
+        CyrillicWindows |= options.CyrillicWindows;
+        EasternEuropean |= options.EasternEuropean;
+        GreekISO |= options.GreekISO;
+        GreekWindows |= options.GreekWindows;
+        HebrewISO |= options.HebrewISO;
+        HebrewWindows |= options.HebrewWindows;
+        Japanese |= options.Japanese;
+        Korean |= options.Korean;
+        SouthEuropean |= options.SouthEuropean;
+        Thai |= options.Thai;
+        TurkishISO |= options.TurkishISO;
+        TurkishWindows |= options.TurkishWindows;
+        Vietnamese |= options.Vietnamese;
+        WesternEuropeanISO1 |= options.WesternEuropeanISO1;
+        WesternEuropeanISO15 |= options.WesternEuropeanISO15;
+        WesternEuropeanWindows |= options.WesternEuropeanWindows;
+
+        // HTML Colors
+        if (string.IsNullOrEmpty(TextColor)) TextColor = options.TextColor;
+        if (string.IsNullOrEmpty(BackgroundColor)) BackgroundColor = options.BackgroundColor;
+        if (string.IsNullOrEmpty(AuthorColor)) AuthorColor = options.AuthorColor;
+        if (string.IsNullOrEmpty(RepliedAuthorColor)) RepliedAuthorColor = options.RepliedAuthorColor;
+        if (string.IsNullOrEmpty(OtherAuthorColor)) OtherAuthorColor = options.OtherAuthorColor;
+        if (string.IsNullOrEmpty(SmallElementsColor)) SmallElementsColor = options.SmallElementsColor;
+        if (string.IsNullOrEmpty(FavoritedBackgroundColor)) FavoritedBackgroundColor = options.FavoritedBackgroundColor;
+        if (string.IsNullOrEmpty(HeaderBackgroundColor)) HeaderBackgroundColor = options.HeaderBackgroundColor;
+        if (string.IsNullOrEmpty(HighlightUploaderTextColor)) HighlightUploaderTextColor = options.HighlightUploaderTextColor;
+        if (string.IsNullOrEmpty(HighlightUploaderBackgroundColor)) HighlightUploaderBackgroundColor = options.HighlightUploaderBackgroundColor;
+        if (string.IsNullOrEmpty(HighlightUploaderBorderColor)) HighlightUploaderBorderColor = options.HighlightUploaderBorderColor;
+        if (string.IsNullOrEmpty(HighlightAuthorTextColor)) HighlightAuthorTextColor = options.HighlightAuthorTextColor;
+        if (string.IsNullOrEmpty(HighlightAuthorBackgroundColor)) HighlightAuthorBackgroundColor = options.HighlightAuthorBackgroundColor;
+        if (string.IsNullOrEmpty(HighlightAuthorBorderColor)) HighlightAuthorBorderColor = options.HighlightAuthorBorderColor;
+        if (string.IsNullOrEmpty(HighlightTextTextColor)) HighlightTextTextColor = options.HighlightTextTextColor;
+        if (string.IsNullOrEmpty(HighlightTextBackgroundColor)) HighlightTextBackgroundColor = options.HighlightTextBackgroundColor;
+        if (string.IsNullOrEmpty(HighlightTextBorderColor)) HighlightTextBorderColor = options.HighlightTextBorderColor;
+        if (string.IsNullOrEmpty(LinkColor)) LinkColor = options.LinkColor;
+        if (string.IsNullOrEmpty(CopyTextSuccessColor)) CopyTextSuccessColor = options.CopyTextSuccessColor;
+        if (string.IsNullOrEmpty(CopyTextFailureColor)) CopyTextFailureColor = options.CopyTextFailureColor;
+    }
+
     public override string ToString()
     {
         return $"{nameof(YouTubeCommentsToFile)} {Parser.Default.FormatCommandLine(this)}";
-    }
-
-    [GeneratedRegex(@"^\s*(?<R>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*[, ]\s*(?<G>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*[, ]\s*(?<B>1?\d{1,2}|2(?:[0-4]\d|5[0-5]))\s*$")]
-    private static partial Regex RegexColorInRGB();
-
-    [GeneratedRegex(@"^(?:[a-fA-F0-9]{6}|[a-fA-F0-9]{8})$")]
-    private static partial Regex RegexColorInHex();
-
-    private static Color? StringToColor(string colorStr)
-    {
-        if (string.IsNullOrEmpty(colorStr))
-            return null;
-
-        if (RegexColorInRGB().IsMatch(colorStr))
-        {
-            var match = RegexColorInRGB().Match(colorStr);
-            int r = Convert.ToInt32(match.Groups["R"].Value);
-            int g = Convert.ToInt32(match.Groups["G"].Value);
-            int b = Convert.ToInt32(match.Groups["B"].Value);
-            return Color.FromArgb(r, g, b);
-        }
-
-        if (RegexColorInHex().IsMatch(colorStr))
-            colorStr = $"#{colorStr}";
-
-        try
-        {
-            var tc = TypeDescriptor.GetConverter(typeof(Color));
-            return tc.ConvertFromString(colorStr) as Color?;
-        }
-        catch
-        {
-            return null;
-        }
     }
 }
 
@@ -865,6 +986,11 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
     public string LinkColor { get; set; }
     public string CopyTextSuccessColor { get; set; }
     public string CopyTextFailureColor { get; set; }
+}
+
+internal class ConfigurationHelpOptions : IConfigurationOptions
+{
+    public IEnumerable<string> ConfigLocations { get; set; }
 }
 
 #endregion

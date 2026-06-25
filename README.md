@@ -65,40 +65,6 @@ YouTubeCommentsToFile [convert]
     [--url <url>]
     [--yt-dlp <path>]
     [--deno <path>]
-
-    [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
-    [--delete-json-file] [--disable-threading]
-    [--hide-comment-separators] [--hide-likes] [--hide-replies] [--hide-time]
-    [--hide-video-description] [--indent-size] [--show-comment-link]
-    [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
-
-    [-u] [--uh] [--uf] [--uhf]
-
-    [--ah <authors>] [--af <authors>] [--afi <authors>]
-    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
-
-    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
-    [-t <texts>] [--thi <texts>]
-
-    [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
-    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
-    [--central-european] [--chinese-simplified] [--chinese-traditional]
-    [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
-    [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
-    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
-    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
-    [--western-european-iso-15] [--western-european-windows]
-
-    [--text-color <color>] [--background-color <color>] [--author-color <color>]
-    [--replied-author-color <color>] [--other-author-color <color>]
-    [--small-elements-color <color>] [--favorited-background-color <color>]
-    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
-    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
-    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
-    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
-    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
-    [--link-color <color>] [--copy-text-success-color <color>]
-    [--copy-text-failure-color <color>]
 ```
 
 ### Convert Command Line Options
@@ -184,40 +150,6 @@ YouTubeCommentsToFile download
     [--only-download-comments]
     [--update-yt-dlp]
     [--yt-dlp-options <options>]
-
-    [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
-    [--delete-json-file] [--disable-threading]
-    [--hide-comment-separators] [--hide-likes] [--hide-replies] [--hide-time]
-    [--hide-video-description] [--indent-size] [--show-comment-link]
-    [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
-
-    [-u] [--uh] [--uf] [--uhf]
-
-    [--ah <authors>] [--af <authors>] [--afi <authors>]
-    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
-
-    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
-    [-t <texts>] [--thi <texts>]
-
-    [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
-    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
-    [--central-european] [--chinese-simplified] [--chinese-traditional]
-    [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
-    [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
-    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
-    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
-    [--western-european-iso-15] [--western-european-windows]
-
-    [--text-color <color>] [--background-color <color>] [--author-color <color>]
-    [--replied-author-color <color>] [--other-author-color <color>]
-    [--small-elements-color <color>] [--favorited-background-color <color>]
-    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
-    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
-    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
-    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
-    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
-    [--link-color <color>] [--copy-text-success-color <color>]
-    [--copy-text-failure-color <color>]
 ```
 
 YouTubeCommentsToFile builds a yt-dlp command line for downloading comments out of the options provided by the user. Then, it runs yt-dlp to download the comments JSON file. Once the JSON file is downloaded, YouTubeCommentsToFile converts it to a text file or an HTML file or both. If the option is enabled, the JSON file is deleted.
@@ -399,6 +331,45 @@ YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg
 ## Convert and Download Shared Options
 
 These options determine whether to write a text file, an HTML file or both. They also determine the structure of the output file.
+
+```console
+YouTubeCommentsToFile ([convert]|download)
+    [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
+    [--delete-json-file] [--disable-threading]
+    [--hide-comment-separators] [--hide-likes] [--hide-replies] [--hide-time]
+    [--hide-video-description] [--indent-size] [--show-comment-link]
+    [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
+
+    [-u] [--uh] [--uf] [--uhf]
+
+    [--ah <authors>] [--af <authors>] [--afi <authors>]
+    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
+
+    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
+    [-t <texts>] [--thi <texts>]
+
+    [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
+    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
+    [--central-european] [--chinese-simplified] [--chinese-traditional]
+    [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
+    [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
+    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
+    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
+    [--western-european-iso-15] [--western-european-windows]
+
+    [--text-color <color>] [--background-color <color>] [--author-color <color>]
+    [--replied-author-color <color>] [--other-author-color <color>]
+    [--small-elements-color <color>] [--favorited-background-color <color>]
+    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
+    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
+    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
+    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
+    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
+    [--link-color <color>] [--copy-text-success-color <color>]
+    [--copy-text-failure-color <color>]
+
+    [--config-locations <path>]
+```
 
 ### Shared Options
 
@@ -657,51 +628,274 @@ These options set the colors of various HTML elements. A color value can be a kn
 The colors of the HTML elements are determined by light theme (default theme) or dark theme (`--dark-theme`).
 The following are the colors of these themes.
 
-| Light Theme                    | RGB           | Hex     |
-|--------------------------------|---------------|---------|
-| Text                           | 15, 15, 15    | #0F0F0F |
-| Background                     | 255, 255, 255 | #FFFFFF |
-| Author                         | 15, 15, 15    | #0F0F0F |
-| Replied Author                 | 15, 128, 15   | #0F800F |
-| Other Author                   | 128, 15, 255  | #800FFF |
-| Small Elements                 | 96, 96, 96    | #606060 |
-| Favorited Background           | 229, 235, 238 | #E5EBEE |
-| Header Background              | 242, 242, 242 | #F2F2F2 |
-| Highlight Uploader: Text       | 15, 15, 15    | #0F0F0F |
-| Highlight Uploader: Background | 255, 250, 238 | #FFFAEE |
-| Highlight Uploader: Border     | 183, 136, 0   | #B78800 |
-| Highlight Author: Text         | 15, 15, 15    | #0F0F0F |
-| Highlight Author: Background   | 252, 241, 237 | #FCF1ED |
-| Highlight Author: Border       | 255, 67, 5    | #FF4305 |
-| Highlight Text: Text           | 15, 15, 15    | #0F0F0F |
-| Highlight Text: Background     | 231, 239, 252 | #E7EFFC |
-| Highlight Text: Border         | 34, 110, 233  | #226EE9 |
-| Link                           | 0, 0, 238     | #0000EE |
-| Copy Text: Success             | 15, 170, 15   | #0FAA0F |
-| Copy Text: Failure             | 255, 15, 15   | #FF0F0F |
+<table>
+    <thead>
+        <tr>
+            <th/>
+            <th colspan="2">Light Theme</th>
+            <th colspan="2">Dark Theme</th>
+        </tr>
+        <tr>
+            <th>HTML Element</th>
+            <th>RGB</th>
+            <th>Hex</th>
+            <th>RGB</th>
+            <th>Hex</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Text<br /><code>--text-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>15, 15, 15</td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>#0F0F0F</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>241, 241, 241</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>#F1F1F1</td>
+        </tr>
+        <tr>
+            <td>Background<br /><code>--background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>255, 255, 255</td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>#FFFFFF</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>15, 15, 15</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>#0F0F0F</td>
+        </tr>
+        <tr>
+            <td>Author<br /><code>--author-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>15, 15, 15</td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>#0F0F0F</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>241, 241, 241</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>#F1F1F1</td>
+        </tr>
+        <tr>
+            <td>Replied Author<br /><code>--replied-author-color</code></td>
+            <td style='color: rgb(15, 128, 15); background-color: rgb(255, 255, 255);'>15, 128, 15</td>
+            <td style='color: rgb(15, 128, 15); background-color: rgb(255, 255, 255);'>#0F800F</td>
+            <td style='color: rgb(15, 128, 15); background-color: rgb(15, 15, 15);'>15, 128, 15</td>
+            <td style='color: rgb(15, 128, 15); background-color: rgb(15, 15, 15);'>#0F800F</td>
+        </tr>
+        <tr>
+            <td>Other Author<br /><code>--other-author-color</code></td>
+            <td style='color: rgb(128, 15, 255); background-color: rgb(255, 255, 255);'>128, 15, 255</td>
+            <td style='color: rgb(128, 15, 255); background-color: rgb(255, 255, 255);'>#800FFF</td>
+            <td style='color: rgb(191, 15, 255); background-color: rgb(15, 15, 15);'>191, 15, 255</td>
+            <td style='color: rgb(191, 15, 255); background-color: rgb(15, 15, 15);'>#BF0FFF</td>
+        </tr>
+        <tr>
+            <td>Small Elements<br /><code>--small-elements-color</code></td>
+            <td style='color: rgb(96, 96, 96); background-color: rgb(255, 255, 255);'>96, 96, 96</td>
+            <td style='color: rgb(96, 96, 96); background-color: rgb(255, 255, 255);'>#606060</td>
+            <td style='color: rgb(170, 170, 170); background-color: rgb(15, 15, 15);'>170, 170, 170</td>
+            <td style='color: rgb(170, 170, 170); background-color: rgb(15, 15, 15);'>#AAAAAA</td>
+        </tr>
+        <tr>
+            <td>Favorited Background<br /><code>--favorited-background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(229, 235, 238);'>229, 235, 238</td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(229, 235, 238);'>#E5EBEE</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(96, 96, 96);'>96, 96, 96</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(96, 96, 96);'>#606060</td>
+        </tr>
+        <tr>
+            <td>Header Background<br /><code>--header-background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(242, 242, 242);'>242, 242, 242</td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(242, 242, 242);'>#F2F2F2</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(39, 39, 39);'>39, 39, 39</td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(39, 39, 39);'>#272727</td>
+        </tr>
+        <tr>
+            <td>Highlight Uploader: Text<br /><code>--highlight-uploader-text-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>15, 15, 15</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>#0F0F0F</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>241, 241, 241</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>#F1F1F1</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Uploader: Background<br /><code>--highlight-uploader-background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>255, 250, 238</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>#FFFAEE</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>140, 33, 23</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>#8C2117</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Uploader: Border<br /><code>--highlight-uploader-border-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>183, 136, 0</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>#B78800</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>252, 225, 150</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>#FCE196</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Author: Text<br /><code>--highlight-author-text-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>15, 15, 15</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>#0F0F0F</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>241, 241, 241</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>#F1F1F1</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Author: Background<br /><code>--highlight-author-background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>252, 241, 237</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>#FCF1ED</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>137, 57, 16</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>#893910</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Author: Border<br /><code>--highlight-author-border-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>255, 67, 5</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>#FF4305</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>255, 165, 0</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>#FFA500</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Text: Text<br /><code>--highlight-text-text-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>15, 15, 15</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>#0F0F0F</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>241, 241, 241</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>#F1F1F1</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Text: Background<br /><code>--highlight-text-background-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>231, 239, 252</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>#E7EFFC</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>13, 57, 132</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>#0D3984</span></td>
+        </tr>
+        <tr>
+            <td>Highlight Text: Border<br /><code>--highlight-text-border-color</code></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>34, 110, 233</span></td>
+            <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>#226EE9</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>231, 239, 252</span></td>
+            <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>#E7EFFC</span></td>
+        </tr>
+        <tr>
+            <td>Link<br /><code>--link-color</code></td>
+            <td style='color: rgb(0, 0, 238); background-color: rgb(255, 255, 255);'>0, 0, 238</td>
+            <td style='color: rgb(0, 0, 238); background-color: rgb(255, 255, 255);'>#0000EE</td>
+            <td style='color: rgb(62, 166, 255); background-color: rgb(15, 15, 15);'>62, 166, 255</td>
+            <td style='color: rgb(62, 166, 255); background-color: rgb(15, 15, 15);'>#3EA6FF</td>
+        </tr>
+        <tr>
+            <td>Copy Text: Success<br /><code>--copy-text-success-color</code></td>
+            <td style='color: rgb(15, 170, 15); background-color: rgb(255, 255, 255);'>15, 170, 15</td>
+            <td style='color: rgb(15, 170, 15); background-color: rgb(255, 255, 255);'>#0FAA0F</td>
+            <td style='color: rgb(15, 170, 15); background-color: rgb(15, 15, 15);'>15, 170, 15</td>
+            <td style='color: rgb(15, 170, 15); background-color: rgb(15, 15, 15);'>#0FAA0F</td>
+        </tr>
+        <tr>
+            <td>Copy Text: Failure<br /><code>--copy-text-failure-color</code></td>
+            <td style='color: rgb(255, 15, 15); background-color: rgb(255, 255, 255);'>255, 15, 15</td>
+            <td style='color: rgb(255, 15, 15); background-color: rgb(255, 255, 255);'>#FF0F0F</td>
+            <td style='color: rgb(213, 15, 15); background-color: rgb(15, 15, 15);'>213, 15, 15</td>
+            <td style='color: rgb(213, 15, 15); background-color: rgb(15, 15, 15);'>#D50F0F</td>
+        </tr>
+    </tbody>
+</table>
 
-| Dark Theme                     | RGB           | Hex     |
-|--------------------------------|---------------|---------|
-| Text                           | 241, 241, 241 | #F1F1F1 |
-| Background                     | 15, 15, 15    | #0F0F0F |
-| Author                         | 241, 241, 241 | #F1F1F1 |
-| Replied Author                 | 15, 128, 15   | #0F800F |
-| Other Author                   | 191, 15, 255  | #BF0FFF |
-| Small Elements                 | 170, 170, 170 | #AAAAAA |
-| Favorited Background           | 96, 96, 96    | #606060 |
-| Header Background              | 39, 39, 39    | #272727 |
-| Highlight Uploader: Text       | 241, 241, 241 | #F1F1F1 |
-| Highlight Uploader: Background | 140, 33, 23   | #8C2117 |
-| Highlight Uploader: Border     | 252, 225, 150 | #FCE196 |
-| Highlight Author: Text         | 241, 241, 241 | #F1F1F1 |
-| Highlight Author: Background   | 137, 57, 16   | #893910 |
-| Highlight Author: Border       | 255, 165, 0   | #FFA500 |
-| Highlight Text: Text           | 241, 241, 241 | #F1F1F1 |
-| Highlight Text: Background     | 13, 57, 132   | #0D3984 |
-| Highlight Text: Border         | 231, 239, 252 | #E7EFFC |
-| Link                           | 62, 166, 255  | #3EA6FF |
-| Copy Text: Success             | 15, 170, 15   | #0FAA0F |
-| Copy Text: Failure             | 213, 15, 15   | #D50F0F |
+### Configuration
+
+Configuration files allow to set options for the program without having to specify them at the command line every time. A configuration file is a text file with a list of command line options.
+
+```console
+--config-locations    Paths to configuration files or to directories containing
+                      configuration files with file extension '.conf'.
+                      Can be used multiple times and inside other configuration files.
+```
+
+- The option `--config-locations` can be used multiple times at the command line.
+- A relative path, specified at the command line, is relative to the directory from which the program is running from.
+- The option `--config-locations` can be used multiple times in a configuration file.
+- A relative path, specified in a configuration file, is relative to the directory where the configuration file is at.
+- If the path is a directory and not a file, the program looks for `youtube-comments-to-file.conf` in the specified directory.
+- Options passed at the command line always override the same options set within configuration files.
+- Configuration file doesn't support verbs `convert` and `download`. The verb needs to be passed at the command line.
+
+#### Configuration File Syntax
+
+- One option per line.
+- No whitespace after `-` or `--`.
+- Comment starts with #.
+- Inline comment is not supported.
+- Quote values when needed just like in the command line.
+
+#### Configuration Loading Order
+
+The program loads configuration files from multiple locations in the following order, from high priority to low priority. Options from high priority configuration take precedence over options from low priority configuration.
+
+1. **Main Configuration**: Configuration files specified at the command line with `--config-locations`.
+2. **Portable Configuration**: Configuration file `youtube-comments-to-file.conf` in the same directory as the `YouTubeCommentsToFile` executable.
+3. **Home Configuration**: Configuration file `youtube-comments-to-file.conf` at the directory that the program operates on.
+    - For `convert` operation, the directory of the JSON file, specified with `--json-file`.
+    - For `download` operation, the directory to download comments to, specified with `--download-path`.
+4. **User Configuration**:
+    - Windows:\
+      `%APPDATA%` usually located at `C:\Users\<username>\AppData\Roaming`.\
+      `%USERPROFILE%` usually located at `C:\Users\<username>`.
+        - `%APPDATA%\youtube-comments-to-file.conf`
+        - `%APPDATA%\YouTubeCommentsToFile\config`\*
+        - `%APPDATA%\YouTubeCommentsToFile\config.txt`
+        - `%USERPROFILE%\youtube-comments-to-file.conf`
+        - `%USERPROFILE%\youtube-comments-to-file.conf.txt`
+        - `%USERPROFILE%\.youtubecommentstofile\config`\*
+        - `%USERPROFILE%\.youtubecommentstofile\config.txt`
+    - Linux:\
+      `$XDG_CONFIG_HOME` defaults to `~/.config` if unset.
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file.conf`
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/config`\*
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/config.txt`
+        - `~/youtube-comments-to-file.conf`
+        - `~/youtube-comments-to-file.conf.txt`
+        - `~/.youtube-comments-to-file/config`\*
+        - `~/.youtube-comments-to-file/config.txt`
+5. **System Configuration**: Linux only.
+    - `/etc/youtube-comments-to-file.conf`
+    - `/etc/youtube-comments-to-file/config`\*
+    - `/etc/youtube-comments-to-file/config.txt`
+
+\* The name of the file is `config` without a file extension.
+
+#### Configuration Example
+
+This command line reads the options from the configuration file `download.conf` and downloads the video accordingly.
+
+Command Line:
+
+```console
+YouTubeCommentsToFile download --config-locations download.conf --url "https://www.youtube.com/watch?v=dtCwxFTMMDg"
+```
+
+Configuration file `download.conf`:
+
+```ini
+# Download to the specified directory
+--download-path "C:\Path\To\Downloads Folder"
+
+# At most 100,000 comments and replies.
+--max-comments 100000
+
+# At most 100 replies for each top-level comment.
+--max-replies-per-thread 100
+
+# Sort by top comments first.
+--sort-top
+
+# Save comments to HTML output file.
+--to-html
+
+# Show next comment and previous comment navigation links.
+--show-comment-navigation-links
+
+# Show copy text links.
+--show-copy-links
+
+# Highlight uploader.
+# Comments and replies, written by the uploader of the video, will be highlighted.
+--uh
+
+# Limit the title of the video to at most 150 characters.
+--trim-title 150
+
+# Delete the comments JSON file after successfully writing to the HTML output file.
+--delete-json-file
+
+# Update yt-dlp when using it.
+--update-yt-dlp
+```
 
 ## Acknowledgments
 

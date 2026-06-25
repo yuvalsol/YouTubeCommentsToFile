@@ -15,6 +15,7 @@ internal static class OptionsHelper
             .Concat(GetOptionsPrecedence<ITextsOptions>())
             .Concat(GetOptionsPrecedence<IEncodingOptions>())
             .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
+            .Concat(GetOptionsPrecedence<IConfigurationOptions>())
             .Distinct()
             .OrderBy(x => x.Group)
             .ThenBy(x => x.Ordinal)
@@ -45,6 +46,7 @@ internal static class OptionsHelper
             .Concat(GetLongNames<ITextsOptions>())
             .Concat(GetLongNames<IEncodingOptions>())
             .Concat(GetLongNames<IHTMLColorsOptions>())
+            .Concat(GetLongNames<IConfigurationOptions>())
             .FirstOrDefault(x => x.Name == settingName).LongName;
     }
 

@@ -6,7 +6,7 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Runtime)' == 'win-x64'">
+  <PropertyGroup Condition="'$(Runtime)' == 'win-x64' or '$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>$(DefineConstants);WINDOWS_BUILD</DefineConstants>
   </PropertyGroup>
 
