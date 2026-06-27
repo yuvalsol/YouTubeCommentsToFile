@@ -20,10 +20,7 @@ internal partial class Program
 
     private static void WriteWarningLine(string line = null)
     {
-        ConsoleColor foregroundColor = Console.ForegroundColor;
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine(line);
-        Console.ForegroundColor = foregroundColor;
+        WriteLine(line, ConsoleColor.Yellow);
     }
 
     private static void WriteWarningLine(StringBuilder sb)
@@ -31,6 +28,22 @@ internal partial class Program
         ConsoleColor foregroundColor = Console.ForegroundColor;
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.Out.WriteLine(sb);
+        Console.ForegroundColor = foregroundColor;
+    }
+
+    private static void Write(string line, ConsoleColor color)
+    {
+        ConsoleColor foregroundColor = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.Write(line);
+        Console.ForegroundColor = foregroundColor;
+    }
+
+    private static void WriteLine(string line, ConsoleColor color)
+    {
+        ConsoleColor foregroundColor = Console.ForegroundColor;
+        Console.ForegroundColor = color;
+        Console.WriteLine(line);
         Console.ForegroundColor = foregroundColor;
     }
 

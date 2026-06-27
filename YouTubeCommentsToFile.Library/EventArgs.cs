@@ -98,7 +98,12 @@ public sealed class FinishEventArgs(TimeSpan processTime, Exception error = null
     public Exception Error => error;
 }
 
-public sealed class TracepointEventArgs(string message) : EventArgs
+public sealed class VerboseEventArgs(IEnumerable<(string message, ConsoleColor color)> message) : EventArgs
 {
-    public string Message => message;
+    public IEnumerable<(string message, ConsoleColor color)> Message => message;
+
+    public VerboseEventArgs(params string[] message) : this(message.Select(part => (part, Console.ForegroundColor))) { }
+    public VerboseEventArgs(string message, ConsoleColor color) : this([(message, color)]) { }
+    public VerboseEventArgs(string message1, ConsoleColor color1, string message2) : this([(message1, color1), (message2, Console.ForegroundColor)]) { }
+    public VerboseEventArgs(string message1, ConsoleColor color1, string message2, ConsoleColor color2) : this([(message1, color1), (message2, color2)]) { }
 }

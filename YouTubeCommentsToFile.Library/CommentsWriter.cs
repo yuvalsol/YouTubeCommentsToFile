@@ -45,7 +45,36 @@ public partial class CommentsWriter(Settings settings)
     public EventHandler<StartDeleteJsonFileEventArgs> StartDeleteJsonFile;
     public EventHandler<FinishDeleteJsonFileEventArgs> FinishDeleteJsonFile;
     public EventHandler<FinishEventArgs> Finish;
-    public EventHandler<TracepointEventArgs> Tracepoint;
+    public EventHandler<VerboseEventArgs> Verbose;
+
+    #endregion
+
+    #region Verbose
+
+    private void WriteVerbose(params string[] message)
+    {
+        Verbose?.Raise(this, () => new VerboseEventArgs(message));
+    }
+
+    private void WriteVerbose(string message, ConsoleColor color)
+    {
+        Verbose?.Raise(this, () => new VerboseEventArgs(message, color));
+    }
+
+    private void WriteVerbose(string message1, ConsoleColor color1, string message2)
+    {
+        Verbose?.Raise(this, () => new VerboseEventArgs(message1, color1, message2));
+    }
+
+    private void WriteVerbose(string message1, ConsoleColor color1, string message2, ConsoleColor color2)
+    {
+        Verbose?.Raise(this, () => new VerboseEventArgs(message1, color1, message2, color2));
+    }
+
+    private void WriteVerbose(IEnumerable<(string message, ConsoleColor color)> message)
+    {
+        Verbose?.Raise(this, () => new VerboseEventArgs(message));
+    }
 
     #endregion
 

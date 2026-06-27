@@ -40,7 +40,7 @@ internal partial class Program
             writer.StartDeleteJsonFile += StartDeleteJsonFile;
             writer.FinishDeleteJsonFile += FinishDeleteJsonFile;
             writer.Finish += Finish;
-            writer.Tracepoint += Tracepoint;
+            writer.Verbose += Verbose;
 
             writer.WriteCommentsToFile();
 
@@ -256,9 +256,24 @@ internal partial class Program
             }
         }
 
-        private void Tracepoint(object sender, TracepointEventArgs e)
+        private void Verbose(object sender, VerboseEventArgs e)
         {
-            WriteWarningLine(e.Message);
+            if (e.Message.IsNullOrEmpty())
+                return;
+
+            int count = 1;
+
+            foreach (var (message, color) in e.Message.SkipLast(1))
+            {
+                if (count++ > 1)
+                    Console.Write(' ');
+                Write(message, color);
+            }
+
+            var last = e.Message.Last();
+            if (count++ > 1)
+                Console.Write(' ');
+            WriteLine(last.message, last.color);
         }
     }
 }
