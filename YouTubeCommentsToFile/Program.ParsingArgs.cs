@@ -3,14 +3,17 @@ using YouTubeCommentsToFile.Library;
 
 namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
-    private static int Run(string[] args)
+    private static int Run(string[] args, bool verbose = false)
     {
         int returnCode = 0;
 
         try
         {
+            if (verbose)
+                WritePropertyLines("Command Line", RearrangeArgs(args));
+
             var parser = GetParser();
 
             var parsingResult = ParseArgs(parser, args, out ConvertOptions convertOptions, out DownloadOptions downloadOptions);
@@ -29,9 +32,13 @@ internal partial class Program
 
                 AddConfigurationStackToConfigLocations(convertOptions, homeConfigurationDirectory);
 
-                parsingResult = MergeConfigLocations(convertOptions, parser);
+                parsingResult = MergeConfigLocations(convertOptions, parser, verbose);
                 if (parsingResult == ParsingResult.Success)
+                {
                     settings = convertOptions.ToSettings();
+                    if (verbose)
+                        WritePropertyLines(nameof(convertOptions).PrettifyName(), RearrangeArgs(convertOptions.ToArgs(parser)));
+                }
             }
             else if (downloadOptions != null)
             {
@@ -41,9 +48,13 @@ internal partial class Program
 
                 AddConfigurationStackToConfigLocations(downloadOptions, homeConfigurationDirectory);
 
-                parsingResult = MergeConfigLocations(downloadOptions, parser);
+                parsingResult = MergeConfigLocations(downloadOptions, parser, verbose);
                 if (parsingResult == ParsingResult.Success)
+                {
                     settings = downloadOptions.ToSettings();
+                    if (verbose)
+                        WritePropertyLines(nameof(downloadOptions).PrettifyName(), RearrangeArgs(downloadOptions.ToArgs(parser)));
+                }
             }
 
             if (parsingResult == ParsingResult.Success)
@@ -54,13 +65,13 @@ internal partial class Program
         catch (ArgumentException ex)
         {
             returnCode = -1;
-            WriteErrorLine(HandledArgumentException(ex));
+            WriteErrorLine(HandledArgumentException(ex).ToString());
             PressAnyKey();
         }
         catch (Exception ex)
         {
             returnCode = -1;
-            WriteErrorLine(UnhandledException(ex));
+            WriteErrorLine(UnhandledException(ex).ToString());
             PressAnyKey();
         }
         finally
@@ -152,9 +163,6 @@ internal partial class Program
         Console.WriteLine(GetHelp());
     }
 
-    [GeneratedRegex(@"([a-z0-9])([A-Z])")]
-    private static partial Regex RegexCamelToWords();
-
     private static void WriteParsingErrors(string[] args, IEnumerable<Error> errors)
     {
         WriteErrorLine(GetVersion());
@@ -166,7 +174,7 @@ internal partial class Program
         WriteErrorLine($"{nameof(YouTubeCommentsToFile)} Errors:");
         foreach (Error error in errors)
         {
-            string tag = RegexCamelToWords().Replace(error.Tag.ToString(), "$1 $2");
+            string tag = error.Tag.ToString().ToWords();
 
             if (error is TokenError tokenError)
                 WriteErrorLine($"{tag}: {tokenError.Token}");
@@ -181,6 +189,45 @@ internal partial class Program
     private static string GetVersion()
     {
         return $"{nameof(YouTubeCommentsToFile)}, Version {Assembly.GetExecutingAssembly().GetName().Version.ToString(2)}";
+    }
+
+    [GeneratedRegex(@"^(?:-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)$")]
+    private static partial Regex RegexIsOption();
+
+    private static string[] RearrangeArgs(string[] args)
+    {
+        var items = args.Select((arg, i) => (arg, i, isOption: RegexIsOption().IsMatch(arg))).ToArray();
+
+        var indexes =
+            items.Where(item => item.isOption).Join(
+                items.Where(item => item.isOption == false),
+                option => option.i,
+                value => value.i - 1,
+                (option, value) => option.i
+            )
+            .ToArray();
+
+        return [.. items.Select(x =>
+        {
+            if (indexes.Contains(x.i))
+            {
+                string value = args[x.i + 1];
+                if (value.Contains('"'))
+                    value = value.Replace("\"", "\\\"");
+                if (value.Contains(' '))
+                    value = $@"""{value}""";
+                return $"{x.arg} {value}";
+            }
+            else if (indexes.Contains(x.i - 1))
+            {
+                return null;
+            }
+            else
+            {
+                return x.arg;
+            }
+        })
+        .Where(arg => arg != null)];
     }
 
     private enum ParsingResult

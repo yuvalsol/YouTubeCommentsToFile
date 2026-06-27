@@ -2,7 +2,7 @@
 
 namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
     private class CommentsHandler(Settings settings)
     {
@@ -111,7 +111,7 @@ internal partial class Program
             else
             {
                 Console.WriteLine();
-                WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
+                WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo).ToString());
                 pauseOnErrors = true;
             }
         }
@@ -251,29 +251,17 @@ internal partial class Program
             }
             else
             {
-                WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo));
+                WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo).ToString());
                 pauseOnErrors = true;
             }
         }
 
         private void Verbose(object sender, VerboseEventArgs e)
         {
-            if (e.Message.IsNullOrEmpty())
-                return;
-
-            int count = 1;
-
-            foreach (var (message, color) in e.Message.SkipLast(1))
-            {
-                if (count++ > 1)
-                    Console.Write(' ');
-                Write(message, color);
-            }
-
-            var last = e.Message.Last();
-            if (count++ > 1)
-                Console.Write(' ');
-            WriteLine(last.message, last.color);
+            if (e.WriteMessagesInLines)
+                WriteVerboseLines(e.Messages);
+            else
+                WriteVerbose(e.Messages);
         }
     }
 }

@@ -850,7 +850,17 @@ internal abstract class SharedOptions :
 
     public override string ToString()
     {
-        return $"{nameof(YouTubeCommentsToFile)} {Parser.Default.FormatCommandLine(this)}";
+        return ToString(null);
+    }
+
+    public virtual string ToString(Parser parser)
+    {
+        return (parser ?? Parser.Default).FormatCommandLine(this);
+    }
+
+    public virtual string[] ToArgs(Parser parser = null)
+    {
+        return (parser ?? Parser.Default).FormatCommandLineArgs(this);
     }
 }
 

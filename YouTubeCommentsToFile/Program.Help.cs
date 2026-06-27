@@ -3,7 +3,7 @@ using CommandLine.Text;
 
 namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
     private static StringBuilder GetHelp()
     {

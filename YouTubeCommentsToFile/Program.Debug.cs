@@ -1,17 +1,16 @@
 ﻿#if DEBUG
-using CommandLine;
 using YouTubeCommentsToFile.Library;
 
 namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
     private static int Debug()
     {
         //return RunDebug([
         //    ""
         //    ,""
-        //]);
+        //], verbose: false);
 
         //return RunDebug(new DownloadOptions
         //{
@@ -23,7 +22,7 @@ internal partial class Program
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false
-        //});
+        //}, verbose: false);
 
         //return RunDebug(new ConvertOptions
         //{
@@ -34,7 +33,7 @@ internal partial class Program
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false
-        //});
+        //}, verbose: false);
 
         //return GetVideoInfo("", @"");
 
@@ -42,14 +41,15 @@ internal partial class Program
         return 0;
     }
 
-    private static int RunDebug<T>(T options)
+    private static int RunDebug<T>(T options, bool verbose = false)
+        where T : SharedOptions
     {
-        return RunDebug(GetParser().FormatCommandLineArgs(options));
+        return RunDebug(options.ToArgs(GetParser()), verbose);
     }
 
-    private static int RunDebug(string[] args)
+    private static int RunDebug(string[] args, bool verbose = false)
     {
-        int returnCode = Run(args);
+        int returnCode = Run(args, verbose);
         Console.WriteLine();
         return returnCode;
     }

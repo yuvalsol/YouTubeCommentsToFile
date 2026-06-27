@@ -51,29 +51,12 @@ public partial class CommentsWriter(Settings settings)
 
     #region Verbose
 
-    private void WriteVerbose(params string[] message)
-    {
-        Verbose?.Raise(this, () => new VerboseEventArgs(message));
-    }
+    public static readonly Color NameDefaultColor = Color.Cyan;
+    public static readonly Color ValuesDefaultColor = Color.FromArgb(192, 192, 192);
 
-    private void WriteVerbose(string message, ConsoleColor color)
+    private void WriteVerbose(IEnumerable<(string message, Color color)> messages, bool writeMessagesInLines = false)
     {
-        Verbose?.Raise(this, () => new VerboseEventArgs(message, color));
-    }
-
-    private void WriteVerbose(string message1, ConsoleColor color1, string message2)
-    {
-        Verbose?.Raise(this, () => new VerboseEventArgs(message1, color1, message2));
-    }
-
-    private void WriteVerbose(string message1, ConsoleColor color1, string message2, ConsoleColor color2)
-    {
-        Verbose?.Raise(this, () => new VerboseEventArgs(message1, color1, message2, color2));
-    }
-
-    private void WriteVerbose(IEnumerable<(string message, ConsoleColor color)> message)
-    {
-        Verbose?.Raise(this, () => new VerboseEventArgs(message));
+        Verbose?.Raise(this, () => new VerboseEventArgs(messages, writeMessagesInLines));
     }
 
     #endregion

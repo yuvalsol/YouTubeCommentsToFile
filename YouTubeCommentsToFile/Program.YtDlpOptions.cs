@@ -1,6 +1,6 @@
 ﻿namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
     private static void AddQuotationsToYtDlpOptions(string[] args)
     {

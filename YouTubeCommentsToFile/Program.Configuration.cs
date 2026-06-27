@@ -2,9 +2,9 @@
 
 namespace YouTubeCommentsToFile;
 
-internal partial class Program
+internal static partial class Program
 {
-    private static ParsingResult MergeConfigLocations(ConvertOptions convertOptions, Parser parser)
+    private static ParsingResult MergeConfigLocations(ConvertOptions convertOptions, Parser parser, bool verbose)
     {
         if (convertOptions.ConfigLocations.IsNullOrEmpty())
             return ParsingResult.Success;
@@ -21,7 +21,7 @@ internal partial class Program
                 continue;
             encounteredConfigFiles.Add(configFile);
 
-            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out ConvertOptions options);
+            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out ConvertOptions options, verbose);
 
             if (parsingResult == ParsingResult.Success)
             {
@@ -49,7 +49,7 @@ internal partial class Program
         return ParsingResult.Success;
     }
 
-    private static ParsingResult MergeConfigLocations(DownloadOptions downloadOptions, Parser parser)
+    private static ParsingResult MergeConfigLocations(DownloadOptions downloadOptions, Parser parser, bool verbose)
     {
         if (downloadOptions.ConfigLocations.IsNullOrEmpty())
             return ParsingResult.Success;
@@ -66,7 +66,7 @@ internal partial class Program
                 continue;
             encounteredConfigFiles.Add(configFile);
 
-            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out DownloadOptions options);
+            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out DownloadOptions options, verbose);
 
             if (parsingResult == ParsingResult.Success)
             {
@@ -94,7 +94,29 @@ internal partial class Program
         return ParsingResult.Success;
     }
 
-    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out ConvertOptions convertOptions)
+    private static IEnumerable<string> FixConfigLocations(IEnumerable<string> configLocations, string baseDirectory)
+    {
+        return
+            configLocations
+            .Select(configFile => FixConfigFile(ref configFile, baseDirectory) ? configFile : null)
+            .Where(configFile => configFile != null);
+    }
+
+    private static bool FixConfigFile(ref string configFile, string baseDirectory)
+    {
+        if (string.IsNullOrWhiteSpace(configFile))
+            return false;
+
+        if (Path.IsPathFullyQualified(configFile) == false)
+            configFile = Path.Combine(baseDirectory, configFile);
+
+        if (Directory.Exists(configFile))
+            configFile = Path.Combine(configFile, CONF);
+
+        return File.Exists(configFile);
+    }
+
+    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out ConvertOptions convertOptions, bool verbose)
     {
         var args = GetArgsFromConfigFile(configFile, encounteredConfigFiles);
 
@@ -104,10 +126,14 @@ internal partial class Program
             return ParsingResult.ArgumentsNotParsed;
         }
 
-        return ParseArgs(parser, [.. args.Prepend(ConvertOptions.Verb)], out convertOptions);
+        ParsingResult parsingResult = ParseArgs(parser, [.. args.Prepend(ConvertOptions.Verb)], out convertOptions);
+
+        WriteVerboseConfigFile(configFile, args, parsingResult, verbose);
+
+        return parsingResult;
     }
 
-    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out DownloadOptions downloadOptions)
+    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out DownloadOptions downloadOptions, bool verbose)
     {
         var args = GetArgsFromConfigFile(configFile, encounteredConfigFiles);
 
@@ -117,7 +143,11 @@ internal partial class Program
             return ParsingResult.ArgumentsNotParsed;
         }
 
-        return ParseArgs(parser, [.. args.Prepend(DownloadOptions.Verb)], out downloadOptions);
+        ParsingResult parsingResult = ParseArgs(parser, [.. args.Prepend(DownloadOptions.Verb)], out downloadOptions);
+
+        WriteVerboseConfigFile(configFile, args, parsingResult, verbose);
+
+        return parsingResult;
     }
 
     [GeneratedRegex(@"^\s*(?<Option>-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)(?:\s*$|\s+(?:""(?<Value>.*?)""|(?<Value>.*?))\s*$)")]
@@ -140,26 +170,15 @@ internal partial class Program
             yield return arg;
     }
 
-    private static IEnumerable<string> FixConfigLocations(IEnumerable<string> configLocations, string baseDirectory)
+    private static void WriteVerboseConfigFile(string configFile, IEnumerable<string> args, ParsingResult parsingResult, bool verbose)
     {
-        return
-            configLocations
-            .Select(configFile => FixConfigFile(ref configFile, baseDirectory) ? configFile : null)
-            .Where(configFile => configFile != null);
-    }
-
-    private static bool FixConfigFile(ref string configFile, string baseDirectory)
-    {
-        if (string.IsNullOrWhiteSpace(configFile))
-            return false;
-
-        if (Path.IsPathFullyQualified(configFile) == false)
-            configFile = Path.Combine(baseDirectory, configFile);
-
-        if (Directory.Exists(configFile))
-            configFile = Path.Combine(configFile, CONF);
-
-        return File.Exists(configFile);
+        if (verbose)
+        {
+            if (parsingResult == ParsingResult.Success)
+                WritePropertyLines(configFile, RearrangeArgs([.. args]));
+            else
+                WritePropertyLines(configFile, Color.Red, RearrangeArgs([.. args]));
+        }
     }
 
     private static void AddConfigurationStackToConfigLocations(IConfigurationOptions options, string homeConfigurationDirectory)
