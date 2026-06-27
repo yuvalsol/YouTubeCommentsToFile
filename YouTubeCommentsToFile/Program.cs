@@ -10,8 +10,7 @@ internal partial class Program
 #if RELEASE
         return Run(args);
 #elif DEBUG
-        Debug();
-        return 0;
+        return Debug();
 #endif
     }
 }

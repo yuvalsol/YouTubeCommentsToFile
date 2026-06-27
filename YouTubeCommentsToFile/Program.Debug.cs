@@ -6,11 +6,14 @@ namespace YouTubeCommentsToFile;
 
 internal partial class Program
 {
-    private static void Debug()
+    private static int Debug()
     {
-        //WriteHelp();
+        //return RunDebug([
+        //    ""
+        //    ,""
+        //]);
 
-        //RunDebug(new DownloadOptions
+        //return RunDebug(new DownloadOptions
         //{
         //    URL = "",
         //    YtDlp = @"",
@@ -22,7 +25,7 @@ internal partial class Program
         //    DeleteJsonFile = false
         //});
 
-        //RunDebug(new ConvertOptions
+        //return RunDebug(new ConvertOptions
         //{
         //    JsonFile = @"",
         //    URL = "",
@@ -33,22 +36,37 @@ internal partial class Program
         //    DeleteJsonFile = false
         //});
 
-        //GetVideoInfo("", @"");
+        //return GetVideoInfo("", @"");
+
+        //WriteHelp();
+        return 0;
     }
 
-    private static void RunDebug<T>(T options)
+    private static int RunDebug<T>(T options)
     {
-        Run(GetParser().FormatCommandLineArgs(options));
-        Console.WriteLine();
+        return RunDebug(GetParser().FormatCommandLineArgs(options));
     }
 
-    private static void GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
+    private static int RunDebug(string[] args)
+    {
+        int returnCode = Run(args);
+        Console.WriteLine();
+        return returnCode;
+    }
+
+    private static int GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
     {
         var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
         if (videoInfo != null)
+        {
             Console.WriteLine(videoInfo);
+            return 0;
+        }
         else
+        {
             WriteErrorLine("Failed to get video info.");
+            return -1;
+        }
     }
 }
 #endif
