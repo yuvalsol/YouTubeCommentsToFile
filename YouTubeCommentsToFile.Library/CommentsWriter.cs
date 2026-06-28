@@ -51,7 +51,7 @@ public partial class CommentsWriter(Settings settings)
 
     #region Verbose
 
-    public static readonly Color NameDefaultColor = Color.Cyan;
+    public static readonly Color PropertyDefaultColor = Color.Cyan;
     public static readonly Color ValuesDefaultColor = Color.FromArgb(192, 192, 192);
 
     private void WriteVerbose(IEnumerable<(string message, Color color)> messages, bool writeMessagesInLines = false)

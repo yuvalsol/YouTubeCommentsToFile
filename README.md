@@ -368,7 +368,7 @@ YouTubeCommentsToFile ([convert]|download)
     [--link-color <color>] [--copy-text-success-color <color>]
     [--copy-text-failure-color <color>]
 
-    [--config-locations <path>]
+    [--config-locations <path>] [--ignore-config] [--stop-config]
 ```
 
 ### Shared Options
@@ -793,61 +793,156 @@ Configuration files allow to set options for the program without having to speci
 
 ```console
 --config-locations    Paths to configuration files or to directories containing
-                      configuration files with file extension '.conf'.
-                      Can be used multiple times and inside other configuration files.
+                      configuration files. Can be used multiple times and inside
+                      other configuration files.
 ```
 
 - The option `--config-locations` can be used multiple times at the command line.
 - A relative path, specified at the command line, is relative to the directory from which the program is running from.
 - The option `--config-locations` can be used multiple times in a configuration file.
 - A relative path, specified in a configuration file, is relative to the directory where the configuration file is at.
-- If the path is a directory and not a file, the program looks for `youtube-comments-to-file.conf` in the specified directory.
+- If the path is a directory and not a file, the program looks for `youtube-comments-to-file-convert.conf`<sup>\*</sup>, `youtube-comments-to-file-download.conf`<sup>\*\*</sup>, `youtube-comments-to-file.conf` in the specified directory.
 - Options passed at the command line always override the same options set within configuration files.
 - Configuration file doesn't support verbs `convert` and `download`. The verb needs to be passed at the command line.
 
-#### Configuration File Syntax
+#### Configuration File
 
 - One option per line.
 - No whitespace after `-` or `--`.
 - Comment starts with #.
-- Inline comment is not supported.
-- Quote values when needed just like in the command line.
+- Values with a space need to be between quotes, just like in the command line.
+- Configuration files are decoded first with UTF-8 encoding and fallback to the current system locale encoding.
 
-#### Configuration Loading Order
+#### Environment Variables
+
+Environment variables can be specified in options that set a path to a file or to a directory:\
+`--config-locations`, `--json-file`, `--download-path`, `--yt-dlp`, `--deno`.
+
+An environment variable can be specified in one of three ways, regardless if the OS is Windows or Linux:\
+`${VARIABLE}`, `$VARIABLE`, `%VARIABLE%`.
+
+On Windows, `~` is mapped to `$HOME`. If `$HOME` doesn't exist, it falls back to `%USERPROFILE%`. If `%USERPROFILE%` doesn't exist, it falls back to `%HOMEDRIVE%%HOMEPATH%`.
+
+On Windows, `%APPDATA%` usually located at `C:\Users\<username>\AppData\Roaming` and `%USERPROFILE%` usually located at `C:\Users\<username>`.
+
+On Linux, if `$XDG_CONFIG_HOME` is not set, it falls back to `~/.config`. `$XDG_CACHE_HOME` falls back to `~/.cache`.
+
+##### Environment Variables Examples
+
+1. Two configuration files, one for `convert` operation and one for `download` operation, are located at the user's settings directory, `C:\Users\<username>\AppData\Roaming`, and are directly specified with `--config-locations` at the command line.
+
+```console
+YouTubeCommentsToFile convert --config-locations "%APPDATA%\convert.conf"
+YouTubeCommentsToFile download --config-locations "%APPDATA%\download.conf"
+```
+
+2. The directory for downloaded comments is specified to be `YouTube Comments` directory under the user's profile directory. The full path is `C:\Users\<username>\YouTube Comments`.
+
+```console
+YouTubeCommentsToFile download --download-path "%USERPROFILE%\YouTube Comments"
+```
+
+3. You don't have to use the built-in environment variables. You can define custom ones and reference them.
+
+- On Windows, open the **Environment Variables** window. The top half of the window is the user variables. The bottom half of the window is the system variables.
+- In the user variables, add an new entry.\
+Variable name: `YouTube Comments`\
+Variable value: `C:\Users\<username>\YouTube Comments`
+- Restart the computer. The environment variables are loaded when the computer starts.
+- Use the environment variable `YouTube Comments` to specify the directory for downloaded comments.
+
+```console
+YouTubeCommentsToFile download --download-path "%YouTube Comments%"
+```
+
+#### Configuration Stack
 
 The program loads configuration files from multiple locations in the following order, from high priority to low priority. Options from high priority configuration take precedence over options from low priority configuration.
 
 1. **Main Configuration**: Configuration files specified at the command line with `--config-locations`.
-2. **Portable Configuration**: Configuration file `youtube-comments-to-file.conf` in the same directory as the `YouTubeCommentsToFile` executable.
-3. **Home Configuration**: Configuration file `youtube-comments-to-file.conf` at the directory that the program operates on.
-    - For `convert` operation, the directory of the JSON file, specified with `--json-file`.
-    - For `download` operation, the directory to download comments to, specified with `--download-path`.
+2. **Portable Configuration**: Configuration files in the same directory as the `YouTubeCommentsToFile` executable.
+    - `youtube-comments-to-file-convert.conf`<sup>\*</sup>
+    - `youtube-comments-to-file-download.conf`<sup>\*\*</sup>
+    - `youtube-comments-to-file.conf`
+3. **Home Configuration**: Configuration files at the directory that the program operates on. For `convert` operation, the directory of the JSON file, specified with `--json-file`. For `download` operation, the directory to download comments to, specified with `--download-path`.
+    - `youtube-comments-to-file-convert.conf`<sup>\*</sup>
+    - `youtube-comments-to-file-download.conf`<sup>\*\*</sup>
+    - `youtube-comments-to-file.conf`
 4. **User Configuration**:
-    - Windows:\
-      `%APPDATA%` usually located at `C:\Users\<username>\AppData\Roaming`.\
-      `%USERPROFILE%` usually located at `C:\Users\<username>`.
+    - Windows:
+        - `%APPDATA%\youtube-comments-to-file-convert.conf`<sup>\*</sup>
+        - `%APPDATA%\youtube-comments-to-file-download.conf`<sup>\*\*</sup>
         - `%APPDATA%\youtube-comments-to-file.conf`
-        - `%APPDATA%\YouTubeCommentsToFile\config`\*
+        - `%APPDATA%\YouTubeCommentsToFile\convert`<sup>\*</sup>
+        - `%APPDATA%\YouTubeCommentsToFile\download`<sup>\*\*</sup>
+        - `%APPDATA%\YouTubeCommentsToFile\config`<sup>\*\*\*</sup>
+        - `%APPDATA%\YouTubeCommentsToFile\convert.txt`<sup>\*</sup>
+        - `%APPDATA%\YouTubeCommentsToFile\download.txt`<sup>\*\*</sup>
         - `%APPDATA%\YouTubeCommentsToFile\config.txt`
+        - `%USERPROFILE%\youtube-comments-to-file-convert.conf`<sup>\*</sup>
+        - `%USERPROFILE%\youtube-comments-to-file-download.conf`<sup>\*\*</sup>
         - `%USERPROFILE%\youtube-comments-to-file.conf`
+        - `%USERPROFILE%\youtube-comments-to-file-convert.conf.txt`<sup>\*</sup>
+        - `%USERPROFILE%\youtube-comments-to-file-download.conf.txt`<sup>\*\*</sup>
         - `%USERPROFILE%\youtube-comments-to-file.conf.txt`
-        - `%USERPROFILE%\.youtubecommentstofile\config`\*
+        - `%USERPROFILE%\.youtubecommentstofile\convert`<sup>\*</sup>
+        - `%USERPROFILE%\.youtubecommentstofile\download`<sup>\*\*</sup>
+        - `%USERPROFILE%\.youtubecommentstofile\config`<sup>\*\*\*</sup>
+        - `%USERPROFILE%\.youtubecommentstofile\convert.txt`<sup>\*</sup>
+        - `%USERPROFILE%\.youtubecommentstofile\download.txt`<sup>\*\*</sup>
         - `%USERPROFILE%\.youtubecommentstofile\config.txt`
-    - Linux:\
-      `$XDG_CONFIG_HOME` defaults to `~/.config` if unset.
+    - Linux:
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file-convert.conf`<sup>\*</sup>
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file-download.conf`<sup>\*\*</sup>
         - `$XDG_CONFIG_HOME/youtube-comments-to-file.conf`
-        - `$XDG_CONFIG_HOME/youtube-comments-to-file/config`\*
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/convert`<sup>\*</sup>
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/download`<sup>\*\*</sup>
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/config`<sup>\*\*\*</sup>
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/convert.txt`<sup>\*</sup>
+        - `$XDG_CONFIG_HOME/youtube-comments-to-file/download.txt`<sup>\*\*</sup>
         - `$XDG_CONFIG_HOME/youtube-comments-to-file/config.txt`
+        - `~/youtube-comments-to-file-convert.conf`<sup>\*</sup>
+        - `~/youtube-comments-to-file-download.conf`<sup>\*\*</sup>
         - `~/youtube-comments-to-file.conf`
+        - `~/youtube-comments-to-file-convert.conf.txt`<sup>\*</sup>
+        - `~/youtube-comments-to-file-download.conf.txt`<sup>\*\*</sup>
         - `~/youtube-comments-to-file.conf.txt`
-        - `~/.youtube-comments-to-file/config`\*
+        - `~/.youtube-comments-to-file/convert`<sup>\*</sup>
+        - `~/.youtube-comments-to-file/download`<sup>\*\*</sup>
+        - `~/.youtube-comments-to-file/config`<sup>\*\*\*</sup>
+        - `~/.youtube-comments-to-file/convert.txt`<sup>\*</sup>
+        - `~/.youtube-comments-to-file/download.txt`<sup>\*\*</sup>
         - `~/.youtube-comments-to-file/config.txt`
 5. **System Configuration**: Linux only.
+    - `/etc/youtube-comments-to-file-convert.conf`<sup>\*</sup>
+    - `/etc/youtube-comments-to-file-download.conf`<sup>\*\*</sup>
     - `/etc/youtube-comments-to-file.conf`
-    - `/etc/youtube-comments-to-file/config`\*
+    - `/etc/youtube-comments-to-file/convert`<sup>\*</sup>
+    - `/etc/youtube-comments-to-file/download`<sup>\*\*</sup>
+    - `/etc/youtube-comments-to-file/config`<sup>\*\*\*</sup>
+    - `/etc/youtube-comments-to-file/convert.txt`<sup>\*</sup>
+    - `/etc/youtube-comments-to-file/download.txt`<sup>\*\*</sup>
     - `/etc/youtube-comments-to-file/config.txt`
 
-\* The name of the file is `config` without a file extension.
+<sup>\*</sup> Only for `convert` operation.\
+<sup>\**</sup> Only for `download` operation.\
+<sup>\*\*\*</sup> The name of the file is `config` without a file extension.
+
+#### Configuration Control
+
+This options ignores the current config location but continues loading the rest of the configuration stack. If this option is specified in the command line, all the `--config-locations`, in the command line, are not loaded. If this option is specified in a configuration file, the file is not loaded.
+
+```console
+--ignore-config    Don't load the config location and continue loading the rest of the
+                   configuration stack.
+```
+
+This option stops the loading of the configuration stack from the point it appears. If this option is specified in the command line, the whole configuration stack is not loaded, including all the `--config-locations` in the command line. If this option is specified in a configuration file, the file is not loaded and the loading of the rest of the configuration stack is stopped.
+
+```console
+--stop-config      Don't load the config location and stop loading the rest of the
+                   configuration stack.
+```
 
 #### Configuration Example
 

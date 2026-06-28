@@ -36,89 +36,113 @@ internal static partial class Program
             WriteLine(message, color);
     }
 
+    private static void WriteVerboseNewLine()
+    {
+        WriteVerboseLines([GetVerboseNewLine()]);
+    }
+
+    private static (string message, Color color) GetVerboseNewLine()
+    {
+        return (null, CommentsWriter.ValuesDefaultColor);
+    }
+
     #endregion
 
     #region Write Property
 
-    private static void WriteProperty(string name, params object[] values)
+    private static void WriteProperty(string property, params object[] values)
     {
-        WriteVerbose(GetMessages(name, values));
+        WriteVerbose(GetPropertyMessages(property, values));
     }
 
-    private static void WriteProperty(string name, params string[] values)
+    private static void WriteProperty(string property, params string[] values)
     {
-        WriteVerbose(GetMessages(name, values));
+        WriteVerbose(GetPropertyMessages(property, values));
     }
 
-    private static void WriteProperty(string name, Color valuesColor, params object[] values)
+    private static void WriteProperty(string property, Color valuesColor, params object[] values)
     {
-        WriteVerbose(GetMessages(name, valuesColor, values));
+        WriteVerbose(GetPropertyMessages(property, valuesColor, values));
     }
 
-    private static void WriteProperty(string name, Color valuesColor, params string[] values)
+    private static void WriteProperty(string property, Color valuesColor, params string[] values)
     {
-        WriteVerbose(GetMessages(name, valuesColor, values));
+        WriteVerbose(GetPropertyMessages(property, valuesColor, values));
     }
 
     #endregion
 
     #region Write Property Lines
 
-    private static void WritePropertyLines(string name, params object[] values)
+    private static void WritePropertyLines(string property, params object[] values)
     {
-        WriteVerboseLines(GetMessages(name, values));
+        WriteVerboseLines(GetPropertyMessages(property, values));
+        WriteVerboseNewLine();
     }
 
-    private static void WritePropertyLines(string name, params string[] values)
+    private static void WritePropertyLines(string property, params string[] values)
     {
-        WriteVerboseLines(GetMessages(name, values));
+        WriteVerboseLines(GetPropertyMessages(property, values));
+        WriteVerboseNewLine();
     }
 
-    private static void WritePropertyLines(string name, Color valuesColor, params object[] values)
+    private static void WritePropertyLines(string property, Color valuesColor, params object[] values)
     {
-        WriteVerboseLines(GetMessages(name, valuesColor, values));
+        WriteVerboseLines(GetPropertyMessages(property, valuesColor, values));
+        WriteVerboseNewLine();
     }
 
-    private static void WritePropertyLines(string name, Color valuesColor, params string[] values)
+    private static void WritePropertyLines(string property, Color valuesColor, params string[] values)
     {
-        WriteVerboseLines(GetMessages(name, valuesColor, values));
+        WriteVerboseLines(GetPropertyMessages(property, valuesColor, values));
+        WriteVerboseNewLine();
     }
 
     #endregion
 
-    #region Get Messages
+    #region Get Property Messages
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, params object[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, params object[] values)
     {
-        return GetMessages(name, CommentsWriter.NameDefaultColor, CommentsWriter.ValuesDefaultColor, [.. values.Select(value => value?.ToString())]);
+        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, CommentsWriter.ValuesDefaultColor, [.. values.Select(value => value?.ToString())]);
     }
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, Color valuesColor, params object[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color valuesColor, params object[] values)
     {
-        return GetMessages(name, CommentsWriter.NameDefaultColor, valuesColor, [.. values.Select(value => value?.ToString())]);
+        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, valuesColor, [.. values.Select(value => value?.ToString())]);
     }
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, Color nameColor, Color valuesColor, params object[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color propertyColor, Color valuesColor, params object[] values)
     {
-        return GetMessages(name, nameColor, valuesColor, [.. values.Select(value => value?.ToString())]);
+        return GetPropertyMessages(property, propertyColor, valuesColor, [.. values.Select(value => value?.ToString())]);
     }
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, params string[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, params string[] values)
     {
-        return GetMessages(name, CommentsWriter.NameDefaultColor, CommentsWriter.ValuesDefaultColor, values);
+        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, CommentsWriter.ValuesDefaultColor, values);
     }
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, Color valuesColor, params string[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color valuesColor, params string[] values)
     {
-        return GetMessages(name, CommentsWriter.NameDefaultColor, valuesColor, values);
+        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, valuesColor, values);
     }
 
-    private static IEnumerable<(string message, Color color)> GetMessages(string name, Color nameColor, Color valuesColor, params string[] values)
+    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color propertyColor, Color valuesColor, params string[] values)
     {
-        if (string.IsNullOrWhiteSpace(name))
-            return values.Select(message => (message, valuesColor));
+        if (string.IsNullOrWhiteSpace(property))
+            return GetValueMessages(valuesColor, values);
         else
-            return values.Select(message => (message, valuesColor)).Prepend(($"{name}:", nameColor));
+            return GetValueMessages(valuesColor, values).Prepend(GetPropertyMessage(property, propertyColor));
+    }
+
+    private static (string message, Color color) GetPropertyMessage(string property, Color propertyColor)
+    {
+        return ($"{property}:", propertyColor);
+    }
+
+    private static IEnumerable<(string message, Color color)> GetValueMessages(Color valuesColor, params string[] values)
+    {
+        return values.Select(message => (message, valuesColor));
     }
 
     #endregion

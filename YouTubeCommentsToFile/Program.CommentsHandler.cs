@@ -50,7 +50,7 @@ internal static partial class Program
 
         private void Start(object sender, EventArgs e)
         {
-            Console.WriteLine(GetVersion());
+            WriteVersion();
         }
 
         private void StartDownloadComments(object sender, StartDownloadCommentsEventArgs e)

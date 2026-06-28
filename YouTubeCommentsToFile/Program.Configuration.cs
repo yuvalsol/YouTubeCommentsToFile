@@ -4,324 +4,493 @@ namespace YouTubeCommentsToFile;
 
 internal static partial class Program
 {
-    private static ParsingResult MergeConfigLocations(ConvertOptions convertOptions, Parser parser, bool verbose)
+    #region Configuration Stack
+
+    private static void AddConfigurationStackToConfigLocations(IOperationOptions operationOptions, string homeConfigurationDirectory, bool verbose)
     {
-        if (convertOptions.ConfigLocations.IsNullOrEmpty())
-            return ParsingResult.Success;
-
-        convertOptions.ConfigLocations = FixConfigLocations(convertOptions.ConfigLocations, AppContext.BaseDirectory);
-
-        HashSet<string> encounteredConfigFiles = [];
-
-        while (convertOptions.ConfigLocations.HasAny())
+        if (operationOptions.StopConfig)
         {
-            string configFile = convertOptions.ConfigLocations.First();
-
-            if (encounteredConfigFiles.Contains(configFile))
-                continue;
-            encounteredConfigFiles.Add(configFile);
-
-            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out ConvertOptions options, verbose);
-
-            if (parsingResult == ParsingResult.Success)
-            {
-                convertOptions.MergeOptions(options);
-
-                convertOptions.ConfigLocations = convertOptions.ConfigLocations.Skip(1);
-
-                if (options.ConfigLocations.HasAny())
-                {
-                    convertOptions.ConfigLocations =
-                        FixConfigLocations(options.ConfigLocations, Path.GetDirectoryName(configFile))
-                        .Concat(convertOptions.ConfigLocations);
-                }
-            }
-            else if (parsingResult == ParsingResult.ArgumentsNotParsed)
-            {
-                continue;
-            }
-            else
-            {
-                return parsingResult;
-            }
+            operationOptions.ConfigLocations = null;
+            return;
         }
 
-        return ParsingResult.Success;
-    }
-
-    private static ParsingResult MergeConfigLocations(DownloadOptions downloadOptions, Parser parser, bool verbose)
-    {
-        if (downloadOptions.ConfigLocations.IsNullOrEmpty())
-            return ParsingResult.Success;
-
-        downloadOptions.ConfigLocations = FixConfigLocations(downloadOptions.ConfigLocations, AppContext.BaseDirectory);
-
-        HashSet<string> encounteredConfigFiles = [];
-
-        while (downloadOptions.ConfigLocations.HasAny())
-        {
-            string configFile = downloadOptions.ConfigLocations.First();
-
-            if (encounteredConfigFiles.Contains(configFile))
-                continue;
-            encounteredConfigFiles.Add(configFile);
-
-            ParsingResult parsingResult = GetOptionsFromConfigFile(configFile, encounteredConfigFiles, parser, out DownloadOptions options, verbose);
-
-            if (parsingResult == ParsingResult.Success)
-            {
-                downloadOptions.MergeOptions(options);
-
-                downloadOptions.ConfigLocations = downloadOptions.ConfigLocations.Skip(1);
-
-                if (options.ConfigLocations.HasAny())
-                {
-                    downloadOptions.ConfigLocations =
-                        FixConfigLocations(options.ConfigLocations, Path.GetDirectoryName(configFile))
-                        .Concat(downloadOptions.ConfigLocations);
-                }
-            }
-            else if (parsingResult == ParsingResult.ArgumentsNotParsed)
-            {
-                continue;
-            }
-            else
-            {
-                return parsingResult;
-            }
-        }
-
-        return ParsingResult.Success;
-    }
-
-    private static IEnumerable<string> FixConfigLocations(IEnumerable<string> configLocations, string baseDirectory)
-    {
-        return
-            configLocations
-            .Select(configFile => FixConfigFile(ref configFile, baseDirectory) ? configFile : null)
-            .Where(configFile => configFile != null);
-    }
-
-    private static bool FixConfigFile(ref string configFile, string baseDirectory)
-    {
-        if (string.IsNullOrWhiteSpace(configFile))
-            return false;
-
-        if (Path.IsPathFullyQualified(configFile) == false)
-            configFile = Path.Combine(baseDirectory, configFile);
-
-        if (Directory.Exists(configFile))
-            configFile = Path.Combine(configFile, CONF);
-
-        return File.Exists(configFile);
-    }
-
-    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out ConvertOptions convertOptions, bool verbose)
-    {
-        var args = GetArgsFromConfigFile(configFile, encounteredConfigFiles);
-
-        if (args.IsNullOrEmpty())
-        {
-            convertOptions = null;
-            return ParsingResult.ArgumentsNotParsed;
-        }
-
-        ParsingResult parsingResult = ParseArgs(parser, [.. args.Prepend(ConvertOptions.Verb)], out convertOptions);
-
-        WriteVerboseConfigFile(configFile, args, parsingResult, verbose);
-
-        return parsingResult;
-    }
-
-    private static ParsingResult GetOptionsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles, Parser parser, out DownloadOptions downloadOptions, bool verbose)
-    {
-        var args = GetArgsFromConfigFile(configFile, encounteredConfigFiles);
-
-        if (args.IsNullOrEmpty())
-        {
-            downloadOptions = null;
-            return ParsingResult.ArgumentsNotParsed;
-        }
-
-        ParsingResult parsingResult = ParseArgs(parser, [.. args.Prepend(DownloadOptions.Verb)], out downloadOptions);
-
-        WriteVerboseConfigFile(configFile, args, parsingResult, verbose);
-
-        return parsingResult;
-    }
-
-    [GeneratedRegex(@"^\s*(?<Option>-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)(?:\s*$|\s+(?:""(?<Value>.*?)""|(?<Value>.*?))\s*$)")]
-    private static partial Regex RegexOption();
-
-    private static IEnumerable<string> GetArgsFromConfigFile(string configFile, HashSet<string> encounteredConfigFiles)
-    {
-        var args =
-            File.ReadLines(configFile)
-            .Select(line => RegexOption().Match(line))
-            .Where(match => match.Success)
-            .SelectMany(match =>
-            {
-                if (match.Groups["Value"].Success)
-                    return [match.Groups["Option"].Value, match.Groups["Value"].Value];
-                return new string[] { match.Groups["Option"].Value };
-            });
-
-        foreach (var arg in args)
-            yield return arg;
-    }
-
-    private static void WriteVerboseConfigFile(string configFile, IEnumerable<string> args, ParsingResult parsingResult, bool verbose)
-    {
-        if (verbose)
-        {
-            if (parsingResult == ParsingResult.Success)
-                WritePropertyLines(configFile, RearrangeArgs([.. args]));
-            else
-                WritePropertyLines(configFile, Color.Red, RearrangeArgs([.. args]));
-        }
-    }
-
-    private static void AddConfigurationStackToConfigLocations(IConfigurationOptions options, string homeConfigurationDirectory)
-    {
-        if (options.ConfigLocations.IsNullOrEmpty())
-            options.ConfigLocations = GetConfigurationStack(homeConfigurationDirectory);
+        if (operationOptions.ConfigLocations.IsNullOrEmpty() || operationOptions.IgnoreConfig)
+            operationOptions.ConfigLocations = GetConfigurationStack(homeConfigurationDirectory, operationOptions.Verb);
         else
-            options.ConfigLocations = options.ConfigLocations.Concat(GetConfigurationStack(homeConfigurationDirectory));
+            operationOptions.ConfigLocations = operationOptions.ConfigLocations.Concat(GetConfigurationStack(homeConfigurationDirectory, operationOptions.Verb));
+
+        FixConfigLocations(operationOptions);
+
+        DistinctConfigLocations(operationOptions);
+
+        WriteVerboseConfigurationStack(operationOptions, verbose);
     }
 
-    private const string CONF = "youtube-comments-to-file.conf";
-    private const string CONF_TXT = "youtube-comments-to-file.conf.txt";
-    private const string CONFIG = "config";
-    private const string CONFIG_TXT = "config.txt";
-
-    private static IEnumerable<string> GetConfigurationStack(string homeConfigurationDirectory)
+    private static IEnumerable<string> GetConfigurationStack(string homeConfigurationDirectory, string verb)
     {
-        yield return GetPortableConfiguration();
-
-        if (string.IsNullOrEmpty(homeConfigurationDirectory) == false)
-            yield return GetHomeConfiguration(homeConfigurationDirectory);
-
 #if LINUX_BUILD
 
-        foreach (var path in GetLinuxUserConfiguration())
-            yield return path;
-
-        foreach (var path in GetSystemConfiguration())
-            yield return path;
+        return
+            GetPortableConfiguration(verb)
+            .Concat(GetHomeConfiguration(homeConfigurationDirectory, verb))
+            .Concat(GetLinuxUserConfiguration(verb))
+            .Concat(GetSystemConfiguration(verb));
 
 #elif WINDOWS_BUILD
 
-        foreach (var path in GetWindowsUserConfiguration())
-            yield return path;
+        return
+            GetPortableConfiguration(verb)
+            .Concat(GetHomeConfiguration(homeConfigurationDirectory, verb))
+            .Concat(GetWindowsUserConfiguration(verb));
 
 #endif
     }
 
-    private static string GetPortableConfiguration()
+    private static IEnumerable<string> GetPortableConfiguration(string verb)
     {
-        return Path.Combine(AppContext.BaseDirectory, CONF);
+        return GetConfFiles(AppContext.BaseDirectory, verb);
     }
 
-    private static string GetHomeConfiguration(string homeConfigurationDirectory)
+    private static IEnumerable<string> GetHomeConfiguration(string homeConfigurationDirectory, string verb)
     {
-        return Path.Combine(homeConfigurationDirectory, CONF);
+        if (string.IsNullOrEmpty(homeConfigurationDirectory))
+            return [];
+        return GetConfFiles(homeConfigurationDirectory, verb);
     }
 
 #if LINUX_BUILD
 
-    private static IEnumerable<string> GetLinuxUserConfiguration()
+    private static IEnumerable<string> GetLinuxUserConfiguration(string verb)
     {
-        string homeDir = GetUserProfilePath();
-        string xdgConfigHome = GetXdgConfigHomePath(homeDir);
+        string xdgConfigHome = GetEnvironmentVariable("XDG_CONFIG_HOME");
 
         // $XDG_CONFIG_HOME/youtube-comments-to-file.conf
-        yield return Path.Combine(xdgConfigHome, CONF);
+        return GetConfFiles(xdgConfigHome, verb).Concat(
 
         // $XDG_CONFIG_HOME/youtube-comments-to-file/config
-        yield return Path.Combine(xdgConfigHome, "youtube-comments-to-file", CONFIG);
+        GetConfigFiles(xdgConfigHome, "youtube-comments-to-file", verb)).Concat(
 
         // $XDG_CONFIG_HOME/youtube-comments-to-file/config.txt
-        yield return Path.Combine(xdgConfigHome, "youtube-comments-to-file", CONFIG_TXT);
+        GetConfigTxtFiles(xdgConfigHome, "youtube-comments-to-file", verb)).Concat(
 
         // ~/youtube-comments-to-file.conf
-        yield return Path.Combine(homeDir, CONF);
+        GetConfFiles("~", verb)).Concat(
 
         // ~/youtube-comments-to-file.conf.txt
-        yield return Path.Combine(homeDir, CONF_TXT);
+        GetConfTxtFiles("~", verb)).Concat(
 
         // ~/.youtube-comments-to-file/config
-        yield return Path.Combine(homeDir, ".youtube-comments-to-file", CONFIG);
+        GetConfigFiles("~", ".youtube-comments-to-file", verb)).Concat(
 
         // ~/.youtube-comments-to-file/config.txt
-        yield return Path.Combine(homeDir, ".youtube-comments-to-file", CONFIG_TXT);
+        GetConfigTxtFiles("~", ".youtube-comments-to-file", verb));
     }
 
-    private static IEnumerable<string> GetSystemConfiguration()
+    private static IEnumerable<string> GetSystemConfiguration(string verb)
     {
-        string etc = GetEtcPath();
+        string etc = Path.Combine("/", "etc");
 
         // /etc/youtube-comments-to-file.conf
-        yield return Path.Combine(etc, CONF);
+        return GetConfFiles(etc, verb).Concat(
 
         // /etc/youtube-comments-to-file/config
-        yield return Path.Combine(etc, "youtube-comments-to-file", CONFIG);
+        GetConfigFiles(etc, "youtube-comments-to-file", verb)).Concat(
 
         // /etc/youtube-comments-to-file/config.txt
-        yield return Path.Combine(etc, "youtube-comments-to-file", CONFIG_TXT);
-    }
-
-    private static string GetXdgConfigHomePath(string homeDir)
-    {
-        string XDG_CONFIG_HOME = Environment.GetEnvironmentVariable("XDG_CONFIG_HOME");
-        if (string.IsNullOrWhiteSpace(XDG_CONFIG_HOME))
-            return Path.Combine(homeDir, ".config"); // fallback to ~/.config
-        return XDG_CONFIG_HOME;
-    }
-
-    private static string GetEtcPath()
-    {
-        return Path.Combine("/", "etc");
+        GetConfigTxtFiles(etc, "youtube-comments-to-file", verb));
     }
 
 #elif WINDOWS_BUILD
 
-    private static IEnumerable<string> GetWindowsUserConfiguration()
+    private static IEnumerable<string> GetWindowsUserConfiguration(string verb)
     {
-        string appData = GetAppDataPath();
+        string appData = GetEnvironmentVariable("APPDATA");
+        string userProfile = GetEnvironmentVariable("USERPROFILE");
 
         // %APPDATA%\youtube-comments-to-file.conf
-        yield return Path.Combine(appData, CONF);
+        return GetConfFiles(appData, verb).Concat(
 
         // %APPDATA%\YouTubeCommentsToFile\config
-        yield return Path.Combine(appData, "YouTubeCommentsToFile", CONFIG);
+        GetConfigFiles(appData, "YouTubeCommentsToFile", verb)).Concat(
 
         // %APPDATA%\YouTubeCommentsToFile\config.txt
-        yield return Path.Combine(appData, "YouTubeCommentsToFile", CONFIG_TXT);
-
-        string userProfile = GetUserProfilePath();
+        GetConfigTxtFiles(appData, "YouTubeCommentsToFile", verb)).Concat(
 
         // %USERPROFILE%\youtube-comments-to-file.conf
-        yield return Path.Combine(userProfile, CONF);
+        GetConfFiles(userProfile, verb)).Concat(
 
         // %USERPROFILE%\youtube-comments-to-file.conf.txt
-        yield return Path.Combine(userProfile, CONF_TXT);
+        GetConfTxtFiles(userProfile, verb)).Concat(
 
         // %USERPROFILE%\.youtubecommentstofile\config
-        yield return Path.Combine(userProfile, ".youtubecommentstofile", CONFIG);
+        GetConfigFiles(userProfile, ".youtubecommentstofile", verb)).Concat(
 
         // %USERPROFILE%\.youtubecommentstofile\config.txt
-        yield return Path.Combine(userProfile, ".youtubecommentstofile", CONFIG_TXT);
-    }
-
-    private static string GetAppDataPath()
-    {
-        return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        GetConfigTxtFiles(userProfile, ".youtubecommentstofile", verb));
     }
 
 #endif
 
-    private static string GetUserProfilePath()
+    private const string CONF = "youtube-comments-to-file{0}.conf";
+    private const string CONF_TXT = "youtube-comments-to-file{0}.conf.txt";
+    private const string CONFIG = "{0}";
+    private const string CONFIG_TXT = "{0}.txt";
+
+    private static IEnumerable<string> GetConfFiles(string directory, string verb)
     {
-        return Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        return GetConfFileNames(verb).Select(file => Path.Combine(directory, file));
     }
+
+    private static IEnumerable<string> GetConfFiles(string directory1, string directory2, string verb)
+    {
+        return GetConfFileNames(verb).Select(file => Path.Combine(directory1, directory2, file));
+    }
+
+    private static IEnumerable<string> GetConfFileNames(string verb)
+    {
+        yield return string.Format(CONF, $"-{verb}");
+        yield return string.Format(CONF, string.Empty);
+    }
+
+    private static IEnumerable<string> GetConfTxtFiles(string directory, string verb)
+    {
+        return GetConfTxtFileNames(verb).Select(file => Path.Combine(directory, file));
+    }
+
+    private static IEnumerable<string> GetConfTxtFiles(string directory1, string directory2, string verb)
+    {
+        return GetConfTxtFileNames(verb).Select(file => Path.Combine(directory1, directory2, file));
+    }
+
+    private static IEnumerable<string> GetConfTxtFileNames(string verb)
+    {
+        yield return string.Format(CONF_TXT, $"-{verb}");
+        yield return string.Format(CONF_TXT, string.Empty);
+    }
+
+    private static IEnumerable<string> GetConfigFiles(string directory, string verb)
+    {
+        return GetConfigFileNames(verb).Select(file => Path.Combine(directory, file));
+    }
+
+    private static IEnumerable<string> GetConfigFiles(string directory1, string directory2, string verb)
+    {
+        return GetConfigFileNames(verb).Select(file => Path.Combine(directory1, directory2, file));
+    }
+
+    private static IEnumerable<string> GetConfigFileNames(string verb)
+    {
+        yield return string.Format(CONFIG, verb);
+        yield return string.Format(CONFIG, "config");
+    }
+
+    private static IEnumerable<string> GetConfigTxtFiles(string directory, string verb)
+    {
+        return GetConfigTxtFileNames(verb).Select(file => Path.Combine(directory, file));
+    }
+
+    private static IEnumerable<string> GetConfigTxtFiles(string directory1, string directory2, string verb)
+    {
+        return GetConfigTxtFileNames(verb).Select(file => Path.Combine(directory1, directory2, file));
+    }
+
+    private static IEnumerable<string> GetConfigTxtFileNames(string verb)
+    {
+        yield return string.Format(CONFIG_TXT, verb);
+        yield return string.Format(CONFIG_TXT, "config");
+    }
+
+    #endregion
+
+    #region Environment Variables
+
+    private static string GetEnvironmentVariable(string variable)
+    {
+        return variable switch
+        {
+#if LINUX_BUILD
+            "~" or "HOME" => "~",
+#elif WINDOWS_BUILD
+            "~" or "HOME" => GetWindowsHomePath(),
+#endif
+            "XDG_CONFIG_HOME" => GetEnvironmentVariable("XDG_CONFIG_HOME", ".config"),
+            "XDG_CACHE_HOME" => GetEnvironmentVariable("XDG_CACHE_HOME", ".cache"),
+            _ => Environment.GetEnvironmentVariable(variable)
+        };
+    }
+
+    private static string GetEnvironmentVariable(string variable, string fallback)
+    {
+        string path = Environment.GetEnvironmentVariable(variable);
+        return string.IsNullOrEmpty(path) ? Path.Combine(GetEnvironmentVariable("~"), fallback) : path;
+    }
+
+    private static string GetWindowsHomePath()
+    {
+        string path = Environment.GetEnvironmentVariable("HOME");
+        if (string.IsNullOrEmpty(path))
+            path = Environment.GetEnvironmentVariable("USERPROFILE");
+        if (string.IsNullOrEmpty(path))
+            path = $"{Environment.GetEnvironmentVariable("HOMEDRIVE")}{Environment.GetEnvironmentVariable("HOMEPATH")}";
+        return path;
+    }
+
+    [GeneratedRegex(@"\${(?<Var>.+)}|\$(?<Var>\S+)|%(?<Var>.+)%")]
+    private static partial Regex RegexEnvironmentVariable();
+
+    private static string FixPath(string path)
+    {
+        if (string.IsNullOrEmpty(path))
+            return path;
+
+        path = string.Join(
+            Path.DirectorySeparatorChar,
+            path.Split([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar])
+                .Select(s => s == "~" ? GetEnvironmentVariable("~") : s)
+        );
+
+        return RegexEnvironmentVariable().Replace(path, match => GetEnvironmentVariable(match.Groups["Var"].Value));
+    }
+
+    #endregion
+
+    #region Merge Config Locations
+
+    private static ParsingResult MergeConfigLocations(IOperationOptions operationOptions, Parser parser, bool verbose)
+    {
+        if (FixConfigLocations(operationOptions))
+            return ParsingResult.Success;
+
+        HashSet<string> encounteredConfigFiles = [];
+
+        while (operationOptions.ConfigLocations.HasAny())
+        {
+            var (configFile, isConfigFileEncountered) = GetFirstConfigFile(operationOptions, encounteredConfigFiles);
+            if (isConfigFileEncountered)
+            {
+                WriteVerboseConfigFileEncountered(configFile, verbose);
+                continue;
+            }
+
+            var (options, parsingResult) = GetOptionsFromConfigFile(configFile, parser, operationOptions.Verb, verbose);
+
+            if (parsingResult == ParsingResult.Success)
+            {
+                if (options.StopConfig)
+                {
+                    return ParsingResult.Success;
+                }
+                else if (options.IgnoreConfig == false)
+                {
+                    if (operationOptions is IOperationOptions<ConvertOptions> convertOperationOptions && options is ConvertOptions convertOptions)
+                        convertOperationOptions.MergeOptions(convertOptions);
+                    else if (operationOptions is IOperationOptions<DownloadOptions> downloadOperationOptions && options is DownloadOptions downloadOptions)
+                        downloadOperationOptions.MergeOptions(downloadOptions);
+                    else
+                        throw new Exception($"Merging options failed. Config file '{configFile}'. Parameters '{nameof(operationOptions)}' (main options) and '{nameof(options)}' (config file options) are not the same type.");
+
+                    ConcatConfigLocations(operationOptions, options, configFile);
+                }
+            }
+            else if (parsingResult == ParsingResult.Error)
+            {
+                return parsingResult;
+            }
+        }
+
+        return ParsingResult.Success;
+    }
+
+    private static bool FixConfigLocations(IOperationOptions operationOptions)
+    {
+        if (operationOptions.ConfigLocations.IsNullOrEmpty())
+            return true;
+
+        FixConfigLocations(operationOptions, AppContext.BaseDirectory);
+        return false;
+    }
+
+    private static void FixConfigLocations(IOperationOptions operationOptions, string baseDirectory)
+    {
+        operationOptions.ConfigLocations =
+            operationOptions.ConfigLocations
+            .Where(configFile => string.IsNullOrWhiteSpace(configFile) == false)
+            .Select(FixPath)
+            .Select(configFile => Path.IsPathFullyQualified(configFile) ? configFile : Path.Combine(baseDirectory, configFile))
+            .SelectMany(configFile =>
+            {
+                if (Directory.Exists(configFile))
+                    return GetConfFiles(configFile, operationOptions.Verb);
+                return [configFile];
+            })
+            .Where(File.Exists);
+    }
+
+    private static void DistinctConfigLocations(IOperationOptions operationOptions)
+    {
+        if (operationOptions.ConfigLocations.IsNullOrEmpty())
+            return;
+
+        operationOptions.ConfigLocations =
+            operationOptions.ConfigLocations
+            .Select((configFile, i) => (configFile, i))
+            .GroupBy(x => x.configFile)
+            .Select(g => (configFile: g.Key, i: g.Min(x => x.i)))
+            .OrderBy(x => x.i)
+            .Select(x => x.configFile);
+    }
+
+    private static (string configFile, bool isConfigFileEncountered) GetFirstConfigFile(IOperationOptions operationOptions, HashSet<string> encounteredConfigFiles)
+    {
+        string configFile = operationOptions.ConfigLocations.First();
+        operationOptions.ConfigLocations = operationOptions.ConfigLocations.Skip(1);
+
+        if (encounteredConfigFiles.Contains(configFile))
+            return (configFile, true);
+
+        encounteredConfigFiles.Add(configFile);
+        return (configFile, false);
+    }
+
+    private static (IOperationOptions operationOptions, ParsingResult parsingResult) GetOptionsFromConfigFile(string configFile, Parser parser, string verb, bool verbose)
+    {
+        string[] args = [.. GetArgsFromConfigFile(configFile)];
+
+        if (args.IsNullOrEmpty())
+        {
+            WriteVerboseConfigFileNoOptions(configFile, verbose);
+            return (null, ParsingResult.ArgumentsNotParsed);
+        }
+
+        var results = ParseArgs(parser, [.. args.Prepend(verb)]);
+        WriteVerboseConfigFile(configFile, args, results.parsingResult, verbose);
+        return results;
+    }
+
+    /* RegexOption:
+     *
+     * prefix spaces: \s*
+     * <Option>:
+     *     short name: -[A-Za-z0-9]
+     *     single dash, single char
+     *     or
+     *     long name: --[A-Za-z0-9][A-Za-z0-9-]*
+     *     double dash, first char is not dash
+     * Values: (
+     *     at least one space: \s+
+     *     <Value>:
+     *         value in quotes: ""(?<Value>.*?)""
+     *         or
+     *         value not in quotes: (?<Value>[^#\s][^#]*?)
+     *         first char is not # or space, rest of the chars are not #
+     * )? - if there are any values
+     * suffix: \s*(?:#.*)?$
+     * spaces or inline comment
+     */
+    [GeneratedRegex(@"^\s*(?<Option>-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)(?:(?:\s+(?:""(?<Value>.*?)""|(?<Value>[^#\s][^#]*?)))+)?\s*(?:#.*)?$")]
+    private static partial Regex RegexOption();
+
+    private static IEnumerable<string> GetArgsFromConfigFile(string configFile)
+    {
+        foreach (var line in ReadLines(configFile))
+        {
+            Match match = RegexOption().Match(line);
+            if (match.Success == false)
+                continue;
+
+            yield return match.Groups["Option"].Value;
+
+            Group gValue = match.Groups["Value"];
+            if (gValue.Success == false)
+                continue;
+
+            foreach (Capture capture in gValue.Captures)
+                yield return capture.Value;
+        }
+    }
+
+    private static IEnumerable<string> ReadLines(string path)
+    {
+        try
+        {
+            return ReadLines(path, Encoding.UTF8);
+        }
+        catch (DecoderFallbackException)
+        {
+            return ReadLines(path, Encoding.Default);
+        }
+    }
+
+    private static IEnumerable<string> ReadLines(string path, Encoding encoding)
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+        return File.ReadLines(path, Encoding.GetEncoding(
+            encoding.CodePage,
+            EncoderFallback.ExceptionFallback,
+            DecoderFallback.ExceptionFallback
+        ));
+    }
+
+    private static void ConcatConfigLocations(IOperationOptions operationOptions, IOperationOptions options, string configFile)
+    {
+        if (options.ConfigLocations.IsNullOrEmpty())
+            return;
+
+        FixConfigLocations(options, Path.GetDirectoryName(configFile));
+        operationOptions.ConfigLocations = options.ConfigLocations.Concat(operationOptions.ConfigLocations);
+    }
+
+    #endregion
+
+    #region Write Verbose Configuration
+
+    private static void WriteVerboseHomeConfigurationDirectory(string homeConfigurationDirectory, bool verbose)
+    {
+        if (verbose == false)
+            return;
+
+        if (string.IsNullOrEmpty(homeConfigurationDirectory) == false)
+            WritePropertyLines(nameof(homeConfigurationDirectory).PrettifyName(), homeConfigurationDirectory);
+    }
+
+    private static void WriteVerboseConfigurationStack(IOperationOptions operationOptions, bool verbose)
+    {
+        if (verbose == false)
+            return;
+
+        if (operationOptions.ConfigLocations.HasAny())
+            WritePropertyLines("Configuration Stack", [.. operationOptions.ConfigLocations]);
+    }
+
+    private static void WriteVerboseConfigFileEncountered(string configFile, bool verbose)
+    {
+        if (verbose)
+            WritePropertyLines(configFile, warningColor, "Ignored. File was loaded previously.");
+    }
+
+    private static void WriteVerboseConfigFileNoOptions(string configFile, bool verbose)
+    {
+        if (verbose)
+            WritePropertyLines(configFile, warningColor, "Ignored. No options in file.");
+    }
+
+    private static void WriteVerboseConfigFile(string configFile, string[] args, ParsingResult parsingResult, bool verbose)
+    {
+        if (verbose == false)
+            return;
+
+        if (parsingResult == ParsingResult.Error)
+        {
+            WritePropertyLines(configFile, errorColor, "Failed to parse options from file.");
+            if (args.HasAny())
+                WriteVerboseArgs(configFile, errorColor, args, verbose);
+        }
+        else
+        {
+            WriteVerboseArgs(configFile, args, verbose);
+        }
+    }
+
+    #endregion
 }

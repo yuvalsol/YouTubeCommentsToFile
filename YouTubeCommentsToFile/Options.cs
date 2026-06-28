@@ -7,7 +7,7 @@ namespace YouTubeCommentsToFile;
 #region Interfaces
 
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
-[OptionDescription($"Uses verb '{ConvertOptions.Verb}'. Verb is {(ConvertOptions.IsDefault ? "optional" : "required")} to specify.")]
+[OptionDescription($"Uses verb '{ConvertOptions.verb}'. Verb is {(ConvertOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
 internal interface IConvertOptions
 {
     [Option("json-file", HelpText = "Path to comments JSON file.")]
@@ -28,7 +28,7 @@ internal interface IConvertOptions
 }
 
 [OptionDescription("Downloads comments to text file or HTML file.")]
-[OptionDescription($"Uses verb '{DownloadOptions.Verb}'. Verb is {(DownloadOptions.IsDefault ? "optional" : "required")} to specify.")]
+[OptionDescription($"Uses verb '{DownloadOptions.verb}'. Verb is {(DownloadOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
 internal interface IDownloadOptions
 {
     [Option("url", HelpText = "Video URL to download its comments.")]
@@ -376,25 +376,70 @@ internal interface IHTMLColorsOptions
 
 internal interface IConfigurationOptions
 {
-    [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files with file extension '.conf'. Can be used multiple times and inside other configuration files.")]
+    [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files. Can be used multiple times and inside other configuration files.")]
     [OptionPrecedence(81, 1)]
     IEnumerable<string> ConfigLocations { get; set; }
+
+    [Option("ignore-config", HelpText = "Don't load the config location and continue loading the rest of the configuration stack. In the command line, all config locations, specified with '--config-locations', are not loaded. In a configuration file, the file is not loaded.")]
+    bool IgnoreConfig { get; set; }
+
+    [Option("stop-config", HelpText = "Don't load the config location and stop loading the rest of the configuration stack. In the command line, don't load the whole configuration stack, including all config locations, specified with '--config-locations'. In a configuration file, don't load the file and stop loading the rest of the configuration stack.")]
+    bool StopConfig { get; set; }
 }
 
 #endregion
 
 #region Options
 
-[Verb(Verb, IsDefault)]
-internal class ConvertOptions : SharedOptions, IConvertOptions
+internal interface IOperationOptions : IConfigurationOptions
 {
-    public const string Verb = "convert";
-    public const bool IsDefault = true;
+    string Verb { get; }
+    bool IsDefaultVerb { get; }
+    string GetHomeConfigurationDirectory(Func<string, string> FixPath);
+    void FixPaths(Func<string, string> FixPath);
+    string NameOf();
+    Settings ToSettings();
+    string ToString();
+    string ToString(Parser parser);
+    string[] ToArgs(Parser parser = null);
+}
+
+internal interface IOperationOptions<TOptions> : IOperationOptions
+    where TOptions : SharedOptions, IOperationOptions
+{
+    void MergeOptions(TOptions options);
+}
+
+[Verb(verb, isDefaultVerb)]
+internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOptions<ConvertOptions>
+{
+    public const string verb = "convert";
+    public const bool isDefaultVerb = true;
+
+    public string Verb => verb;
+    public bool IsDefaultVerb => isDefaultVerb;
 
     public string JsonFile { get; set; }
     public string URL { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
+
+    public string GetHomeConfigurationDirectory(Func<string, string> FixPath)
+    {
+        return Path.GetDirectoryName(FixPath(JsonFile));
+    }
+
+    public void FixPaths(Func<string, string> FixPath)
+    {
+        JsonFile = FixPath(JsonFile);
+        YtDlp = FixPath(YtDlp);
+        Deno = FixPath(Deno);
+    }
+
+    public string NameOf()
+    {
+        return nameof(ConvertOptions);
+    }
 
     public override Settings ToSettings()
     {
@@ -420,11 +465,14 @@ internal class ConvertOptions : SharedOptions, IConvertOptions
     }
 }
 
-[Verb(Verb, IsDefault)]
-internal class DownloadOptions : SharedOptions, IDownloadOptions
+[Verb(verb, isDefaultVerb)]
+internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOptions<DownloadOptions>
 {
-    public const string Verb = "download";
-    public const bool IsDefault = false;
+    public const string verb = "download";
+    public const bool isDefaultVerb = false;
+
+    public string Verb => verb;
+    public bool IsDefaultVerb => isDefaultVerb;
 
     public string URL { get; set; }
     public string YtDlp { get; set; }
@@ -443,6 +491,23 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions
     public bool UpdateYtDlp { get; set; }
     public bool WindowsFilenames { get; set; }
     public string YtDlpOptions { get; set; }
+
+    public string GetHomeConfigurationDirectory(Func<string, string> FixPath)
+    {
+        return Path.TrimEndingDirectorySeparator(FixPath(DownloadPath));
+    }
+
+    public void FixPaths(Func<string, string> FixPath)
+    {
+        DownloadPath = FixPath(DownloadPath);
+        YtDlp = FixPath(YtDlp);
+        Deno = FixPath(Deno);
+    }
+
+    public string NameOf()
+    {
+        return nameof(DownloadOptions);
+    }
 
     public override Settings ToSettings()
     {
@@ -594,6 +659,8 @@ internal abstract class SharedOptions :
 
     // Configuration
     public IEnumerable<string> ConfigLocations { get; set; }
+    public bool IgnoreConfig { get; set; }
+    public bool StopConfig { get; set; }
 
     public virtual Settings ToSettings()
     {
@@ -1001,6 +1068,8 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
 internal class ConfigurationHelpOptions : IConfigurationOptions
 {
     public IEnumerable<string> ConfigLocations { get; set; }
+    public bool IgnoreConfig { get; set; }
+    public bool StopConfig { get; set; }
 }
 
 #endregion

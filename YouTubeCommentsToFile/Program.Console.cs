@@ -4,14 +4,17 @@ namespace YouTubeCommentsToFile;
 
 internal static partial class Program
 {
+    private static readonly Color errorColor = Color.FromArgb(231, 72, 86);
+    private static readonly Color warningColor = Color.FromArgb(248, 241, 174);
+
     private static void WriteErrorLine(string line = null)
     {
-        WriteLine(line, Color.Red);
+        WriteLine(line, errorColor);
     }
 
     private static void WriteWarningLine(string line = null)
     {
-        WriteLine(line, Color.Yellow);
+        WriteLine(line, warningColor);
     }
 
     private static void Write(string line, Color color)

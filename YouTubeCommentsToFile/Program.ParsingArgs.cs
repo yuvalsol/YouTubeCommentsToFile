@@ -5,62 +5,49 @@ namespace YouTubeCommentsToFile;
 
 internal static partial class Program
 {
+    #region Run
+
     private static int Run(string[] args, bool verbose = false)
     {
         int returnCode = 0;
 
         try
         {
-            if (verbose)
-                WritePropertyLines("Command Line", RearrangeArgs(args));
+            WriteVerboseCommandLine(args, verbose);
 
             var parser = GetParser();
 
-            var parsingResult = ParseArgs(parser, args, out ConvertOptions convertOptions, out DownloadOptions downloadOptions);
+            var (operationOptions, parsingResult) = ParseArgs(parser, args);
             if (parsingResult == ParsingResult.Error)
                 returnCode = -1;
             if (parsingResult != ParsingResult.Success)
                 return returnCode;
 
-            Settings settings = null;
-
-            if (convertOptions != null)
+            if (operationOptions.StopConfig)
             {
-                string homeConfigurationDirectory = null;
-                if (string.IsNullOrWhiteSpace(convertOptions.JsonFile) == false)
-                    homeConfigurationDirectory = Path.GetDirectoryName(convertOptions.JsonFile);
-
-                AddConfigurationStackToConfigLocations(convertOptions, homeConfigurationDirectory);
-
-                parsingResult = MergeConfigLocations(convertOptions, parser, verbose);
-                if (parsingResult == ParsingResult.Success)
-                {
-                    settings = convertOptions.ToSettings();
-                    if (verbose)
-                        WritePropertyLines(nameof(convertOptions).PrettifyName(), RearrangeArgs(convertOptions.ToArgs(parser)));
-                }
+                operationOptions.ConfigLocations = null;
             }
-            else if (downloadOptions != null)
+            else
             {
-                string homeConfigurationDirectory = null;
-                if (string.IsNullOrWhiteSpace(downloadOptions.DownloadPath) == false)
-                    homeConfigurationDirectory = Path.TrimEndingDirectorySeparator(downloadOptions.DownloadPath);
+                string homeConfigurationDirectory = operationOptions.GetHomeConfigurationDirectory(FixPath);
+                if (string.IsNullOrWhiteSpace(homeConfigurationDirectory))
+                    homeConfigurationDirectory = null;
+                else
+                    WriteVerboseHomeConfigurationDirectory(homeConfigurationDirectory, verbose);
 
-                AddConfigurationStackToConfigLocations(downloadOptions, homeConfigurationDirectory);
+                AddConfigurationStackToConfigLocations(operationOptions, homeConfigurationDirectory, verbose);
 
-                parsingResult = MergeConfigLocations(downloadOptions, parser, verbose);
-                if (parsingResult == ParsingResult.Success)
-                {
-                    settings = downloadOptions.ToSettings();
-                    if (verbose)
-                        WritePropertyLines(nameof(downloadOptions).PrettifyName(), RearrangeArgs(downloadOptions.ToArgs(parser)));
-                }
+                parsingResult = MergeConfigLocations(operationOptions, parser, verbose);
+                if (parsingResult == ParsingResult.Error)
+                    returnCode = -1;
             }
 
             if (parsingResult == ParsingResult.Success)
-                new CommentsHandler(settings).WriteCommentsToFile();
-            else if (parsingResult == ParsingResult.Error)
-                returnCode = -1;
+            {
+                operationOptions.FixPaths(FixPath);
+                WriteVerboseOptions(operationOptions.NameOf(), operationOptions.ToArgs(parser), verbose);
+                new CommentsHandler(operationOptions.ToSettings()).WriteCommentsToFile();
+            }
         }
         catch (ArgumentException ex)
         {
@@ -83,53 +70,77 @@ internal static partial class Program
         return returnCode;
     }
 
+    #endregion
+
+    #region Parser
+
     private static Parser GetParser()
     {
         return new Parser(with =>
         {
+            with.AllowMultiInstance = true;
             with.IgnoreUnknownArguments = true;
             with.HelpWriter = null;
         });
     }
 
-    private static ParsingResult ParseArgs(Parser parser, string[] args, out ConvertOptions convertOptions)
-    {
-        return ParseArgs(parser, args, out convertOptions, out _);
-    }
+    #endregion
 
-    private static ParsingResult ParseArgs(Parser parser, string[] args, out DownloadOptions downloadOptions)
-    {
-        return ParseArgs(parser, args, out _, out downloadOptions);
-    }
+    #region Parse Args
 
-    private static ParsingResult ParseArgs(Parser parser, string[] args, out ConvertOptions convertOptions, out DownloadOptions downloadOptions)
+    private static (IOperationOptions operationOptions, ParsingResult parsingResult) ParseArgs(Parser parser, string[] args)
     {
+        IOperationOptions operationOptions = null;
         ParsingResult parsingResult = ParsingResult.ArgumentsNotParsed;
-
-        ConvertOptions tempConvertOptions = null;
-        DownloadOptions tempDownloadOptions = null;
 
         AddQuotationsToYtDlpOptions(args);
 
         parser.ParseArguments<ConvertOptions, DownloadOptions>(args)
             .WithParsed<ConvertOptions>(options =>
             {
-                tempConvertOptions = options;
+                operationOptions = options;
                 parsingResult = ParsingResult.Success;
             })
             .WithParsed<DownloadOptions>(options =>
             {
                 RemoveQuotationsFromYtDlpOptions(options);
-                tempDownloadOptions = options;
+                operationOptions = options;
                 parsingResult = ParsingResult.Success;
             })
             .WithNotParsed(errors => parsingResult = NotParsed(args, errors));
 
-        convertOptions = tempConvertOptions;
-        downloadOptions = tempDownloadOptions;
-
-        return parsingResult;
+        return (operationOptions, parsingResult);
     }
+
+    private static void AddQuotationsToYtDlpOptions(string[] args)
+    {
+        string ytDlpOptions = $"--{OptionsHelper.GetOptionLongName(nameof(IDownloadOptions.YtDlpOptions))}";
+
+        var argYtDlpOptions = args.Select((arg, index) => (arg, index)).FirstOrDefault(x => string.Compare(x.arg, ytDlpOptions, StringComparison.OrdinalIgnoreCase) == 0);
+        if (argYtDlpOptions == default)
+            return;
+
+        int index = argYtDlpOptions.index + 1;
+        if (index >= args.Length)
+            return;
+
+        string value = args[index];
+        if ((value.StartsWith('"') && value.EndsWith('"')) == false)
+            args[index] = $@"""{value}""";
+    }
+
+    private static void RemoveQuotationsFromYtDlpOptions(DownloadOptions options)
+    {
+        if (string.IsNullOrEmpty(options.YtDlpOptions))
+            return;
+
+        if (options.YtDlpOptions.StartsWith('"') && options.YtDlpOptions.EndsWith('"'))
+            options.YtDlpOptions = options.YtDlpOptions[1..^1];
+    }
+
+    #endregion
+
+    #region Not Parsed
 
     private static ParsingResult NotParsed(string[] args, IEnumerable<Error> errors)
     {
@@ -155,7 +166,11 @@ internal static partial class Program
     private static void WriteVersion()
     {
         Console.WriteLine(GetVersion());
-        Console.WriteLine();
+    }
+
+    private static string GetVersion()
+    {
+        return $"{nameof(YouTubeCommentsToFile)}, Version {Assembly.GetExecutingAssembly().GetName().Version.ToString(2)}";
     }
 
     private static void WriteHelp()
@@ -166,11 +181,7 @@ internal static partial class Program
     private static void WriteParsingErrors(string[] args, IEnumerable<Error> errors)
     {
         WriteErrorLine(GetVersion());
-        WriteErrorLine();
-
         WriteErrorLine($"{nameof(YouTubeCommentsToFile)} {string.Join(' ', args.Select(arg => arg.Contains(' ') ? $@"""{arg}""" : arg))}");
-        WriteErrorLine();
-
         WriteErrorLine($"{nameof(YouTubeCommentsToFile)} Errors:");
         foreach (Error error in errors)
         {
@@ -186,49 +197,9 @@ internal static partial class Program
         WriteErrorLine();
     }
 
-    private static string GetVersion()
-    {
-        return $"{nameof(YouTubeCommentsToFile)}, Version {Assembly.GetExecutingAssembly().GetName().Version.ToString(2)}";
-    }
+    #endregion
 
-    [GeneratedRegex(@"^(?:-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)$")]
-    private static partial Regex RegexIsOption();
-
-    private static string[] RearrangeArgs(string[] args)
-    {
-        var items = args.Select((arg, i) => (arg, i, isOption: RegexIsOption().IsMatch(arg))).ToArray();
-
-        var indexes =
-            items.Where(item => item.isOption).Join(
-                items.Where(item => item.isOption == false),
-                option => option.i,
-                value => value.i - 1,
-                (option, value) => option.i
-            )
-            .ToArray();
-
-        return [.. items.Select(x =>
-        {
-            if (indexes.Contains(x.i))
-            {
-                string value = args[x.i + 1];
-                if (value.Contains('"'))
-                    value = value.Replace("\"", "\\\"");
-                if (value.Contains(' '))
-                    value = $@"""{value}""";
-                return $"{x.arg} {value}";
-            }
-            else if (indexes.Contains(x.i - 1))
-            {
-                return null;
-            }
-            else
-            {
-                return x.arg;
-            }
-        })
-        .Where(arg => arg != null)];
-    }
+    #region Parsing Result
 
     private enum ParsingResult
     {
@@ -238,4 +209,96 @@ internal static partial class Program
         ArgumentsNotParsed = 3,
         Error = -1
     }
+
+    #endregion
+
+    #region Write Verbose Args
+
+    private static void WriteVerboseCommandLine(string[] args, bool verbose)
+    {
+        WriteVerboseArgs("Command Line", args, verbose);
+    }
+
+    private static void WriteVerboseOptions(string optionsName, string[] args, bool verbose)
+    {
+        WriteVerboseArgs(optionsName.PrettifyName(), args, verbose);
+    }
+
+    private static void WriteVerboseArgs(string property, string[] args, bool verbose)
+    {
+        WriteVerboseArgs(property, CommentsWriter.ValuesDefaultColor, args, verbose);
+    }
+
+    private static void WriteVerboseArgs(string property, Color valuesColor, string[] args, bool verbose)
+    {
+        if (verbose == false)
+            return;
+
+        args = RearrangeArgs(args);
+
+        string ignoreConfig = $"--{OptionsHelper.GetOptionLongName(nameof(IConfigurationOptions.IgnoreConfig))}";
+        var ignoreConfigIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == ignoreConfig).Select(x => x.i);
+
+        string stopConfig = $"--{OptionsHelper.GetOptionLongName(nameof(IConfigurationOptions.StopConfig))}";
+        var stopConfigIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == stopConfig).Select(x => x.i);
+
+        if (ignoreConfigIndexes.IsNullOrEmpty() && stopConfigIndexes.IsNullOrEmpty())
+        {
+            WritePropertyLines(property, args);
+            return;
+        }
+
+        var messages = GetValueMessages(valuesColor, args);
+
+        ColorArgs(ignoreConfigIndexes, Color.Yellow);
+        ColorArgs(stopConfigIndexes, Color.Red);
+
+        void ColorArgs(IEnumerable<int> indexes, Color color)
+        {
+            foreach (var index in indexes)
+            {
+                messages =
+                    messages.Take(index)
+                    .Append((messages.ElementAt(index).message, color))
+                    .Concat(messages.Skip(index + 1));
+            }
+        }
+
+        messages = messages.Prepend(GetPropertyMessage(property, CommentsWriter.PropertyDefaultColor)).Append(GetVerboseNewLine());
+
+        WriteVerboseLines(messages);
+    }
+
+    /* RegexIsOption:
+     *
+     * short name: -[A-Za-z0-9]
+     * single dash, single char
+     * or
+     * long name: --[A-Za-z0-9][A-Za-z0-9-]*
+     * double dash, first char is not dash
+     */
+    [GeneratedRegex(@"^(?:-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)$")]
+    private static partial Regex RegexIsOption();
+
+    private static string[] RearrangeArgs(string[] args)
+    {
+        int counter = 0;
+
+        return [.. args
+            .Select((arg, i) => (arg, n: RegexIsOption().IsMatch(arg) ? ++counter : counter))
+            .GroupBy(x => x.n)
+            .Select(g =>
+                (arg: string.Join(' ', g.Skip(1).Select(x =>
+                {
+                     if (x.arg.Contains(' '))
+                         return $@"""{x.arg}""";
+                     return x.arg;
+                })
+                .Prepend(g.First().arg)), n: g.Key)
+            )
+            .OrderBy(x => x.n)
+            .Select(x => x.arg)];
+    }
+
+    #endregion
 }
