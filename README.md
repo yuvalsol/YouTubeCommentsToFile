@@ -369,6 +369,10 @@ YouTubeCommentsToFile ([convert]|download)
     [--copy-text-failure-color <color>]
 
     [--config-locations <path>] [--ignore-config] [--stop-config]
+
+    [-v] [--verbose] [-q] [--quiet]
+
+    [--beep] [-h] [--help] [--version]
 ```
 
 ### Shared Options
@@ -990,6 +994,24 @@ Configuration file `download.conf`:
 
 # Update yt-dlp when using it.
 --update-yt-dlp
+```
+
+### Verbosity
+
+These options determine what and how much is printed to console.
+
+```console
+-v, --verbose    Print debugging information.
+-q, --quiet      Don't print anything.
+                 If used with '--verbose', print to standard error (stderr).
+```
+
+### General
+
+```console
+--beep        Make a beep sound when finished. If used with '--quiet', make no sound.
+-h, --help    Display help screen.
+--version     Display version information.
 ```
 
 ## Acknowledgments

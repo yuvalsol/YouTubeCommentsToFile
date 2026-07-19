@@ -387,11 +387,35 @@ internal interface IConfigurationOptions
     bool StopConfig { get; set; }
 }
 
+internal interface IVerbosityOptions
+{
+    [Option('v', "verbose", HelpText = "Print debugging information.")]
+    [OptionPrecedence(91, 1)]
+    bool Verbose { get; set; }
+
+    [Option('q', "quiet", HelpText = "Don't print anything. If used with '--verbose', print to standard error (stderr).")]
+    [OptionPrecedence(91, 2)]
+    bool Quiet { get; set; }
+}
+
+internal interface IGeneralOptions
+{
+    [Option("beep", HelpText = "Make a beep sound when finished. If used with '--quiet', make no sound.")]
+    [OptionPrecedence(101, 1)]
+    bool Beep { get; set; }
+
+    [Option('h', "help", HelpText = "Display help screen.")]
+    bool Help { get; set; }
+
+    [Option("version", HelpText = "Display version information.")]
+    bool Version { get; set; }
+}
+
 #endregion
 
 #region Options
 
-internal interface IOperationOptions : IConfigurationOptions
+internal interface IOperationOptions : IConfigurationOptions, IVerbosityOptions, IGeneralOptions
 {
     string Verb { get; }
     bool IsDefaultVerb { get; }
@@ -401,7 +425,7 @@ internal interface IOperationOptions : IConfigurationOptions
     Settings ToSettings();
     string ToString();
     string ToString(Parser parser);
-    string[] ToArgs(Parser parser = null);
+    string[] ToArgs(Parser parser);
 }
 
 internal interface IOperationOptions<TOptions> : IOperationOptions
@@ -566,7 +590,9 @@ internal abstract class SharedOptions :
     ITextsOptions,
     IEncodingOptions,
     IHTMLColorsOptions,
-    IConfigurationOptions
+    IConfigurationOptions,
+    IVerbosityOptions,
+    IGeneralOptions
 {
     // Shared
     public bool ToHTML { get; set; }
@@ -661,6 +687,15 @@ internal abstract class SharedOptions :
     public IEnumerable<string> ConfigLocations { get; set; }
     public bool IgnoreConfig { get; set; }
     public bool StopConfig { get; set; }
+
+    // Verbosity
+    public bool Verbose { get; set; }
+    public bool Quiet { get; set; }
+
+    // General
+    public bool Beep { get; set; }
+    public bool Help { get; set; }
+    public bool Version { get; set; }
 
     public virtual Settings ToSettings()
     {
@@ -913,6 +948,15 @@ internal abstract class SharedOptions :
         if (string.IsNullOrEmpty(LinkColor)) LinkColor = options.LinkColor;
         if (string.IsNullOrEmpty(CopyTextSuccessColor)) CopyTextSuccessColor = options.CopyTextSuccessColor;
         if (string.IsNullOrEmpty(CopyTextFailureColor)) CopyTextFailureColor = options.CopyTextFailureColor;
+
+        // Verbosity
+        Verbose |= options.Verbose;
+        Quiet |= options.Quiet;
+
+        // General
+        Beep |= options.Beep;
+        Help |= options.Help;
+        Version |= options.Version;
     }
 
     public override string ToString()
@@ -925,9 +969,9 @@ internal abstract class SharedOptions :
         return (parser ?? Parser.Default).FormatCommandLine(this);
     }
 
-    public virtual string[] ToArgs(Parser parser = null)
+    public virtual string[] ToArgs(Parser parser)
     {
-        return (parser ?? Parser.Default).FormatCommandLineArgs(this);
+        return parser.FormatCommandLineArgs(this);
     }
 }
 
@@ -1070,6 +1114,19 @@ internal class ConfigurationHelpOptions : IConfigurationOptions
     public IEnumerable<string> ConfigLocations { get; set; }
     public bool IgnoreConfig { get; set; }
     public bool StopConfig { get; set; }
+}
+
+internal class VerbosityHelpOptions : IVerbosityOptions
+{
+    public bool Verbose { get; set; }
+    public bool Quiet { get; set; }
+}
+
+internal class GeneralHelpOptions : IGeneralOptions
+{
+    public bool Beep { get; set; }
+    public bool Help { get; set; }
+    public bool Version { get; set; }
 }
 
 #endregion

@@ -6,14 +6,8 @@ internal static partial class Program
 {
     #region Configuration Stack
 
-    private static void AddConfigurationStackToConfigLocations(IOperationOptions operationOptions, string homeConfigurationDirectory, bool verbose)
+    private static void AddConfigurationStackToConfigLocations(IOperationOptions operationOptions, string homeConfigurationDirectory, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (operationOptions.StopConfig)
-        {
-            operationOptions.ConfigLocations = null;
-            return;
-        }
-
         if (operationOptions.ConfigLocations.IsNullOrEmpty() || operationOptions.IgnoreConfig)
             operationOptions.ConfigLocations = GetConfigurationStack(homeConfigurationDirectory, operationOptions.Verb);
         else
@@ -23,7 +17,7 @@ internal static partial class Program
 
         DistinctConfigLocations(operationOptions);
 
-        WriteVerboseConfigurationStack(operationOptions, verbose);
+        WriteVerboseConfigurationStack(operationOptions.ConfigLocations, verboseMessages);
     }
 
     private static IEnumerable<string> GetConfigurationStack(string homeConfigurationDirectory, string verb)
@@ -256,9 +250,9 @@ internal static partial class Program
 
     #region Merge Config Locations
 
-    private static ParsingResult MergeConfigLocations(IOperationOptions operationOptions, Parser parser, bool verbose)
+    private static ParsingResult MergeConfigLocations(IOperationOptions operationOptions, Parser parser, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (FixConfigLocations(operationOptions))
+        if (FixConfigLocations(operationOptions) == false)
             return ParsingResult.Success;
 
         HashSet<string> encounteredConfigFiles = [];
@@ -268,11 +262,11 @@ internal static partial class Program
             var (configFile, isConfigFileEncountered) = GetFirstConfigFile(operationOptions, encounteredConfigFiles);
             if (isConfigFileEncountered)
             {
-                WriteVerboseConfigFileEncountered(configFile, verbose);
+                WriteVerboseConfigFileEncountered(configFile, verboseMessages);
                 continue;
             }
 
-            var (options, parsingResult) = GetOptionsFromConfigFile(configFile, parser, operationOptions.Verb, verbose);
+            var (options, parsingResult) = GetOptionsFromConfigFile(configFile, parser, operationOptions.Verb, verboseMessages);
 
             if (parsingResult == ParsingResult.Success)
             {
@@ -287,10 +281,18 @@ internal static partial class Program
                     else if (operationOptions is IOperationOptions<DownloadOptions> downloadOperationOptions && options is DownloadOptions downloadOptions)
                         downloadOperationOptions.MergeOptions(downloadOptions);
                     else
-                        throw new Exception($"Merging options failed. Config file '{configFile}'. Parameters '{nameof(operationOptions)}' (main options) and '{nameof(options)}' (config file options) are not the same type.");
+                        throw new Exception($"Merging options failed. Command line options and config file options are not the same type. Config file '{configFile}'.");
 
                     ConcatConfigLocations(operationOptions, options, configFile);
                 }
+            }
+            else if (parsingResult == ParsingResult.Version)
+            {
+                operationOptions.Version = true;
+            }
+            else if (parsingResult == ParsingResult.Help)
+            {
+                operationOptions.Help = true;
             }
             else if (parsingResult == ParsingResult.Error)
             {
@@ -304,10 +306,10 @@ internal static partial class Program
     private static bool FixConfigLocations(IOperationOptions operationOptions)
     {
         if (operationOptions.ConfigLocations.IsNullOrEmpty())
-            return true;
+            return false;
 
         FixConfigLocations(operationOptions, AppContext.BaseDirectory);
-        return false;
+        return true;
     }
 
     private static void FixConfigLocations(IOperationOptions operationOptions, string baseDirectory)
@@ -352,18 +354,18 @@ internal static partial class Program
         return (configFile, false);
     }
 
-    private static (IOperationOptions operationOptions, ParsingResult parsingResult) GetOptionsFromConfigFile(string configFile, Parser parser, string verb, bool verbose)
+    private static (IOperationOptions operationOptions, ParsingResult parsingResult) GetOptionsFromConfigFile(string configFile, Parser parser, string verb, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
         string[] args = [.. GetArgsFromConfigFile(configFile)];
 
         if (args.IsNullOrEmpty())
         {
-            WriteVerboseConfigFileNoOptions(configFile, verbose);
+            WriteVerboseConfigFileNoOptions(configFile, verboseMessages);
             return (null, ParsingResult.ArgumentsNotParsed);
         }
 
-        var results = ParseArgs(parser, [.. args.Prepend(verb)]);
-        WriteVerboseConfigFile(configFile, args, results.parsingResult, verbose);
+        var results = ParseArgs(parser, [.. args.Prepend(verb)], verboseMessages);
+        WriteVerboseConfigFile(configFile, args, results.parsingResult, verboseMessages);
         return results;
     }
 
@@ -445,51 +447,34 @@ internal static partial class Program
 
     #region Write Verbose Configuration
 
-    private static void WriteVerboseHomeConfigurationDirectory(string homeConfigurationDirectory, bool verbose)
+    private static void WriteVerboseHomeConfigurationDirectory(string homeConfigurationDirectory, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (verbose == false)
-            return;
-
         if (string.IsNullOrEmpty(homeConfigurationDirectory) == false)
-            WritePropertyLines(nameof(homeConfigurationDirectory).PrettifyName(), homeConfigurationDirectory);
+            verboseMessages.Add([.. GetPropertyMessages(nameof(homeConfigurationDirectory).PrettifyName(), [homeConfigurationDirectory])]);
     }
 
-    private static void WriteVerboseConfigurationStack(IOperationOptions operationOptions, bool verbose)
+    private static void WriteVerboseConfigurationStack(IEnumerable<string> configLocations, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (verbose == false)
-            return;
-
-        if (operationOptions.ConfigLocations.HasAny())
-            WritePropertyLines("Configuration Stack", [.. operationOptions.ConfigLocations]);
+        if (configLocations.HasAny())
+            verboseMessages.Add([.. GetPropertyMessages("Configuration Stack", [.. configLocations])]);
     }
 
-    private static void WriteVerboseConfigFileEncountered(string configFile, bool verbose)
+    private static void WriteVerboseConfigFileEncountered(string configFile, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (verbose)
-            WritePropertyLines(configFile, warningColor, "Ignored. File was loaded previously.");
+        verboseMessages.Add([.. GetPropertyMessages(configFile, ["Ignored. File was loaded previously."], WARNING_COLOR)]);
     }
 
-    private static void WriteVerboseConfigFileNoOptions(string configFile, bool verbose)
+    private static void WriteVerboseConfigFileNoOptions(string configFile, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (verbose)
-            WritePropertyLines(configFile, warningColor, "Ignored. No options in file.");
+        verboseMessages.Add([.. GetPropertyMessages(configFile, ["Ignored. No options in file."], WARNING_COLOR)]);
     }
 
-    private static void WriteVerboseConfigFile(string configFile, string[] args, ParsingResult parsingResult, bool verbose)
+    private static void WriteVerboseConfigFile(string configFile, string[] args, ParsingResult parsingResult, List<(string message, ConsoleColor color)[]> verboseMessages)
     {
-        if (verbose == false)
-            return;
-
         if (parsingResult == ParsingResult.Error)
-        {
-            WritePropertyLines(configFile, errorColor, "Failed to parse options from file.");
-            if (args.HasAny())
-                WriteVerboseArgs(configFile, errorColor, args, verbose);
-        }
+            WriteVerboseArgs(configFile, ["Failed to parse options from file.", .. args], ERROR_COLOR, verboseMessages);
         else
-        {
-            WriteVerboseArgs(configFile, args, verbose);
-        }
+            WriteVerboseArgs(configFile, args, verboseMessages);
     }
 
     #endregion

@@ -16,6 +16,8 @@ internal static class OptionsHelper
             .Concat(GetOptionsPrecedence<IEncodingOptions>())
             .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
             .Concat(GetOptionsPrecedence<IConfigurationOptions>())
+            .Concat(GetOptionsPrecedence<IVerbosityOptions>())
+            .Concat(GetOptionsPrecedence<IGeneralOptions>())
             .Distinct()
             .OrderBy(x => x.Group)
             .ThenBy(x => x.Ordinal)
@@ -35,28 +37,46 @@ internal static class OptionsHelper
             .Select(x => (x.optionAttr.LongName, x.optionPrecedenceAttr.Group, x.optionPrecedenceAttr.Ordinal));
     }
 
-    public static string GetOptionLongName(string settingName)
+    public static string GetOptionShortName(string optionName)
     {
-        return
-            GetLongNames<IConvertOptions>()
-            .Concat(GetLongNames<IDownloadOptions>())
-            .Concat(GetLongNames<ISharedOptions>())
-            .Concat(GetLongNames<IUploaderOptions>())
-            .Concat(GetLongNames<IAuthorsOptions>())
-            .Concat(GetLongNames<ITextsOptions>())
-            .Concat(GetLongNames<IEncodingOptions>())
-            .Concat(GetLongNames<IHTMLColorsOptions>())
-            .Concat(GetLongNames<IConfigurationOptions>())
-            .FirstOrDefault(x => x.Name == settingName).LongName;
+        string shortName = GetOptionNames().FirstOrDefault(x => x.OptionName == optionName).ShortName;
+        if (string.IsNullOrEmpty(shortName))
+            return null;
+        return $"-{shortName}";
     }
 
-    private static IEnumerable<(string Name, string LongName)> GetLongNames<IOptions>()
+    public static string GetOptionLongName(string optionName)
+    {
+        string longName = GetOptionNames().FirstOrDefault(x => x.OptionName == optionName).LongName;
+        if (string.IsNullOrEmpty(longName))
+            return null;
+        return $"--{longName}";
+    }
+
+    public static IEnumerable<(string OptionName, string ShortName, string LongName)> GetOptionNames()
+    {
+        return
+            GetOptionNames<IConvertOptions>()
+            .Concat(GetOptionNames<IDownloadOptions>())
+            .Concat(GetOptionNames<ISharedOptions>())
+            .Concat(GetOptionNames<IUploaderOptions>())
+            .Concat(GetOptionNames<IAuthorsOptions>())
+            .Concat(GetOptionNames<ITextsOptions>())
+            .Concat(GetOptionNames<IEncodingOptions>())
+            .Concat(GetOptionNames<IHTMLColorsOptions>())
+            .Concat(GetOptionNames<IConfigurationOptions>())
+            .Concat(GetOptionNames<IVerbosityOptions>())
+            .Concat(GetOptionNames<IGeneralOptions>());
+    }
+
+    private static IEnumerable<(string OptionName, string ShortName, string LongName)> GetOptionNames<IOptions>()
     {
         return typeof(IOptions)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
             .Select(property =>
             (
-                property.Name,
+                OptionName: property.Name,
+                property.GetCustomAttribute<OptionAttribute>().ShortName,
                 property.GetCustomAttribute<OptionAttribute>().LongName
             ));
     }

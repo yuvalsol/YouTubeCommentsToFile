@@ -29,7 +29,7 @@ public partial class CommentsWriter(Settings settings)
 
     #region Events
 
-    public EventHandler Start;
+    public EventHandler<StartEventArgs> Start;
     public EventHandler<StartDownloadCommentsEventArgs> StartDownloadComments;
     public EventHandler<DownloadCommentsProgressEventArgs> DownloadCommentsProgressAsync;
     public EventHandler<FinishDownloadCommentsEventArgs> FinishDownloadComments;
@@ -45,19 +45,6 @@ public partial class CommentsWriter(Settings settings)
     public EventHandler<StartDeleteJsonFileEventArgs> StartDeleteJsonFile;
     public EventHandler<FinishDeleteJsonFileEventArgs> FinishDeleteJsonFile;
     public EventHandler<FinishEventArgs> Finish;
-    public EventHandler<VerboseEventArgs> Verbose;
-
-    #endregion
-
-    #region Verbose
-
-    public static readonly Color PropertyDefaultColor = Color.Cyan;
-    public static readonly Color ValuesDefaultColor = Color.FromArgb(192, 192, 192);
-
-    private void WriteVerbose(IEnumerable<(string message, Color color)> messages, bool writeMessagesInLines = false)
-    {
-        Verbose?.Raise(this, () => new VerboseEventArgs(messages, writeMessagesInLines));
-    }
 
     #endregion
 
@@ -293,7 +280,7 @@ public partial class CommentsWriter(Settings settings)
                 throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Maximum line length is {TEXT_LINE_MAX_LENGTH} characters.");
         }
 
-        Start?.Raise(this, () => EventArgs.Empty);
+        Start?.Raise(this, () => new StartEventArgs(settings.Download, settings.URL, settings.JsonFile));
 
         #region Encoding
 

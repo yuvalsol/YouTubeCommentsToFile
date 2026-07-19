@@ -1,5 +1,12 @@
 ﻿namespace YouTubeCommentsToFile.Library;
 
+public sealed class StartEventArgs(bool download, string url, string jsonFile) : EventArgs
+{
+    public bool Download => download;
+    public string URL => url;
+    public string JsonFile => jsonFile;
+}
+
 public sealed class StartDownloadCommentsEventArgs(string url, string ytDlpCommandLine) : EventArgs
 {
     public string URL => url;
@@ -96,10 +103,4 @@ public sealed class FinishEventArgs(TimeSpan processTime, Exception error = null
 {
     public TimeSpan ProcessTime => processTime;
     public Exception Error => error;
-}
-
-public sealed class VerboseEventArgs(IEnumerable<(string message, Color color)> messages, bool writeMessagesInLines = false) : EventArgs
-{
-    public IEnumerable<(string message, Color color)> Messages => messages;
-    public bool WriteMessagesInLines => writeMessagesInLines;
 }

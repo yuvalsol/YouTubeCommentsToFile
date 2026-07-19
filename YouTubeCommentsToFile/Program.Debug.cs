@@ -7,10 +7,8 @@ internal static partial class Program
 {
     private static int Debug()
     {
-        //return RunDebug([
-        //    ""
-        //    ,""
-        //], verbose: false);
+        return Version();
+        //return Help();
 
         //return RunDebug(new DownloadOptions
         //{
@@ -21,8 +19,9 @@ internal static partial class Program
         //    SortTop = true,
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
-        //    DeleteJsonFile = false
-        //}, verbose: false);
+        //    DeleteJsonFile = false,
+        //    Verbose = true
+        //});
 
         //return RunDebug(new ConvertOptions
         //{
@@ -32,26 +31,32 @@ internal static partial class Program
         //    ToHTML = true,
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
-        //    DeleteJsonFile = false
-        //}, verbose: false);
+        //    DeleteJsonFile = false,
+        //    Verbose = true
+        //});
 
         //return GetVideoInfo("", @"");
-
-        //WriteHelp();
-        return 0;
     }
 
-    private static int RunDebug<T>(T options, bool verbose = false)
-        where T : SharedOptions
+    private static int Version()
     {
-        return RunDebug(options.ToArgs(GetParser()), verbose);
+        return RunDebug(new ConvertOptions() { Version = true });
     }
 
-    private static int RunDebug(string[] args, bool verbose = false)
+    private static int Help()
     {
-        int returnCode = Run(args, verbose);
-        Console.WriteLine();
-        return returnCode;
+        return RunDebug(new ConvertOptions() { Help = true });
+    }
+
+    private static int RunDebug<TOptions>(TOptions options)
+        where TOptions : SharedOptions, IOperationOptions
+    {
+        return RunDebug(options.ToArgs(GetParser()));
+    }
+
+    private static int RunDebug(string[] args)
+    {
+        return Run(args);
     }
 
     private static int GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
@@ -59,7 +64,7 @@ internal static partial class Program
         var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
         if (videoInfo != null)
         {
-            Console.WriteLine(videoInfo);
+            WriteLine(videoInfo.ToString());
             return 0;
         }
         else

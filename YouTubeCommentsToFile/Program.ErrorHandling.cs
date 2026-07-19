@@ -34,7 +34,7 @@ internal static partial class Program
 
         message = message
             .Remove(startIndex, (endIndex + 2) - startIndex)
-            .Insert(startIndex, $"(Option '--{optionLongName}')");
+            .Insert(startIndex, $"(Option '{optionLongName}')");
 
         return new ArgumentException(message);
     }

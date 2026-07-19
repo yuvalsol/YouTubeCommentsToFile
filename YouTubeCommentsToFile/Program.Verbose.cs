@@ -1,148 +1,98 @@
-﻿using YouTubeCommentsToFile.Library;
-using Console = TrueColorConsole.VTConsole;
-
-namespace YouTubeCommentsToFile;
+﻿namespace YouTubeCommentsToFile;
 
 internal static partial class Program
 {
-    #region Write Verbose
+    #region Message Colors
 
-    private static void WriteVerbose(IEnumerable<(string message, Color color)> messages)
-    {
-        if (messages.IsNullOrEmpty())
-            return;
-
-        int count = 1;
-
-        foreach (var (message, color) in messages.SkipLast(1))
-        {
-            if (count++ > 1)
-                Console.Write(" ");
-            Write(message, color);
-        }
-
-        var last = messages.Last();
-        if (count++ > 1)
-            Console.Write(" ");
-        WriteLine(last.message, last.color);
-    }
-
-    private static void WriteVerboseLines(IEnumerable<(string message, Color color)> messages)
-    {
-        if (messages.IsNullOrEmpty())
-            return;
-
-        foreach (var (message, color) in messages)
-            WriteLine(message, color);
-    }
-
-    private static void WriteVerboseNewLine()
-    {
-        WriteVerboseLines([GetVerboseNewLine()]);
-    }
-
-    private static (string message, Color color) GetVerboseNewLine()
-    {
-        return (null, CommentsWriter.ValuesDefaultColor);
-    }
+    private const ConsoleColor PROPERTY_COLOR = ConsoleColor.Cyan;
+    private static readonly ConsoleColor VALUES_COLOR;
 
     #endregion
 
-    #region Write Property
+    #region Property Messages
 
-    private static void WriteProperty(string property, params object[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, object[] values)
     {
-        WriteVerbose(GetPropertyMessages(property, values));
+        return GetPropertyMessages(property, PROPERTY_COLOR, [.. values.Select(value => value?.ToString())], VALUES_COLOR);
     }
 
-    private static void WriteProperty(string property, params string[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, object[] values, ConsoleColor valuesColor)
     {
-        WriteVerbose(GetPropertyMessages(property, values));
+        return GetPropertyMessages(property, PROPERTY_COLOR, [.. values.Select(value => value?.ToString())], valuesColor);
     }
 
-    private static void WriteProperty(string property, Color valuesColor, params object[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, ConsoleColor propertyColor, object[] values, ConsoleColor valuesColor)
     {
-        WriteVerbose(GetPropertyMessages(property, valuesColor, values));
+        return GetPropertyMessages(property, propertyColor, [.. values.Select(value => value?.ToString())], valuesColor);
     }
 
-    private static void WriteProperty(string property, Color valuesColor, params string[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, string[] values)
     {
-        WriteVerbose(GetPropertyMessages(property, valuesColor, values));
+        return GetPropertyMessages(property, PROPERTY_COLOR, values, VALUES_COLOR);
     }
 
-    #endregion
-
-    #region Write Property Lines
-
-    private static void WritePropertyLines(string property, params object[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, string[] values, ConsoleColor valuesColor)
     {
-        WriteVerboseLines(GetPropertyMessages(property, values));
-        WriteVerboseNewLine();
+        return GetPropertyMessages(property, PROPERTY_COLOR, values, valuesColor);
     }
 
-    private static void WritePropertyLines(string property, params string[] values)
-    {
-        WriteVerboseLines(GetPropertyMessages(property, values));
-        WriteVerboseNewLine();
-    }
-
-    private static void WritePropertyLines(string property, Color valuesColor, params object[] values)
-    {
-        WriteVerboseLines(GetPropertyMessages(property, valuesColor, values));
-        WriteVerboseNewLine();
-    }
-
-    private static void WritePropertyLines(string property, Color valuesColor, params string[] values)
-    {
-        WriteVerboseLines(GetPropertyMessages(property, valuesColor, values));
-        WriteVerboseNewLine();
-    }
-
-    #endregion
-
-    #region Get Property Messages
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, params object[] values)
-    {
-        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, CommentsWriter.ValuesDefaultColor, [.. values.Select(value => value?.ToString())]);
-    }
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color valuesColor, params object[] values)
-    {
-        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, valuesColor, [.. values.Select(value => value?.ToString())]);
-    }
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color propertyColor, Color valuesColor, params object[] values)
-    {
-        return GetPropertyMessages(property, propertyColor, valuesColor, [.. values.Select(value => value?.ToString())]);
-    }
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, params string[] values)
-    {
-        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, CommentsWriter.ValuesDefaultColor, values);
-    }
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color valuesColor, params string[] values)
-    {
-        return GetPropertyMessages(property, CommentsWriter.PropertyDefaultColor, valuesColor, values);
-    }
-
-    private static IEnumerable<(string message, Color color)> GetPropertyMessages(string property, Color propertyColor, Color valuesColor, params string[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetPropertyMessages(string property, ConsoleColor propertyColor, string[] values, ConsoleColor valuesColor)
     {
         if (string.IsNullOrWhiteSpace(property))
-            return GetValueMessages(valuesColor, values);
+            return GetValueMessages(values, valuesColor);
         else
-            return GetValueMessages(valuesColor, values).Prepend(GetPropertyMessage(property, propertyColor));
+            return GetValueMessages(values, valuesColor).Prepend(GetPropertyMessage(property, propertyColor));
     }
 
-    private static (string message, Color color) GetPropertyMessage(string property, Color propertyColor)
+    private static (string message, ConsoleColor color) GetPropertyMessage(string property, ConsoleColor propertyColor)
     {
         return ($"{property}:", propertyColor);
     }
 
-    private static IEnumerable<(string message, Color color)> GetValueMessages(Color valuesColor, params string[] values)
+    private static IEnumerable<(string message, ConsoleColor color)> GetValueMessages(string[] values, ConsoleColor valuesColor)
     {
         return values.Select(message => (message, valuesColor));
+    }
+
+    #endregion
+
+    #region Write Messages
+
+    private static void WriteMessages(IEnumerable<IEnumerable<(string message, ConsoleColor color)>> messagesGroups, IVerbosityOptions verbosityOptions, bool singleLine)
+    {
+        if (singleLine)
+        {
+            foreach (var messages in messagesGroups)
+                WriteMessages(messages, verbosityOptions, singleLine);
+        }
+        else
+        {
+            foreach (var messages in messagesGroups)
+            {
+                WriteMessages(messages, verbosityOptions, singleLine);
+                WriteLine(verbosityOptions);
+            }
+        }
+    }
+
+    private static void WriteMessages(IEnumerable<(string message, ConsoleColor color)> messages, IVerbosityOptions verbosityOptions, bool singleLine)
+    {
+        if (singleLine)
+        {
+            foreach (var (message, color) in messages.SkipLast(1))
+            {
+                Write(message, color, verbosityOptions);
+                Write(" ", verbosityOptions);
+            }
+
+            var last = messages.Last();
+            WriteLine(last.message, last.color, verbosityOptions);
+        }
+        else
+        {
+            foreach (var (message, color) in messages)
+                WriteLine(message, color, verbosityOptions);
+        }
     }
 
     #endregion
