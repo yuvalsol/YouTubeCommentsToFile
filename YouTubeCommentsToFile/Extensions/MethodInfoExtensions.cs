@@ -124,7 +124,7 @@ public static partial class MethodInfoExtensions
 
             if (callable == false)
             {
-                BuildTypeSignature(sigBuilder, param.ParameterType);
+                BuildTypeSignature(sigBuilder, param);
                 sigBuilder.Append(' ');
             }
 
@@ -224,12 +224,28 @@ public static partial class MethodInfoExtensions
         return sigBuilder;
     }
 
-    private static void BuildTypeSignature(StringBuilder sigBuilder, Type type)
+    private static void BuildTypeSignature(StringBuilder sigBuilder, ParameterInfo param)
     {
-        var nullableType = Nullable.GetUnderlyingType(type);
-        if (nullableType != null)
+        BuildTypeSignature(
+            sigBuilder,
+            param.ParameterType,
+            param.GetCustomAttribute<System.Runtime.CompilerServices.TupleElementNamesAttribute>()?.TransformNames.ToList()
+        );
+    }
+
+    private static void BuildTypeSignature(StringBuilder sigBuilder, Type type, List<string> valueTupleNames = null)
+    {
+        if (type.IsPointer)
         {
-            BuildTypeSignature(sigBuilder, nullableType);
+            BuildTypeSignature(sigBuilder, type.GetElementType(), valueTupleNames);
+            sigBuilder.Append('*');
+            return;
+        }
+
+        var underlyingType = Nullable.GetUnderlyingType(type);
+        if (underlyingType != null)
+        {
+            BuildTypeSignature(sigBuilder, underlyingType, valueTupleNames);
             sigBuilder.Append('?');
             return;
         }
@@ -240,25 +256,61 @@ public static partial class MethodInfoExtensions
 
         if (type.IsGenericType)
         {
-            sigBuilder.Append(typeName[..typeName.IndexOf('`')]);
-            sigBuilder.Append('<');
+            typeName = typeName[..typeName.IndexOf('`')];
 
-            bool first = true;
-            foreach (var t in type.GetGenericArguments())
+            if (typeName == "ValueTuple" && valueTupleNames?.Count > 0)
             {
-                if (first == false)
-                    sigBuilder.Append(',');
-                BuildTypeSignature(sigBuilder, t);
-                first = false;
-            }
+                sigBuilder.Append('(');
 
-            sigBuilder.Append('>');
+                var genericArguments = type.GetGenericArguments();
+                var names = valueTupleNames.GetRange(0, genericArguments.Length);
+                valueTupleNames.RemoveRange(0, genericArguments.Length);
+                int index = 0;
+                bool first = true;
+                foreach (var t in genericArguments)
+                {
+                    if (first == false)
+                        sigBuilder.Append(", ");
+
+                    string name = names[index++];
+                    if (name != null)
+                    {
+                        BuildTypeSignature(sigBuilder, t, valueTupleNames);
+                        sigBuilder.Append(' ');
+                        sigBuilder.Append(name);
+                    }
+                    else
+                    {
+                        BuildTypeSignature(sigBuilder, t, valueTupleNames);
+                    }
+
+                    first = false;
+                }
+
+                sigBuilder.Append(')');
+            }
+            else
+            {
+                sigBuilder.Append(typeName);
+                sigBuilder.Append('<');
+
+                bool first = true;
+                foreach (var t in type.GetGenericArguments())
+                {
+                    if (first == false)
+                        sigBuilder.Append(',');
+                    BuildTypeSignature(sigBuilder, t, valueTupleNames);
+                    first = false;
+                }
+
+                sigBuilder.Append('>');
+            }
         }
         else
         {
             if (type.IsArray)
             {
-                BuildTypeSignature(sigBuilder, type.GetElementType());
+                BuildTypeSignature(sigBuilder, type.GetElementType(), valueTupleNames);
                 sigBuilder.Append("[]");
                 return;
             }
@@ -295,7 +347,8 @@ public static partial class MethodInfoExtensions
             isAbstract: method.IsAbstract,
             isVirtual: method.IsVirtual && method.IsAbstract == false && method.GetBaseDefinition().DeclaringType == method.DeclaringType,
             isOverride: method.IsVirtual && method.IsAbstract == false && method.GetBaseDefinition().DeclaringType != method.DeclaringType,
-            returnType: (callable ? null : method.ReturnType),
+            isUnsafe: IsUnsafe(method),
+            returnParameter: (callable ? null : method.ReturnParameter),
             method.Name,
             method.IsGenericMethod,
             genericArguments: (method.IsGenericMethod ? method.GetGenericArguments() : null),
@@ -313,7 +366,8 @@ public static partial class MethodInfoExtensions
             isAbstract: false,
             isVirtual: false,
             isOverride: false,
-            returnType: null,
+            isUnsafe: IsUnsafe(constructor),
+            returnParameter: null,
             name: constructor.DeclaringType.ToString(),
             constructor.IsGenericMethod,
             genericArguments: (constructor.IsGenericMethod ? constructor.GetGenericArguments() : null),
@@ -329,7 +383,8 @@ public static partial class MethodInfoExtensions
         bool isAbstract,
         bool isVirtual,
         bool isOverride,
-        Type returnType,
+        bool isUnsafe,
+        ParameterInfo returnParameter,
         string name,
         bool isGenericMethod,
         Type[] genericArguments,
@@ -355,9 +410,12 @@ public static partial class MethodInfoExtensions
             if (isOverride)
                 sigBuilder.Append("override ");
 
-            if (returnType != null)
+            if (isUnsafe)
+                sigBuilder.Append("unsafe ");
+
+            if (returnParameter != null)
             {
-                BuildTypeSignature(sigBuilder, returnType);
+                BuildTypeSignature(sigBuilder, returnParameter);
                 sigBuilder.Append(' ');
             }
         }
@@ -426,5 +484,22 @@ public static partial class MethodInfoExtensions
         if (method.IsPrivate)
             return "private";
         return string.Empty;
+    }
+
+    public static bool IsUnsafe(MethodInfo method)
+    {
+        return
+            // return type is a pointer
+            method.ReturnType.IsPointer ||
+            IsUnsafe((MethodBase)method);
+    }
+
+    public static bool IsUnsafe(MethodBase method)
+    {
+        return
+            // any parameter types are a pointer
+            method.GetParameters().Any(p => p.ParameterType.IsPointer) ||
+            // any local variables are pinned in memory
+            (method.GetMethodBody()?.LocalVariables.Any(local => local.IsPinned) ?? false);
     }
 }
