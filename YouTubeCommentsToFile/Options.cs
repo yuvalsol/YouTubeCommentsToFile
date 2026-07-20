@@ -8,6 +8,7 @@ namespace YouTubeCommentsToFile;
 
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
 [OptionDescription($"Uses verb '{ConvertOptions.verb}'. Verb is {(ConvertOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
+[OptionPrecedence(1)]
 internal interface IConvertOptions
 {
     [Option("json-file", HelpText = "Path to comments JSON file.")]
@@ -29,46 +30,47 @@ internal interface IConvertOptions
 
 [OptionDescription("Downloads comments to text file or HTML file.")]
 [OptionDescription($"Uses verb '{DownloadOptions.verb}'. Verb is {(DownloadOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
+[OptionPrecedence(2)]
 internal interface IDownloadOptions
 {
     [Option("url", HelpText = "Video URL to download its comments.")]
-    [OptionPrecedence(2)]
+    [OptionPrecedence(1)]
     string URL { get; set; }
 
     [Option("yt-dlp", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment.")]
-    [OptionPrecedence(3)]
+    [OptionPrecedence(2)]
     string YtDlp { get; set; }
 
     [Option("deno", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
-    [OptionPrecedence(4)]
+    [OptionPrecedence(3)]
     string Deno { get; set; }
 
     [Option("download-path", HelpText = $"Path to download and to convert comments. If not set, download path is set to {nameof(YouTubeCommentsToFile)} directory.")]
-    [OptionPrecedence(5)]
+    [OptionPrecedence(4)]
     string DownloadPath { get; set; }
 
     [Option("max-comments", HelpText = "Maximum number of top-level comments and replies to extract. If not set, extracts all.")]
-    [OptionPrecedence(11, 1)]
+    [OptionPrecedence(5)]
     uint? MaxComments { get; set; }
 
     [Option("max-parents", HelpText = "Maximum number of top-level comments to extract. If not set, extracts all.")]
-    [OptionPrecedence(11, 2)]
+    [OptionPrecedence(6)]
     uint? MaxParents { get; set; }
 
     [Option("max-replies", HelpText = "Maximum number of replies to extract. If not set, extracts all.")]
-    [OptionPrecedence(11, 3)]
+    [OptionPrecedence(7)]
     uint? MaxReplies { get; set; }
 
     [Option("max-replies-per-thread", HelpText = "Maximum number of replies per top-level comment to extract. If not set, extracts all.")]
-    [OptionPrecedence(11, 4)]
+    [OptionPrecedence(8)]
     uint? MaxRepliesPerThread { get; set; }
 
     [Option("sort-new", HelpText = "Sort comments by new comments first. This is the default sorting of yt-dlp.")]
-    [OptionPrecedence(12, 1)]
+    [OptionPrecedence(9)]
     bool SortNew { get; set; }
 
     [Option("sort-top", HelpText = "Sort comments by top comments first.")]
-    [OptionPrecedence(12, 2)]
+    [OptionPrecedence(10)]
     bool SortTop { get; set; }
 
     [Option("filename-sanitization", HelpText = "Sanitize Windows reserved characters by removing them or by replacing with comparable character or by replacing with underscore. Doesn't replace with Unicode characters.")]
@@ -94,14 +96,15 @@ internal interface IDownloadOptions
 }
 
 [OptionDescription("Shared options of Convert and Download.")]
+[OptionPrecedence(3)]
 internal interface ISharedOptions
 {
     [Option("to-html", HelpText = "Whether to write comments to HTML file. When both '--to-html' and '--to-html-and-text' are disabled, writes only to text file.")]
-    [OptionPrecedence(21, 1)]
+    [OptionPrecedence(1)]
     bool ToHTML { get; set; }
 
     [Option("to-html-and-text", HelpText = "Whether to write comments to HTML file and to text file.")]
-    [OptionPrecedence(21, 2)]
+    [OptionPrecedence(2)]
     bool ToHTMLAndText { get; set; }
 
     [Option("dark-theme", HelpText = "Whether to use dark theme in HTML file.")]
@@ -147,14 +150,15 @@ internal interface ISharedOptions
     int? TextLineLength { get; set; }
 }
 
+[OptionPrecedence(4)]
 internal interface IUploaderOptions
 {
     [Option('u', "uh", HelpText = "Highlight uploader. Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.")]
-    [OptionPrecedence(31, 1)]
+    [OptionPrecedence(1)]
     bool HighlightUploader { get; set; }
 
     [Option("uf", HelpText = "Filter uploader. Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(31, 2)]
+    [OptionPrecedence(2)]
     bool FilterUploader { get; set; }
 
     [Option("uhf", HelpText = "Highlight and filter uploader.")]
@@ -162,14 +166,15 @@ internal interface IUploaderOptions
 }
 
 [OptionDescription("Author name can be written with or without a leading @.")]
+[OptionPrecedence(5)]
 internal interface IAuthorsOptions
 {
     [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
-    [OptionPrecedence(41, 1)]
+    [OptionPrecedence(1)]
     IEnumerable<string> HighlightAuthors { get; set; }
 
     [Option("af", HelpText = "Filter authors. Search for comments and replies written by any of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(41, 2)]
+    [OptionPrecedence(2)]
     IEnumerable<string> FilterAuthors { get; set; }
 
     [Option("ahf", HelpText = "Highlight and filter authors.")]
@@ -185,14 +190,15 @@ internal interface IAuthorsOptions
     IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
 }
 
+[OptionPrecedence(6)]
 internal interface ITextsOptions
 {
     [Option("th", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
-    [OptionPrecedence(51, 1)]
+    [OptionPrecedence(1)]
     IEnumerable<string> HighlightTexts { get; set; }
 
     [Option("tf", HelpText = "Filter texts. Search for any of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
-    [OptionPrecedence(51, 2)]
+    [OptionPrecedence(2)]
     IEnumerable<string> FilterTexts { get; set; }
 
     [Option("thf", HelpText = "Highlight and filter texts.")]
@@ -208,10 +214,11 @@ internal interface ITextsOptions
     IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
 }
 
+[OptionPrecedence(7)]
 internal interface IEncodingOptions
 {
     [Option("encoding-code-page", HelpText = "The code page of the video page encoding.")]
-    [OptionPrecedence(61, 1)]
+    [OptionPrecedence(1)]
     int? EncodingCodePage { get; set; }
 
     [Option("arabic-iso", HelpText = "Arabic (ISO-8859-6). Code page 28596. Arabic, Persian, Urdu.")]
@@ -291,93 +298,95 @@ internal interface IEncodingOptions
 }
 
 [OptionDescription("A color value can be a known name ('Honeydew'), hex code ('#F0FFF0'; 'F0FFF0') or RGB ('240, 255, 240'; '240 255 240').")]
+[OptionPrecedence(8)]
 internal interface IHTMLColorsOptions
 {
     [Option("text-color", HelpText = "The text color of comments.")]
-    [OptionPrecedence(71, 1)]
+    [OptionPrecedence(1)]
     string TextColor { get; set; }
 
     [Option("background-color", HelpText = "The background color of comments.")]
-    [OptionPrecedence(71, 2)]
+    [OptionPrecedence(2)]
     string BackgroundColor { get; set; }
 
     [Option("author-color", HelpText = "The text color of the author of the comment.")]
-    [OptionPrecedence(72, 1)]
+    [OptionPrecedence(3)]
     string AuthorColor { get; set; }
 
     [Option("replied-author-color", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
-    [OptionPrecedence(72, 2)]
+    [OptionPrecedence(4)]
     string RepliedAuthorColor { get; set; }
 
     [Option("other-author-color", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
-    [OptionPrecedence(72, 3)]
+    [OptionPrecedence(5)]
     string OtherAuthorColor { get; set; }
 
     [Option("small-elements-color", HelpText = "The text color of small elements, such as pinned comment, comment time, likes.")]
-    [OptionPrecedence(72, 4)]
+    [OptionPrecedence(6)]
     string SmallElementsColor { get; set; }
 
     [Option("favorited-background-color", HelpText = "The background color of favorited by the uploader of the video.")]
-    [OptionPrecedence(72, 5)]
+    [OptionPrecedence(7)]
     string FavoritedBackgroundColor { get; set; }
 
     [Option("header-background-color", HelpText = "The background color of the header.")]
-    [OptionPrecedence(72, 6)]
+    [OptionPrecedence(8)]
     string HeaderBackgroundColor { get; set; }
 
     [Option("highlight-uploader-text-color", HelpText = "The text color of highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(73, 1)]
+    [OptionPrecedence(9)]
     string HighlightUploaderTextColor { get; set; }
 
     [Option("highlight-uploader-background-color", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(73, 2)]
+    [OptionPrecedence(10)]
     string HighlightUploaderBackgroundColor { get; set; }
 
     [Option("highlight-uploader-border-color", HelpText = "The color of the border around highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(73, 3)]
+    [OptionPrecedence(11)]
     string HighlightUploaderBorderColor { get; set; }
 
     [Option("highlight-author-text-color", HelpText = "The text color of highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(73, 4)]
+    [OptionPrecedence(12)]
     string HighlightAuthorTextColor { get; set; }
 
     [Option("highlight-author-background-color", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(73, 5)]
+    [OptionPrecedence(13)]
     string HighlightAuthorBackgroundColor { get; set; }
 
     [Option("highlight-author-border-color", HelpText = "The color of the border around highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(73, 6)]
+    [OptionPrecedence(14)]
     string HighlightAuthorBorderColor { get; set; }
 
     [Option("highlight-text-text-color", HelpText = "The text color of highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(73, 7)]
+    [OptionPrecedence(15)]
     string HighlightTextTextColor { get; set; }
 
     [Option("highlight-text-background-color", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(73, 8)]
+    [OptionPrecedence(16)]
     string HighlightTextBackgroundColor { get; set; }
 
     [Option("highlight-text-border-color", HelpText = "The color of the border around highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(73, 9)]
+    [OptionPrecedence(17)]
     string HighlightTextBorderColor { get; set; }
 
     [Option("link-color", HelpText = "The text color of HTML links.")]
-    [OptionPrecedence(74, 1)]
+    [OptionPrecedence(18)]
     string LinkColor { get; set; }
 
     [Option("copy-text-success-color", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
-    [OptionPrecedence(75, 1)]
+    [OptionPrecedence(19)]
     string CopyTextSuccessColor { get; set; }
 
     [Option("copy-text-failure-color", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
-    [OptionPrecedence(75, 2)]
+    [OptionPrecedence(20)]
     string CopyTextFailureColor { get; set; }
 }
 
+[OptionPrecedence(9)]
 internal interface IConfigurationOptions
 {
     [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files. Can be used multiple times and inside other configuration files.")]
-    [OptionPrecedence(81, 1)]
+    [OptionPrecedence(1)]
     IEnumerable<string> ConfigLocations { get; set; }
 
     [Option("ignore-config", HelpText = "Don't load the config location and continue loading the rest of the configuration stack. In the command line, all config locations, specified with '--config-locations', are not loaded. In a configuration file, the file is not loaded.")]
@@ -387,21 +396,22 @@ internal interface IConfigurationOptions
     bool StopConfig { get; set; }
 }
 
+[OptionPrecedence(10)]
 internal interface IVerbosityOptions
 {
     [Option('v', "verbose", HelpText = "Print debugging information.")]
-    [OptionPrecedence(91, 1)]
+    [OptionPrecedence(1)]
     bool Verbose { get; set; }
 
     [Option('q', "quiet", HelpText = "Don't print anything. If used with '--verbose', print to standard error (stderr).")]
-    [OptionPrecedence(91, 2)]
     bool Quiet { get; set; }
 }
 
+[OptionPrecedence(11)]
 internal interface IGeneralOptions
 {
     [Option("beep", HelpText = "Make a beep sound when finished. If used with '--quiet', make no sound.")]
-    [OptionPrecedence(101, 1)]
+    [OptionPrecedence(1)]
     bool Beep { get; set; }
 
     [Option('h', "help", HelpText = "Display help screen.")]

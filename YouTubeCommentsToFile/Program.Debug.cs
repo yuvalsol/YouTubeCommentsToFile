@@ -59,6 +59,44 @@ internal static partial class Program
         return Run(args);
     }
 
+    private static int PrintArgs<TOptions>(TOptions options, bool singleLine = false)
+        where TOptions : SharedOptions, IOperationOptions
+    {
+        return PrintArgs(options.ToArgs(GetParser()), singleLine);
+    }
+
+    private static int PrintArgs(string[] args, bool singleLine = false)
+    {
+        var rearrangedArgs =
+            RearrangeArgs(args)
+            .Select(arg =>
+            (
+                arg,
+                match: RegexOption().Match(arg)
+            ))
+            .Select(x =>
+            (
+                x.arg,
+                isOption: x.match.Success,
+                option: (x.match.Success ? x.match.Groups["Option"].Value : null)
+            ))
+            .OrderBy(x => x.isOption)
+            .ThenBy(x => x.isOption ? OptionsHelper.OptionsPrecedence.FirstOrDefault(p => x.option == p.OptionShortName || x.option == p.OptionLongName, OptionsHelper.OptionPrecedence.Default).Index : int.MaxValue)
+            .Select(x => x.arg);
+
+        if (singleLine)
+        {
+            Console.WriteLine(string.Join(' ', rearrangedArgs));
+        }
+        else
+        {
+            foreach (var arg in rearrangedArgs)
+                Console.WriteLine(arg);
+        }
+
+        return 0;
+    }
+
     private static int GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
     {
         var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);

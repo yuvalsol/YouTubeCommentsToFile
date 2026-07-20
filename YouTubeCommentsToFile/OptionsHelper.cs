@@ -4,80 +4,77 @@ namespace YouTubeCommentsToFile;
 
 internal static class OptionsHelper
 {
-    public static string[] GetOptionsPrecedence()
+    public record OptionPrecedence(
+        string OptionName,
+        string ShortName,
+        string LongName,
+        string OptionShortName,
+        string OptionLongName,
+        int Index)
     {
-        return [..
-            GetOptionsPrecedence<IConvertOptions>()
-            .Concat(GetOptionsPrecedence<IDownloadOptions>())
-            .Concat(GetOptionsPrecedence<ISharedOptions>())
-            .Concat(GetOptionsPrecedence<IUploaderOptions>())
-            .Concat(GetOptionsPrecedence<IAuthorsOptions>())
-            .Concat(GetOptionsPrecedence<ITextsOptions>())
-            .Concat(GetOptionsPrecedence<IEncodingOptions>())
-            .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
-            .Concat(GetOptionsPrecedence<IConfigurationOptions>())
-            .Concat(GetOptionsPrecedence<IVerbosityOptions>())
-            .Concat(GetOptionsPrecedence<IGeneralOptions>())
-            .Distinct()
-            .OrderBy(x => x.Group)
-            .ThenBy(x => x.Ordinal)
-            .Select(x => x.LongName)];
+        public static readonly OptionPrecedence Default = new(null, null, null, null, null, int.MaxValue);
     }
 
-    private static IEnumerable<(string LongName, int Group, int Ordinal)> GetOptionsPrecedence<IOptions>()
+    private static OptionPrecedence[] optionsPrecedence;
+    public static OptionPrecedence[] OptionsPrecedence
     {
-        return typeof(IOptions)
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
-            .Select(property => new
-            {
-                optionAttr = property.GetCustomAttribute<OptionAttribute>(),
-                optionPrecedenceAttr = property.GetCustomAttribute<OptionPrecedenceAttribute>()
-            })
-            .Where(x => x.optionAttr != null && x.optionPrecedenceAttr != null)
-            .Select(x => (x.optionAttr.LongName, x.optionPrecedenceAttr.Group, x.optionPrecedenceAttr.Ordinal));
+        get
+        {
+            return optionsPrecedence ??= [..
+                GetOptionsPrecedence<IConvertOptions>()
+                .Concat(GetOptionsPrecedence<IDownloadOptions>())
+                .Concat(GetOptionsPrecedence<ISharedOptions>())
+                .Concat(GetOptionsPrecedence<IUploaderOptions>())
+                .Concat(GetOptionsPrecedence<IAuthorsOptions>())
+                .Concat(GetOptionsPrecedence<ITextsOptions>())
+                .Concat(GetOptionsPrecedence<IEncodingOptions>())
+                .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
+                .Concat(GetOptionsPrecedence<IConfigurationOptions>())
+                .Concat(GetOptionsPrecedence<IVerbosityOptions>())
+                .Concat(GetOptionsPrecedence<IGeneralOptions>())
+                .DistinctBy(x => x.OptionPrecedence) // IConvertOptions and IDownloadOptions share options
+                .OrderBy(x => x.Group)
+                .ThenBy(x => x.Ordinal)
+                .ThenBy(x => x.OptionPrecedence.LongName)
+                .Select((x, i) => x.OptionPrecedence with { Index = i })];
+        }
     }
 
-    public static string GetOptionShortName(string optionName)
+    private static IEnumerable<(OptionPrecedence OptionPrecedence, int Group, int Ordinal)> GetOptionsPrecedence<IOptions>()
     {
-        string shortName = GetOptionNames().FirstOrDefault(x => x.OptionName == optionName).ShortName;
-        if (string.IsNullOrEmpty(shortName))
-            return null;
-        return $"-{shortName}";
-    }
+        int group = typeof(IOptions).GetCustomAttribute<OptionPrecedenceAttribute>()?.Ordinal ?? int.MaxValue;
 
-    public static string GetOptionLongName(string optionName)
-    {
-        string longName = GetOptionNames().FirstOrDefault(x => x.OptionName == optionName).LongName;
-        if (string.IsNullOrEmpty(longName))
-            return null;
-        return $"--{longName}";
-    }
-
-    public static IEnumerable<(string OptionName, string ShortName, string LongName)> GetOptionNames()
-    {
-        return
-            GetOptionNames<IConvertOptions>()
-            .Concat(GetOptionNames<IDownloadOptions>())
-            .Concat(GetOptionNames<ISharedOptions>())
-            .Concat(GetOptionNames<IUploaderOptions>())
-            .Concat(GetOptionNames<IAuthorsOptions>())
-            .Concat(GetOptionNames<ITextsOptions>())
-            .Concat(GetOptionNames<IEncodingOptions>())
-            .Concat(GetOptionNames<IHTMLColorsOptions>())
-            .Concat(GetOptionNames<IConfigurationOptions>())
-            .Concat(GetOptionNames<IVerbosityOptions>())
-            .Concat(GetOptionNames<IGeneralOptions>());
-    }
-
-    private static IEnumerable<(string OptionName, string ShortName, string LongName)> GetOptionNames<IOptions>()
-    {
         return typeof(IOptions)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
             .Select(property =>
             (
                 OptionName: property.Name,
-                property.GetCustomAttribute<OptionAttribute>().ShortName,
-                property.GetCustomAttribute<OptionAttribute>().LongName
+                optionAttr: property.GetCustomAttribute<OptionAttribute>(),
+                optionPrecedenceAttr: property.GetCustomAttribute<OptionPrecedenceAttribute>()
+            ))
+            .Where(x => x.optionAttr != null)
+            .Select(x =>
+            (
+                optionPrecedence: new OptionPrecedence(
+                    x.OptionName,
+                    x.optionAttr.ShortName,
+                    x.optionAttr.LongName,
+                    OptionShortName: string.IsNullOrEmpty(x.optionAttr.ShortName) ? null : $"-{x.optionAttr.ShortName}",
+                    OptionLongName: string.IsNullOrEmpty(x.optionAttr.LongName) ? null : $"--{x.optionAttr.LongName}",
+                    Index: 0
+                ),
+                Group: group,
+                Ordinal: x.optionPrecedenceAttr?.Ordinal ?? int.MaxValue
             ));
+    }
+
+    public static string GetOptionShortName(string optionName)
+    {
+        return OptionsPrecedence.FirstOrDefault(x => x.OptionName == optionName, OptionPrecedence.Default).OptionShortName;
+    }
+
+    public static string GetOptionLongName(string optionName)
+    {
+        return OptionsPrecedence.FirstOrDefault(x => x.OptionName == optionName, OptionPrecedence.Default).OptionLongName;
     }
 }
