@@ -6,10 +6,12 @@ namespace YouTubeCommentsToFile;
 
 #region Interfaces
 
+internal interface IYouTubeCommentsToFileOptions { }
+
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
 [OptionDescription($"Uses verb '{ConvertOptions.verb}'. Verb is {(ConvertOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
 [OptionPrecedence(1)]
-internal interface IConvertOptions
+internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
     [Option("json-file", HelpText = "Path to comments JSON file.")]
     [OptionPrecedence(1)]
@@ -31,7 +33,7 @@ internal interface IConvertOptions
 [OptionDescription("Downloads comments to text file or HTML file.")]
 [OptionDescription($"Uses verb '{DownloadOptions.verb}'. Verb is {(DownloadOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
 [OptionPrecedence(2)]
-internal interface IDownloadOptions
+internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
 {
     [Option("url", HelpText = "Video URL to download its comments.")]
     [OptionPrecedence(1)]
@@ -97,7 +99,7 @@ internal interface IDownloadOptions
 
 [OptionDescription("Shared options of Convert and Download.")]
 [OptionPrecedence(3)]
-internal interface ISharedOptions
+internal interface ISharedOptions : IYouTubeCommentsToFileOptions
 {
     [Option("to-html", HelpText = "Whether to write comments to HTML file. When both '--to-html' and '--to-html-and-text' are disabled, writes only to text file.")]
     [OptionPrecedence(1)]
@@ -151,7 +153,7 @@ internal interface ISharedOptions
 }
 
 [OptionPrecedence(4)]
-internal interface IUploaderOptions
+internal interface IUploaderOptions : IYouTubeCommentsToFileOptions
 {
     [Option('u', "uh", HelpText = "Highlight uploader. Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.")]
     [OptionPrecedence(1)]
@@ -167,7 +169,7 @@ internal interface IUploaderOptions
 
 [OptionDescription("Author name can be written with or without a leading @.")]
 [OptionPrecedence(5)]
-internal interface IAuthorsOptions
+internal interface IAuthorsOptions : IYouTubeCommentsToFileOptions
 {
     [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
     [OptionPrecedence(1)]
@@ -191,7 +193,7 @@ internal interface IAuthorsOptions
 }
 
 [OptionPrecedence(6)]
-internal interface ITextsOptions
+internal interface ITextsOptions : IYouTubeCommentsToFileOptions
 {
     [Option("th", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
     [OptionPrecedence(1)]
@@ -215,7 +217,7 @@ internal interface ITextsOptions
 }
 
 [OptionPrecedence(7)]
-internal interface IEncodingOptions
+internal interface IEncodingOptions : IYouTubeCommentsToFileOptions
 {
     [Option("encoding-code-page", HelpText = "The code page of the video page encoding.")]
     [OptionPrecedence(1)]
@@ -299,7 +301,7 @@ internal interface IEncodingOptions
 
 [OptionDescription("A color value can be a known name ('Honeydew'), hex code ('#F0FFF0'; 'F0FFF0') or RGB ('240, 255, 240'; '240 255 240').")]
 [OptionPrecedence(8)]
-internal interface IHTMLColorsOptions
+internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
 {
     [Option("text-color", HelpText = "The text color of comments.")]
     [OptionPrecedence(1)]
@@ -383,7 +385,7 @@ internal interface IHTMLColorsOptions
 }
 
 [OptionPrecedence(9)]
-internal interface IConfigurationOptions
+internal interface IConfigurationOptions : IYouTubeCommentsToFileOptions
 {
     [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files. Can be used multiple times and inside other configuration files.")]
     [OptionPrecedence(1)]
@@ -397,7 +399,7 @@ internal interface IConfigurationOptions
 }
 
 [OptionPrecedence(10)]
-internal interface IVerbosityOptions
+internal interface IVerbosityOptions : IYouTubeCommentsToFileOptions
 {
     [Option('v', "verbose", HelpText = "Print debugging information.")]
     [OptionPrecedence(1)]
@@ -408,7 +410,7 @@ internal interface IVerbosityOptions
 }
 
 [OptionPrecedence(11)]
-internal interface IGeneralOptions
+internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
 {
     [Option("beep", HelpText = "Make a beep sound when finished. If used with '--quiet', make no sound.")]
     [OptionPrecedence(1)]
@@ -981,7 +983,7 @@ internal abstract class SharedOptions :
 
     public virtual string[] ToArgs(Parser parser)
     {
-        return parser.FormatCommandLineArgs(this);
+        return (parser ?? Parser.Default).FormatCommandLineArgs(this);
     }
 }
 

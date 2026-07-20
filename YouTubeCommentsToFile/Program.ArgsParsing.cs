@@ -269,7 +269,7 @@ internal static partial class Program
         if (args.IsNullOrEmpty())
             return;
 
-        args = RearrangeArgs(args);
+        args = [.. args.RearrangeArgs().OrderByPrecedence()];
 
         string ignoreConfig = OptionsHelper.GetOptionLongName(nameof(IConfigurationOptions.IgnoreConfig));
         var ignoreConfigIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == ignoreConfig).Select(x => x.i);
@@ -314,24 +314,40 @@ internal static partial class Program
     [GeneratedRegex(@"^(?:-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)$")]
     private static partial Regex RegexIsOption();
 
-    private static string[] RearrangeArgs(string[] args)
+    private static IEnumerable<string> RearrangeArgs(this IEnumerable<string> args)
     {
         int counter = 0;
 
-        return [.. args
+        return args
             .Select((arg, i) => (arg, n: RegexIsOption().IsMatch(arg) ? ++counter : counter))
             .GroupBy(x => x.n)
             .Select(g =>
-                (arg: string.Join(' ', g.Skip(1).Select(x =>
-                {
-                     if (x.arg.Contains(' '))
-                         return $@"""{x.arg}""";
-                     return x.arg;
-                })
-                .Prepend(g.First().arg)), n: g.Key)
-            )
+            (
+                arg: string.Join(' ', g.Skip(1).Select(x => x.arg.Contains(' ') ? $@"""{x.arg}""" : x.arg).Prepend(g.First().arg)),
+                n: g.Key
+            ))
             .OrderBy(x => x.n)
-            .Select(x => x.arg)];
+            .Select(x => x.arg);
+    }
+
+    private static IEnumerable<string> OrderByPrecedence(this IEnumerable<string> args)
+    {
+        return
+            args
+            .Select(arg =>
+            (
+                arg,
+                match: RegexOption().Match(arg)
+            ))
+            .Select(x =>
+            (
+                x.arg,
+                isOption: x.match.Success,
+                option: (x.match.Success ? x.match.Groups["Option"].Value : null)
+            ))
+            .OrderBy(x => x.isOption)
+            .ThenBy(x => x.isOption ? OptionsHelper.OptionsPrecedence.FirstOrDefault(p => x.option == p.OptionShortName || x.option == p.OptionLongName, OptionsHelper.OptionPrecedence.Default).Index : int.MaxValue)
+            .Select(x => x.arg);
     }
 
     #endregion

@@ -1592,20 +1592,20 @@ public partial class CommentsWriter(Settings settings)
         try
         {
             if (int.TryParse(videoInfo.UploadDate[..4], out int year) == false)
-                return null;
+                return videoInfo.UploadDate;
 
             if (int.TryParse(videoInfo.UploadDate[4..6], out int month) == false)
-                return null;
+                return videoInfo.UploadDate;
 
             if (int.TryParse(videoInfo.UploadDate[6..], out int day) == false)
-                return null;
+                return videoInfo.UploadDate;
 
             var uploadDate = new DateTime(year, month, day);
             return uploadDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture);
         }
         catch
         {
-            return null;
+            return videoInfo.UploadDate;
         }
     }
 

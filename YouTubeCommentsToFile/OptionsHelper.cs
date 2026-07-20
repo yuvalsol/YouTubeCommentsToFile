@@ -20,18 +20,13 @@ internal static class OptionsHelper
     {
         get
         {
+            var baseInterface = typeof(IYouTubeCommentsToFileOptions);
+            var derivedInterfaces = Assembly.GetExecutingAssembly().GetTypes().Where(t => t.IsInterface && t != baseInterface && baseInterface.IsAssignableFrom(t)).ToArray();
+
             return optionsPrecedence ??= [..
-                GetOptionsPrecedence<IConvertOptions>()
-                .Concat(GetOptionsPrecedence<IDownloadOptions>())
-                .Concat(GetOptionsPrecedence<ISharedOptions>())
-                .Concat(GetOptionsPrecedence<IUploaderOptions>())
-                .Concat(GetOptionsPrecedence<IAuthorsOptions>())
-                .Concat(GetOptionsPrecedence<ITextsOptions>())
-                .Concat(GetOptionsPrecedence<IEncodingOptions>())
-                .Concat(GetOptionsPrecedence<IHTMLColorsOptions>())
-                .Concat(GetOptionsPrecedence<IConfigurationOptions>())
-                .Concat(GetOptionsPrecedence<IVerbosityOptions>())
-                .Concat(GetOptionsPrecedence<IGeneralOptions>())
+                derivedInterfaces
+                .Where(optionsType => derivedInterfaces.HasAny(other => other != optionsType && other.IsAssignableFrom(optionsType)) == false)
+                .SelectMany(GetOptionsPrecedence)
                 .DistinctBy(x => x.OptionPrecedence) // IConvertOptions and IDownloadOptions share options
                 .OrderBy(x => x.Group)
                 .ThenBy(x => x.Ordinal)
@@ -40,11 +35,11 @@ internal static class OptionsHelper
         }
     }
 
-    private static IEnumerable<(OptionPrecedence OptionPrecedence, int Group, int Ordinal)> GetOptionsPrecedence<IOptions>()
+    private static IEnumerable<(OptionPrecedence OptionPrecedence, int Group, int Ordinal)> GetOptionsPrecedence(Type optionsType)
     {
-        int group = typeof(IOptions).GetCustomAttribute<OptionPrecedenceAttribute>()?.Ordinal ?? int.MaxValue;
+        int group = optionsType.GetCustomAttribute<OptionPrecedenceAttribute>()?.Ordinal ?? int.MaxValue;
 
-        return typeof(IOptions)
+        return optionsType
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
             .Select(property =>
             (

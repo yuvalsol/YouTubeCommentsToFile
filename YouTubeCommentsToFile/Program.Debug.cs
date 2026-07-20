@@ -67,22 +67,7 @@ internal static partial class Program
 
     private static int PrintArgs(string[] args, bool singleLine = false)
     {
-        var rearrangedArgs =
-            RearrangeArgs(args)
-            .Select(arg =>
-            (
-                arg,
-                match: RegexOption().Match(arg)
-            ))
-            .Select(x =>
-            (
-                x.arg,
-                isOption: x.match.Success,
-                option: (x.match.Success ? x.match.Groups["Option"].Value : null)
-            ))
-            .OrderBy(x => x.isOption)
-            .ThenBy(x => x.isOption ? OptionsHelper.OptionsPrecedence.FirstOrDefault(p => x.option == p.OptionShortName || x.option == p.OptionLongName, OptionsHelper.OptionPrecedence.Default).Index : int.MaxValue)
-            .Select(x => x.arg);
+        var rearrangedArgs = args.RearrangeArgs().OrderByPrecedence();
 
         if (singleLine)
         {
