@@ -172,7 +172,7 @@ internal static partial class Program
     private static void AddQuotationsToYtDlpOptions(string[] args)
     {
         string ytDlpOptions = OptionsHelper.GetOptionLongName(nameof(IDownloadOptions.YtDlpOptions));
-        var argYtDlpOptions = args.Select((arg, index) => (arg, index)).FirstOrDefault(x => string.Compare(x.arg, ytDlpOptions, StringComparison.OrdinalIgnoreCase) == 0);
+        var argYtDlpOptions = args.Select((arg, index) => (arg, index)).FirstOrDefault(x => string.Compare(x.arg, ytDlpOptions) == 0);
         if (argYtDlpOptions == default)
             return;
 

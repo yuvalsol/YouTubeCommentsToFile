@@ -174,6 +174,14 @@ public partial class CommentsWriter(Settings settings)
 
     #region Write Comments To File
 
+#if LINUX_BUILD
+    private const string YT_DLP_PROGRAM = "yt-dlp";
+    private const string DENO_PROGRAM = "deno";
+#else
+    private const string YT_DLP_PROGRAM = "yt-dlp.exe";
+    private const string DENO_PROGRAM = "deno.exe";
+#endif
+
     public void WriteCommentsToFile()
     {
         long startTime = Stopwatch.GetTimestamp();
@@ -201,7 +209,7 @@ public partial class CommentsWriter(Settings settings)
                 if (string.IsNullOrEmpty(settings.YtDlp))
                     throw new ArgumentException("Path to yt-dlp not specified.", nameof(settings.YtDlp));
 
-                if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp", StringComparison.OrdinalIgnoreCase) != 0)
+                if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
                     throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
 
                 if (File.Exists(settings.YtDlp) == false)
@@ -212,7 +220,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (string.IsNullOrEmpty(settings.Deno) == false)
                 {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno", StringComparison.OrdinalIgnoreCase) != 0)
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
                         throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
 
                     if (File.Exists(settings.Deno) == false)
@@ -241,7 +249,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (string.IsNullOrEmpty(settings.YtDlp) == false)
                 {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp", StringComparison.OrdinalIgnoreCase) != 0)
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
                         throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
 
                     if (File.Exists(settings.YtDlp) == false)
@@ -253,7 +261,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (string.IsNullOrEmpty(settings.Deno) == false)
                 {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno", StringComparison.OrdinalIgnoreCase) != 0)
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
                         throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
 
                     if (File.Exists(settings.Deno) == false)
@@ -502,19 +510,11 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(settings.YtDlp) == false && string.IsNullOrEmpty(settings.Deno) == false)
             return;
 
-#if LINUX_BUILD
-        string programYtDlp = "yt-dlp";
-        string programDeno = "deno";
-#else
-        string programYtDlp = "yt-dlp.exe";
-        string programDeno = "deno.exe";
-#endif
-
         string[] files = Directory.GetFiles(AppContext.BaseDirectory);
         if (string.IsNullOrEmpty(settings.YtDlp))
-            settings.YtDlp = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), programYtDlp, StringComparison.OrdinalIgnoreCase) == 0);
+            settings.YtDlp = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
         if (string.IsNullOrEmpty(settings.Deno))
-            settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), programDeno, StringComparison.OrdinalIgnoreCase) == 0);
+            settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), DENO_PROGRAM) == 0);
     }
 
     private bool ValidateAndCleanURL()
@@ -948,15 +948,9 @@ public partial class CommentsWriter(Settings settings)
     {
         if (string.IsNullOrEmpty(ytDlp))
         {
-#if LINUX_BUILD
-        string program = "yt-dlp";
-#else
-            string program = "yt-dlp.exe";
-#endif
-
             ytDlp =
                 Directory.GetFiles(AppContext.BaseDirectory)
-                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), program, StringComparison.OrdinalIgnoreCase) == 0);
+                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
         }
 
         if (string.IsNullOrEmpty(ytDlp) && IsYtDlpAccessible())
