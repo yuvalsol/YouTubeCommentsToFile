@@ -107,12 +107,15 @@ internal static partial class Program
         string quiet1 = OptionsHelper.GetOptionShortName(nameof(IVerbosityOptions.Quiet));
         string quiet2 = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.Quiet));
 
+        string ytDlpQuiet = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.YtDlpQuiet));
+
         string beep = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.Beep));
 
         return new ConvertOptions()
         {
             Verbose = args.HasAny(arg => arg == verbose1 || arg == verbose2),
             Quiet = args.HasAny(arg => arg == quiet1 || arg == quiet2),
+            YtDlpQuiet = args.HasAny(arg => arg == ytDlpQuiet),
             Beep = args.HasAny(arg => arg == beep)
         };
     }
@@ -332,8 +335,7 @@ internal static partial class Program
 
     private static IEnumerable<string> OrderByPrecedence(this IEnumerable<string> args)
     {
-        return
-            args
+        return args
             .Select(arg =>
             (
                 arg,

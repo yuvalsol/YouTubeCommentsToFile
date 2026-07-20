@@ -9,7 +9,7 @@ namespace YouTubeCommentsToFile;
 internal interface IYouTubeCommentsToFileOptions { }
 
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
-[OptionDescription($"Uses verb '{ConvertOptions.verb}'. Verb is {(ConvertOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
+[OptionDescription($"Uses verb 'convert'. Verb is optional to specify.")]
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
@@ -31,7 +31,7 @@ internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 }
 
 [OptionDescription("Downloads comments to text file or HTML file.")]
-[OptionDescription($"Uses verb '{DownloadOptions.verb}'. Verb is {(DownloadOptions.isDefaultVerb ? "optional" : "required")} to specify.")]
+[OptionDescription($"Uses verb 'download'. Verb is required to specify.")]
 [OptionPrecedence(2)]
 internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
 {
@@ -406,7 +406,11 @@ internal interface IVerbosityOptions : IYouTubeCommentsToFileOptions
     bool Verbose { get; set; }
 
     [Option('q', "quiet", HelpText = "Don't print anything. If used with '--verbose', print to standard error (stderr).")]
+    [OptionPrecedence(2)]
     bool Quiet { get; set; }
+
+    [Option("yt-dlp-quiet", HelpText = "Don't print output from yt-dlp.")]
+    bool YtDlpQuiet { get; set; }
 }
 
 [OptionPrecedence(11)]
@@ -446,14 +450,11 @@ internal interface IOperationOptions<TOptions> : IOperationOptions
     void MergeOptions(TOptions options);
 }
 
-[Verb(verb, isDefaultVerb)]
+[Verb("convert", true)]
 internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOptions<ConvertOptions>
 {
-    public const string verb = "convert";
-    public const bool isDefaultVerb = true;
-
-    public string Verb => verb;
-    public bool IsDefaultVerb => isDefaultVerb;
+    public string Verb => "convert";
+    public bool IsDefaultVerb => true;
 
     public string JsonFile { get; set; }
     public string URL { get; set; }
@@ -501,14 +502,11 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     }
 }
 
-[Verb(verb, isDefaultVerb)]
+[Verb("download", false)]
 internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOptions<DownloadOptions>
 {
-    public const string verb = "download";
-    public const bool isDefaultVerb = false;
-
-    public string Verb => verb;
-    public bool IsDefaultVerb => isDefaultVerb;
+    public string Verb => "download";
+    public bool IsDefaultVerb => false;
 
     public string URL { get; set; }
     public string YtDlp { get; set; }
@@ -703,6 +701,7 @@ internal abstract class SharedOptions :
     // Verbosity
     public bool Verbose { get; set; }
     public bool Quiet { get; set; }
+    public bool YtDlpQuiet { get; set; }
 
     // General
     public bool Beep { get; set; }
@@ -964,6 +963,7 @@ internal abstract class SharedOptions :
         // Verbosity
         Verbose |= options.Verbose;
         Quiet |= options.Quiet;
+        YtDlpQuiet |= options.YtDlpQuiet;
 
         // General
         Beep |= options.Beep;
@@ -1132,6 +1132,7 @@ internal class VerbosityHelpOptions : IVerbosityOptions
 {
     public bool Verbose { get; set; }
     public bool Quiet { get; set; }
+    public bool YtDlpQuiet { get; set; }
 }
 
 internal class GeneralHelpOptions : IGeneralOptions

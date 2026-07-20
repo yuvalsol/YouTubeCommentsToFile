@@ -21,21 +21,27 @@ internal static partial class Program
         {
             WriteVerboseProperty("URL", [e.URL]);
             WriteVerboseProperty("yt-dlp", [e.YtDlpCommandLine]);
-            WriteLine("Downloading comments...", operationOptions);
+            if (operationOptions.YtDlpQuiet)
+                Write("Downloading comments...", operationOptions);
+            else
+                WriteLine("Downloading comments...", operationOptions);
         };
 
         object lockObj = new();
 
-        writer.DownloadCommentsProgressAsync += (sender, e) =>
+        if (operationOptions.YtDlpQuiet == false)
         {
-            lock (lockObj)
+            writer.DownloadCommentsProgressAsync += (sender, e) =>
             {
-                if (e.IsError)
-                    WriteErrorLine(e.Line, operationOptions);
-                else
-                    WriteLine(e.Line, operationOptions);
-            }
-        };
+                lock (lockObj)
+                {
+                    if (e.IsError)
+                        WriteErrorLine(e.Line, operationOptions);
+                    else
+                        WriteLine(e.Line, operationOptions);
+                }
+            };
+        }
 
         bool isPrintedJsonFile = false;
 
@@ -45,12 +51,17 @@ internal static partial class Program
             {
                 if (e.Error == null)
                 {
-                    WriteLine("Comments JSON file downloaded successfully.", operationOptions);
+                    if (operationOptions.YtDlpQuiet)
+                        WriteLine(" Done.", operationOptions);
+                    else
+                        WriteLine("Comments JSON file downloaded successfully.", operationOptions);
                     WriteVerboseProperty("JSON File", [e.JsonFile]);
                     isPrintedJsonFile = true;
                 }
                 else
                 {
+                    if (operationOptions.YtDlpQuiet)
+                        WriteLine(operationOptions);
                     WriteErrorLine("Failed to download comments JSON file.", operationOptions);
                 }
             }

@@ -370,7 +370,7 @@ YouTubeCommentsToFile ([convert]|download)
 
     [--config-locations <path>] [--ignore-config] [--stop-config]
 
-    [-v] [--verbose] [-q] [--quiet]
+    [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet]
 
     [--beep] [-h] [--help] [--version]
 ```
@@ -1004,12 +1004,14 @@ These options determine what and how much is printed to console.
 -v, --verbose    Print debugging information.
 -q, --quiet      Don't print anything.
                  If used with '--verbose', print to standard error (stderr).
+--yt-dlp-quiet   Don't print output from yt-dlp.
 ```
 
 ### General
 
 ```console
---beep        Make a beep sound when finished. If used with '--quiet', make no sound.
+--beep        Make a beep sound when finished.
+              If used with '--quiet', make no sound.
 -h, --help    Display help screen.
 --version     Display version information.
 ```
