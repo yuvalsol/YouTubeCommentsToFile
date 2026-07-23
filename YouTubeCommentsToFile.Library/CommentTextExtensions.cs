@@ -125,9 +125,9 @@ internal static partial class CommentTextExtensions
 
     private static readonly CultureInfo enUS = new("en-US");
 
-    public static string ToHtml(this string text, string url, string hashtagURL, bool lowerHashtag, bool checkForRepliedAuthor, List<string> allAuthors)
+    public static string ToHtml(this string text, string url, string hashtagURL, bool isSupportHashtagWithSpace, bool isToLowerCaseHashtag, bool checkForRepliedAuthor, List<string> allAuthors)
     {
-        List<Placeholder> placeholders = text.GetHtmlPlaceholders(url, checkForRepliedAuthor, allAuthors);
+        List<Placeholder> placeholders = text.GetHtmlPlaceholders(url, isSupportHashtagWithSpace, checkForRepliedAuthor, allAuthors);
 
         if (placeholders.IsNullOrEmpty())
             return HttpUtility.HtmlEncode(text);
@@ -136,12 +136,12 @@ internal static partial class CommentTextExtensions
 
         ApplyHtmlPlaceholders(sb, placeholders);
 
-        return ReplaceHtmlPlaceholders(sb, url, hashtagURL, lowerHashtag, placeholders);
+        return ReplaceHtmlPlaceholders(sb, url, hashtagURL, isToLowerCaseHashtag, placeholders);
     }
 
-    public static string[] SplitToHtmlLines(this string text, int lineCh, string url, string hashtagURL, bool lowerHashtag, bool checkForRepliedAuthor, List<string> allAuthors)
+    public static string[] SplitToHtmlLines(this string text, int lineCh, string url, string hashtagURL, bool isSupportHashtagWithSpace, bool isToLowerCaseHashtag, bool checkForRepliedAuthor, List<string> allAuthors)
     {
-        List<Placeholder> placeholders = text.GetHtmlPlaceholders(url, checkForRepliedAuthor, allAuthors);
+        List<Placeholder> placeholders = text.GetHtmlPlaceholders(url, isSupportHashtagWithSpace, checkForRepliedAuthor, allAuthors);
 
         if (placeholders.IsNullOrEmpty())
             return [.. text.SplitToLines(lineCh).Select(HttpUtility.HtmlEncode)];
@@ -150,10 +150,10 @@ internal static partial class CommentTextExtensions
 
         ApplyHtmlPlaceholders(sb, placeholders);
 
-        return ReplaceHtmlPlaceholders(sb, url, hashtagURL, lowerHashtag, placeholders).Split('\n');
+        return ReplaceHtmlPlaceholders(sb, url, hashtagURL, isToLowerCaseHashtag, placeholders).Split('\n');
     }
 
-    private static List<Placeholder> GetHtmlPlaceholders(this string text, string url, bool checkForRepliedAuthor, List<string> allAuthors)
+    private static List<Placeholder> GetHtmlPlaceholders(this string text, string url, bool isSupportHashtagWithSpace, bool checkForRepliedAuthor, List<string> allAuthors)
     {
         Author repliedAuthor = null;
         bool hasRepliedAuthor =
@@ -177,7 +177,7 @@ internal static partial class CommentTextExtensions
 
         bool hasLink = text.HasLink();
 
-        bool hasHashtag = text.HasHashtag();
+        bool hasHashtag = text.HasHashtag(isSupportHashtagWithSpace);
 
         bool hasTimestamp =
             string.IsNullOrEmpty(url) == false &&
@@ -231,7 +231,7 @@ internal static partial class CommentTextExtensions
         if (hasHashtag)
         {
             placeholders.AddRange(
-                text.GetHashtags()
+                text.GetHashtags(isSupportHashtagWithSpace)
                 .Select(m => new Placeholder()
                 {
                     IsHashtag = true,
@@ -338,7 +338,7 @@ internal static partial class CommentTextExtensions
             sb.Insert(item.ToIndex, item.ToGuid).Insert(item.FromIndex, item.FromGuid);
     }
 
-    private static string ReplaceHtmlPlaceholders(StringBuilder sb, string url, string hashtagURL, bool lowerHashtag, List<Placeholder> placeholders)
+    private static string ReplaceHtmlPlaceholders(StringBuilder sb, string url, string hashtagURL, bool isToLowerCaseHashtag, List<Placeholder> placeholders)
     {
         var encodedLine = HttpUtility.HtmlEncode(sb.ToString());
 
@@ -373,9 +373,9 @@ internal static partial class CommentTextExtensions
             {
                 string value = item.Value.Replace("\n", string.Empty);
                 string hashtag = value[1..];
-                if (lowerHashtag)
+                if (isToLowerCaseHashtag)
                     hashtag = hashtag.ToLowerInvariant();
-                replacementPrefix = $"<a href='{HttpUtility.HtmlAttributeEncode($"{hashtagURL}/{hashtag}")}'>";
+                replacementPrefix = $"<a href='{HttpUtility.HtmlAttributeEncode($"{hashtagURL}{hashtag}")}'>";
                 replacementSuffix = "</a>";
             }
             else if (item.IsTimestamp)
@@ -581,17 +581,35 @@ internal static partial class CommentTextExtensions
 
     #region Hashtag
 
-    [GeneratedRegex(@"(?<=^|\s)#[A-Za-z0-9_]*[A-Za-z][A-Za-z0-9_]*(?=\s|$)")]
+    /* RegexHashtag:
+     *
+     * #word1 word2# (BiliBili)
+     * starts and ends with #
+     * at least one space between
+     * first and last letters are not a space
+     * 
+     * or
+     * 
+     * #word
+     * starts with #
+     * at least one letter (not digit or underscore)
+     */
+    [GeneratedRegex(@"(?<=^|\s)#\w[\w\s]*\s[\w\s]*\w#|(?<=^|\s)#\w*[\w-[\d_]]\w*(?=\s|$)")]
     private static partial Regex RegexHashtag();
 
-    public static bool HasHashtag(this string text)
+    [GeneratedRegex(@"(?<=^|\s)#\w*[\w-[\d_]]\w*(?=\s|$)")]
+    private static partial Regex RegexSingleWordHashtag();
+
+    public static bool HasHashtag(this string text, bool isSupportHashtagWithSpace)
     {
-        return string.IsNullOrEmpty(text) == false && RegexHashtag().IsMatch(text);
+        return
+            string.IsNullOrEmpty(text) == false &&
+            (isSupportHashtagWithSpace ? RegexHashtag() : RegexSingleWordHashtag()).IsMatch(text);
     }
 
-    public static MatchCollection GetHashtags(this string text)
+    public static MatchCollection GetHashtags(this string text, bool isSupportHashtagWithSpace)
     {
-        return RegexHashtag().Matches(text);
+        return (isSupportHashtagWithSpace ? RegexHashtag() : RegexSingleWordHashtag()).Matches(text);
     }
 
     #endregion

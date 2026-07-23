@@ -223,6 +223,10 @@ internal interface IEncodingOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(1)]
     int? EncodingCodePage { get; set; }
 
+    [Option("utf8", HelpText = "UTF-8. Code page 65001.")]
+    [OptionPrecedence(2)]
+    bool UTF8 { get; set; }
+
     [Option("arabic-iso", HelpText = "Arabic (ISO-8859-6). Code page 28596. Arabic, Persian, Urdu.")]
     bool ArabicISO { get; set; }
 
@@ -645,6 +649,7 @@ internal abstract class SharedOptions :
 
     // Encoding
     public int? EncodingCodePage { get; set; }
+    public bool UTF8 { get; set; }
     public bool ArabicISO { get; set; }
     public bool ArabicWindows { get; set; }
     public bool BalticISO4 { get; set; }
@@ -732,6 +737,7 @@ internal abstract class SharedOptions :
 
             // Encoding
             EncodingCodePage = EncodingCodePage,
+            UTF8 = UTF8,
             ArabicISO = ArabicISO,
             ArabicWindows = ArabicWindows,
             BalticISO4 = BalticISO4,
@@ -912,6 +918,7 @@ internal abstract class SharedOptions :
 
         // Encoding
         EncodingCodePage ??= options.EncodingCodePage;
+        UTF8 |= options.UTF8;
         ArabicISO |= options.ArabicISO;
         ArabicWindows |= options.ArabicWindows;
         BalticISO4 |= options.BalticISO4;
@@ -1070,6 +1077,7 @@ internal class TextsHelpOptions : ITextsOptions
 internal class EncodingHelpOptions : IEncodingOptions
 {
     public int? EncodingCodePage { get; set; }
+    public bool UTF8 { get; set; }
     public bool ArabicISO { get; set; }
     public bool ArabicWindows { get; set; }
     public bool BalticISO4 { get; set; }

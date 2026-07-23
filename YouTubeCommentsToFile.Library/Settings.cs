@@ -47,6 +47,7 @@ public class Settings
 
     // Encoding
     public int? EncodingCodePage { get; set; }
+    [CodePage(65001)] public bool UTF8 { get; set; }
     [CodePage(28596)] public bool ArabicISO { get; set; }
     [CodePage(1256)] public bool ArabicWindows { get; set; }
     [CodePage(28594)] public bool BalticISO4 { get; set; }

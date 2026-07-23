@@ -348,8 +348,8 @@ YouTubeCommentsToFile ([convert]|download)
     [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
     [-t <texts>] [--thi <texts>]
 
-    [--encoding-code-page <codepage>] [--arabic-iso] [--arabic-windows]
-    [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
+    [--encoding-code-page <codepage>] [--utf8] [--arabic-iso]
+    [--arabic-windows] [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
     [--central-european] [--chinese-simplified] [--chinese-traditional]
     [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
     [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
@@ -549,6 +549,7 @@ If the video page is not in English (the title, the description, majority of the
 Or, use one of these predefined encodings.
 
 ```console
+--utf8                        UTF-8. Code page 65001.
 --arabic-iso                  Arabic (ISO-8859-6). Code page 28596.
                               Arabic, Persian, Urdu.
 --arabic-windows              Arabic (Windows-1256). Code page 1256.

@@ -151,7 +151,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
     {
         return string.Join(Environment.NewLine, ToLines(
             settings: new(),
-            websiteInfo: WebsiteInfo.YouTube,
+            websiteInfo: new YouTube(),
             uploaderId: null,
             indentCount: 0,
             textLineLength: CommentsWriter.TEXT_LINE_MAX_LENGTH,
@@ -298,7 +298,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                     if (IsHighlight && lineLength == 0)
                         line = " ";
 
-                    yield return $"{(settings.HideLikes && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
+                    yield return $"{(settings.HideLikes && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
                 }
                 else
                 {
@@ -317,7 +317,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             {
                 if (writeToHTML)
                 {
-                    string[] innerLines = line.SplitToHtmlLines(lineCh, settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: i == 0, allAuthors);
+                    string[] innerLines = line.SplitToHtmlLines(lineCh, settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors);
                     for (int k = 0; k < innerLines.Length; k++)
                     {
                         string innerLine = (innerLines[k] ?? string.Empty).Trim();

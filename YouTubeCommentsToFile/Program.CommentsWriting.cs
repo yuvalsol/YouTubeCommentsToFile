@@ -15,6 +15,8 @@ internal static partial class Program
             download = e.Download;
             WriteLine(GetVersion(), operationOptions);
             WriteLine(e.Download ? $"Download {e.URL}" : $"Convert {Path.GetFileName(e.JsonFile)}", operationOptions);
+            if (string.IsNullOrEmpty(e.EncodingName) == false)
+                WriteVerboseProperty("Encoding", [e.EncodingName]);
         };
 
         writer.StartDownloadComments += (sender, e) =>
@@ -36,9 +38,16 @@ internal static partial class Program
                 lock (lockObj)
                 {
                     if (e.IsError)
-                        WriteErrorLine(e.Line, operationOptions);
+                    {
+                        if (string.IsNullOrEmpty(e.Line) == false && e.Line.StartsWith("WARNING"))
+                            WriteLine(e.Line, ConsoleColor.DarkYellow, operationOptions);
+                        else
+                            WriteErrorLine(e.Line, operationOptions);
+                    }
                     else
+                    {
                         WriteLine(e.Line, operationOptions);
+                    }
                 }
             };
         }

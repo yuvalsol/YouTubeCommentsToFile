@@ -288,14 +288,10 @@ public partial class CommentsWriter(Settings settings)
                 throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Maximum line length is {TEXT_LINE_MAX_LENGTH} characters.");
         }
 
-        Start?.Raise(this, () => new StartEventArgs(settings.Download, settings.URL, settings.JsonFile));
-
-        #region Encoding
-
         codePage = GetEncodingCodePage();
         encoding = GetEncoding(codePage);
 
-        #endregion
+        Start?.Raise(this, () => new StartEventArgs(settings.Download, settings.URL, settings.JsonFile, encoding?.EncodingName));
 
         #region Get Video Info
 
@@ -445,7 +441,7 @@ public partial class CommentsWriter(Settings settings)
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
                 videoInfo.UploaderID = uploaderId;
-                videoInfo.UploaderURL = $"{websiteInfo.ChannelURL}/{uploaderId}";
+                videoInfo.UploaderURL = $"{websiteInfo.ChannelURL}{uploaderId}";
             }
 
             FinishProcessComments?.Raise(this, () => new FinishProcessCommentsEventArgs(videoInfo, commentsCount, totalComments));
@@ -521,7 +517,7 @@ public partial class CommentsWriter(Settings settings)
     {
         if (string.IsNullOrEmpty(settings.URL))
         {
-            websiteInfo = WebsiteInfo.YouTube;
+            websiteInfo = new YouTube();
             return true;
         }
 
@@ -538,122 +534,31 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(uriBuilder.Host))
             return false;
 
-        if (IsYouTubeURL(uriBuilder))
-        {
-            if (ValidateYouTubeURL(uriBuilder) == false)
-                return false;
-
-            settings.URL = CleanYouTubeURL(uriBuilder);
-            websiteInfo = WebsiteInfo.YouTube;
+        if (ValidateAndCleanURL(new YouTube(), uriBuilder))
             return true;
-        }
 
-        if (IsBiliBiliURL(uriBuilder) || IsBiliBiliGlobalURL(uriBuilder))
-        {
-            if (ValidateBiliBiliURL(uriBuilder) == false)
-                return false;
-
-            settings.URL = CleanBiliBiliURL(uriBuilder);
-            websiteInfo = (IsBiliBiliGlobalURL(uriBuilder) ? WebsiteInfo.BiliBiliGlobal : WebsiteInfo.BiliBili);
+        if (ValidateAndCleanURL(new BiliBili(), uriBuilder))
             return true;
-        }
 
-        websiteInfo = new WebsiteInfo(uriBuilder);
+        if (ValidateAndCleanURL(new WebsiteInfo(uriBuilder), uriBuilder))
+            return true;
+
+        return false;
+    }
+
+    private bool ValidateAndCleanURL(WebsiteInfo website, UriBuilder uriBuilder)
+    {
+        if (website.ValidateURL(uriBuilder, out string cleanURL) == false)
+            return false;
+
+        websiteInfo = website;
+        settings.URL = cleanURL;
         return true;
-    }
-
-    private static bool IsYouTubeURL(UriBuilder uriBuilder)
-    {
-        return
-            uriBuilder.Host.Contains("youtube.") ||
-            uriBuilder.Host.Contains(".youtube");
-    }
-
-    private static bool ValidateYouTubeURL(UriBuilder uriBuilder)
-    {
-        bool hasWatch = uriBuilder.Path.StartsWith("/watch");
-        bool hasShorts = uriBuilder.Path.StartsWith("/shorts");
-        if (hasWatch == false && hasShorts == false)
-            return false;
-
-        // https://www.youtube.com/watch?v=*
-        bool hasV =
-            string.IsNullOrEmpty(uriBuilder.Query) == false &&
-            string.IsNullOrEmpty(HttpUtility.ParseQueryString(uriBuilder.Query)["v"]) == false;
-        if (hasWatch && hasV)
-            return true;
-
-        // https://www.youtube.com/watch/*
-        // https://www.youtube.com/shorts/*
-        return
-            (uriBuilder.Path.StartsWith("/watch/") && uriBuilder.Path.EndsWith("/watch/") == false) ||
-            (uriBuilder.Path.StartsWith("/shorts/") && uriBuilder.Path.EndsWith("/shorts/") == false);
-    }
-
-    private static string CleanYouTubeURL(UriBuilder uriBuilder)
-    {
-        CleanQueryString(uriBuilder, "v");
-        return uriBuilder.Uri.ToString();
-    }
-
-    private static bool IsBiliBiliURL(UriBuilder uriBuilder)
-    {
-        return
-            uriBuilder.Host.Contains("bilibili.com.") ||
-            uriBuilder.Host.Contains(".bilibili.com");
-    }
-
-    private static bool IsBiliBiliGlobalURL(UriBuilder uriBuilder)
-    {
-        return
-            uriBuilder.Host.Contains("bilibili.tv.") ||
-            uriBuilder.Host.Contains(".bilibili.tv");
-    }
-
-    private static bool ValidateBiliBiliURL(UriBuilder uriBuilder)
-    {
-        if (string.IsNullOrEmpty(uriBuilder.Path))
-            return false;
-
-        if ((uriBuilder.Path.Contains("/video/") || uriBuilder.Path.Contains("/bangumi/play/")) == false)
-            return false;
-
-        return true;
-    }
-
-    private static string CleanBiliBiliURL(UriBuilder uriBuilder)
-    {
-        CleanQueryString(uriBuilder, "p");
-        return uriBuilder.Uri.ToString();
-    }
-
-    private static void CleanQueryString(UriBuilder uriBuilder, params string[] parametersToKeep)
-    {
-        if (parametersToKeep.IsNullOrEmpty())
-            return;
-
-        var query = HttpUtility.ParseQueryString(uriBuilder.Query);
-        var parametersToRemove = query.AllKeys.Except(parametersToKeep);
-        if (parametersToRemove.IsNullOrEmpty())
-            return;
-
-        foreach (var parameter in parametersToRemove)
-            query.Remove(parameter);
-        uriBuilder.Query = query.ToString();
     }
 
     #endregion
 
     #region Encoding
-
-    private static Encoding GetEncoding(int codePage)
-    {
-        if (codePage == -1)
-            return null;
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        return Encoding.GetEncoding(codePage);
-    }
 
     private int GetEncodingCodePage()
     {
@@ -666,7 +571,16 @@ public partial class CommentsWriter(Settings settings)
             .Where(x => x.attr != null)
             .Where(x => x.getter.GetValue(settings) as bool? == true)
             .Select(x => x.attr.CodePage)
-            .FirstOrDefault(-1);
+            .FirstOrDefault(websiteInfo.EncodingCodePage ?? -1);
+    }
+
+    private static Encoding GetEncoding(int codePage)
+    {
+        if (codePage == -1)
+            return null;
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(codePage);
     }
 
     #endregion
@@ -701,8 +615,7 @@ public partial class CommentsWriter(Settings settings)
         if (max_comments != null || comment_sort != null)
         {
             string ytDlpExtractor =
-                new UriBuilder(settings.URL).Host
-                .ToLowerInvariant()
+                new UriBuilder(settings.URL).Host.ToLowerInvariant()
                 .Replace("www.", string.Empty)
                 .Replace(".com", string.Empty)
                 .Replace(".net", string.Empty)
@@ -1634,7 +1547,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (writeToHTML)
                 {
-                    string html = line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: false, allAuthors);
+                    string html = line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
 
                     if (isLineRTL)
                         yield return $"<span class='rtl width-{textLineLength}'>{html}</span>";
@@ -1650,7 +1563,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (writeToHTML)
                 {
-                    string[] innerLines = line.SplitToHtmlLines(textLineLength, settings.URL, websiteInfo.HashtagURL, websiteInfo.LowerHashtag, checkForRepliedAuthor: false, allAuthors);
+                    string[] innerLines = line.SplitToHtmlLines(textLineLength, settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
                     for (int k = 0; k < innerLines.Length; k++)
                     {
                         string html = (innerLines[k] ?? string.Empty).Trim();

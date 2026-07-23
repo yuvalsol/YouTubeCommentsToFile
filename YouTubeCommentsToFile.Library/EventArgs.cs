@@ -1,10 +1,11 @@
 ﻿namespace YouTubeCommentsToFile.Library;
 
-public sealed class StartEventArgs(bool download, string url, string jsonFile) : EventArgs
+public sealed class StartEventArgs(bool download, string url, string jsonFile, string encodingName) : EventArgs
 {
     public bool Download => download;
     public string URL => url;
     public string JsonFile => jsonFile;
+    public string EncodingName => encodingName;
 }
 
 public sealed class StartDownloadCommentsEventArgs(string url, string ytDlpCommandLine) : EventArgs
