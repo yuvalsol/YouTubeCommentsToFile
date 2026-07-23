@@ -4,7 +4,7 @@ namespace YouTubeCommentsToFile;
 
 internal static partial class Program
 {
-    private static void WriteCommentsToFile(IOperationOptions operationOptions)
+    private static void WriteCommentsToFile(IOperationOptions operationOptions, out bool finishedWithErrors)
     {
         var writer = new CommentsWriter(operationOptions.ToSettings());
 
@@ -53,6 +53,7 @@ internal static partial class Program
         }
 
         bool isPrintedJsonFile = false;
+        bool hasErrors = false;
 
         writer.FinishDownloadComments += (sender, e) =>
         {
@@ -72,6 +73,7 @@ internal static partial class Program
                     if (operationOptions.YtDlpQuiet)
                         WriteLine(operationOptions);
                     WriteErrorLine("Failed to download comments JSON file.", operationOptions);
+                    hasErrors = true;
                 }
             }
         };
@@ -98,14 +100,15 @@ internal static partial class Program
                 WriteVerboseProperty("Title", [e.VideoInfo.Title]);
                 if (string.IsNullOrEmpty(e.VideoInfo.Uploader) == false)
                     WriteVerboseProperty("Uploader", [e.VideoInfo.Uploader]);
-                else if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
-                    WriteVerboseProperty("Uploader", [e.VideoInfo.UploaderID]);
+                if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
+                    WriteVerboseProperty("Uploader ID", [e.VideoInfo.UploaderID]);
                 isPrintedVideoTitle = true;
             }
             else
             {
                 WriteLine(operationOptions);
                 WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo), operationOptions);
+                hasErrors = true;
             }
         };
 
@@ -116,8 +119,8 @@ internal static partial class Program
                 WriteVerboseProperty("Title", [e.VideoInfo.Title]);
                 if (string.IsNullOrEmpty(e.VideoInfo.Uploader) == false)
                     WriteVerboseProperty("Uploader", [e.VideoInfo.Uploader]);
-                else if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
-                    WriteVerboseProperty("Uploader", [e.VideoInfo.UploaderID]);
+                if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
+                    WriteVerboseProperty("Uploader ID", [e.VideoInfo.UploaderID]);
             }
 
             Write("Loading JSON file...", operationOptions);
@@ -137,6 +140,7 @@ internal static partial class Program
                 WriteErrorLine("Failed to load JSON file.", operationOptions);
                 if (isPrintedJsonFile == false)
                     WriteErrorLine($"JSON File: {e.JsonFile}", operationOptions);
+                hasErrors = true;
             }
         };
 
@@ -166,6 +170,7 @@ internal static partial class Program
             {
                 WriteLine(operationOptions);
                 WriteErrorLine("Failed to process comments.", operationOptions);
+                hasErrors = true;
             }
         };
 
@@ -181,6 +186,7 @@ internal static partial class Program
         {
             warningMessages.Add(e.Error.GetExceptionErrorMessage($"{(string.IsNullOrEmpty(e.Id) ? null : $"COMMENT ID: {e.Id}{Environment.NewLine}")}{(string.IsNullOrEmpty(e.Parent) ? null : $"PARENT ID: {e.Parent}{Environment.NewLine}")}COMMENT:{Environment.NewLine}{e.Comment}", withoutDebuggingInfo));
             lostComments += e.LostComments;
+            hasErrors = true;
         };
 
         writer.FinishWriteComments += (sender, e) =>
@@ -207,6 +213,8 @@ internal static partial class Program
                     WriteWarningLine(seperator, operationOptions);
                     WriteWarningLine(string.Join($"{Environment.NewLine}{seperator}{Environment.NewLine}", warningMessages), operationOptions);
                 }
+
+                hasErrors = true;
             }
         };
 
@@ -225,6 +233,7 @@ internal static partial class Program
             {
                 WriteLine(operationOptions);
                 WriteErrorLine("Failed to delete JSON file.", operationOptions);
+                hasErrors = true;
             }
         };
 
@@ -243,6 +252,7 @@ internal static partial class Program
             else
             {
                 WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo), operationOptions);
+                hasErrors = true;
             }
         };
 
@@ -258,5 +268,6 @@ internal static partial class Program
         }
 
         writer.WriteCommentsToFile();
+        finishedWithErrors = hasErrors;
     }
 }

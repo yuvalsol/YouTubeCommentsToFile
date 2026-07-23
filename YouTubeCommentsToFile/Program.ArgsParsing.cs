@@ -10,6 +10,7 @@ internal static partial class Program
     {
         IOperationOptions operationOptions = null;
         List<(string message, ConsoleColor color)[]> verboseMessages = [];
+        bool finishedWithErrors = false;
 
         try
         {
@@ -32,6 +33,7 @@ internal static partial class Program
             }
             else if (parsingResult == ParsingResult.Error)
             {
+                finishedWithErrors = true;
                 return -1;
             }
 
@@ -57,6 +59,7 @@ internal static partial class Program
             {
                 if (operationOptions.Verbose)
                     WriteMessages(verboseMessages, operationOptions, singleLine: false);
+                finishedWithErrors = true;
                 return -1;
             }
 
@@ -72,7 +75,8 @@ internal static partial class Program
             {
                 if (operationOptions.Verbose)
                     WriteMessages(verboseMessages, operationOptions, singleLine: false);
-                WriteCommentsToFile(operationOptions);
+
+                WriteCommentsToFile(operationOptions, out finishedWithErrors);
             }
 
             return 0;
@@ -80,18 +84,20 @@ internal static partial class Program
         catch (ArgumentException ex)
         {
             WriteErrorLine(HandledArgumentException(ex), operationOptions ?? GetOperationOptions(args));
+            finishedWithErrors = true;
             return -1;
         }
         catch (Exception ex)
         {
             WriteErrorLine(UnhandledException(ex), operationOptions ?? GetOperationOptions(args));
+            finishedWithErrors = true;
             return -1;
         }
         finally
         {
             var options = operationOptions ?? GetOperationOptions(args);
 
-            if (options.Beep && options.Quiet == false)
+            if (options.Quiet == false && (options.Beep || (options.BeepErrors && finishedWithErrors)))
                 Console.Beep();
 
             if (Debugger.IsAttached)
@@ -110,13 +116,15 @@ internal static partial class Program
         string ytDlpQuiet = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.YtDlpQuiet));
 
         string beep = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.Beep));
+        string beepErrors = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.BeepErrors));
 
         return new ConvertOptions()
         {
             Verbose = args.HasAny(arg => arg == verbose1 || arg == verbose2),
             Quiet = args.HasAny(arg => arg == quiet1 || arg == quiet2),
             YtDlpQuiet = args.HasAny(arg => arg == ytDlpQuiet),
-            Beep = args.HasAny(arg => arg == beep)
+            Beep = args.HasAny(arg => arg == beep),
+            BeepErrors = args.HasAny(arg => arg == beepErrors)
         };
     }
 

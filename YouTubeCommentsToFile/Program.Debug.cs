@@ -20,7 +20,8 @@ internal static partial class Program
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
-        //    Verbose = true
+        //    Verbose = true,
+        //    BeepErrors = true
         //});
 
         //return RunDebug(new ConvertOptions
@@ -32,7 +33,8 @@ internal static partial class Program
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
-        //    Verbose = true
+        //    Verbose = true,
+        //    BeepErrors = true
         //});
 
         //return GetVideoInfo("", @"");

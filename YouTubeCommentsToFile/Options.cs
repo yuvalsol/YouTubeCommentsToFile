@@ -424,6 +424,10 @@ internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(1)]
     bool Beep { get; set; }
 
+    [Option("beep-errors", HelpText = "Make a beep sound when finished with errors. If used with '--quiet', make no sound.")]
+    [OptionPrecedence(2)]
+    bool BeepErrors { get; set; }
+
     [Option('h', "help", HelpText = "Display help screen.")]
     bool Help { get; set; }
 
@@ -710,6 +714,7 @@ internal abstract class SharedOptions :
 
     // General
     public bool Beep { get; set; }
+    public bool BeepErrors { get; set; }
     public bool Help { get; set; }
     public bool Version { get; set; }
 
@@ -974,6 +979,7 @@ internal abstract class SharedOptions :
 
         // General
         Beep |= options.Beep;
+        BeepErrors |= options.BeepErrors;
         Help |= options.Help;
         Version |= options.Version;
     }
@@ -1146,6 +1152,7 @@ internal class VerbosityHelpOptions : IVerbosityOptions
 internal class GeneralHelpOptions : IGeneralOptions
 {
     public bool Beep { get; set; }
+    public bool BeepErrors { get; set; }
     public bool Help { get; set; }
     public bool Version { get; set; }
 }

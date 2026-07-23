@@ -372,7 +372,7 @@ YouTubeCommentsToFile ([convert]|download)
 
     [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet]
 
-    [--beep] [-h] [--help] [--version]
+    [--beep] [--beep-errors] [-h] [--help] [--version]
 ```
 
 ### Shared Options
@@ -999,7 +999,7 @@ Configuration file `download.conf`:
 
 ### Verbosity
 
-These options determine what and how much is printed to console.
+These options determine what and how much is printed out.
 
 ```console
 -v, --verbose    Print debugging information.
@@ -1011,10 +1011,12 @@ These options determine what and how much is printed to console.
 ### General
 
 ```console
---beep        Make a beep sound when finished.
-              If used with '--quiet', make no sound.
--h, --help    Display help screen.
---version     Display version information.
+--beep           Make a beep sound when finished.
+                 If used with '--quiet', make no sound.
+--beep-errors    Make a beep sound when finished with errors.
+                 If used with '--quiet', make no sound.
+-h, --help       Display help screen.
+--version        Display version information.
 ```
 
 ## Acknowledgments
