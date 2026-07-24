@@ -132,7 +132,8 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
     #region To Lines, To String, To Error
 
-    public virtual bool AuthorIsYouTube => Author == "@YouTube";
+    public virtual bool AuthorIsYouTube => Author == "@YouTube" || Author == "YouTube";
+    public virtual bool AuthorIsBiliBili => Author == "@BiliBili" || Author == "BiliBili" || Author == "@哔哩哔哩" || Author == "哔哩哔哩";
     protected virtual string MissingAuthor => "Missing Author";
 
     public virtual string ToError()
@@ -224,9 +225,9 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             else
             {
                 if (string.IsNullOrEmpty(AuthorURL))
-                    authorPart = $"<span{anchorReplyId} class='{(AuthorIsYouTube ? "youtube" : (AuthorIsUploader ? "uploader" : "author"))}'>{HttpUtility.HtmlEncode(Author)}</span>";
+                    authorPart = $"<span{anchorReplyId} class='{(AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")))}'>{HttpUtility.HtmlEncode(Author)}</span>";
                 else
-                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='{(AuthorIsYouTube ? "youtube" : (AuthorIsUploader ? "uploader" : "author"))}'>{HttpUtility.HtmlEncode(Author)}</span></a>";
+                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='{(AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")))}'>{HttpUtility.HtmlEncode(Author)}</span></a>";
             }
 
             string timePart = null;

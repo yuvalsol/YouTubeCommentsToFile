@@ -19,6 +19,7 @@ public partial class CommentsWriter(Settings settings)
     private bool hasHighlightAuthor;
     private bool hasHighlightText;
     private bool hasYouTube;
+    private bool hasBiliBili;
 
 #if DEBUG
     private static readonly bool HighlightAllComments = false;
@@ -95,6 +96,8 @@ public partial class CommentsWriter(Settings settings)
     private static readonly Color HeartColor = Color.FromArgb(255, 0, 51);
     private static readonly Color YouTubeTextColor = Color.White;
     private static readonly Color YouTubeBackgroundColor = Color.Red;
+    private static readonly Color BiliBiliTextColor = Color.White;
+    private static readonly Color BiliBiliBackgroundColor = Color.FromArgb(6, 182, 242);
 
     #endregion
 
@@ -436,7 +439,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out hasYouTube, out commentsCount, out totalComments);
+            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out hasYouTube, out hasBiliBili, out commentsCount, out totalComments);
 
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
@@ -984,6 +987,7 @@ public partial class CommentsWriter(Settings settings)
         out bool hasHighlightAuthor,
         out bool hasHighlightText,
         out bool hasYouTube,
+        out bool hasBiliBili,
         out int commentsCount,
         out int totalComments)
     {
@@ -991,6 +995,7 @@ public partial class CommentsWriter(Settings settings)
 
         uploaderId = comments.FirstOrDefault(c => c.AuthorIsUploader)?.Author;
         hasYouTube = comments.HasAny(c => c.AuthorIsYouTube);
+        hasBiliBili = comments.HasAny(c => c.AuthorIsBiliBili);
 
         allAuthors = [.. comments
             .Select(c => c.Author)
@@ -1290,6 +1295,8 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             if (hasYouTube)
                 writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeTextColor.ToRgb()}); background-color: rgb({YouTubeBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+            if (hasBiliBili)
+                writer.WriteLine($"{s8}.bilibili {{ color: rgb({BiliBiliTextColor.ToRgb()}); background-color: rgb({BiliBiliBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: rgb({repliedAuthorColor.ToRgb()}); font-weight: bold; }}");
