@@ -11,8 +11,6 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
     public virtual bool AuthorIsUploader { get; set; }
 
     protected virtual int LikeCount { get; set; }
-    protected virtual int Ups { get; set; }
-    protected virtual int Downs { get; set; }
     protected virtual string AuthorURL { get; set; }
     protected virtual bool IsFavorited { get; set; }
     protected virtual string TimeText { get; set; }
@@ -172,92 +170,98 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         List<string> allAuthors,
         bool writeToHTML)
     {
+        bool isHTMLHighlight = writeToHTML && IsHighlight;
+        bool isTextHighlight = writeToHTML == false && IsHighlight;
+
         int widthCh = textLineLength - indentCount;
         if (widthCh < textLineLengthRepliesDeep)
             widthCh = textLineLengthRepliesDeep;
 
         int lineCh = widthCh;
-        if (writeToHTML == false && IsHighlight)
+        if (isTextHighlight)
             lineCh -= 4; // "│ " + line + " │"
 
-        string highlightClass = (writeToHTML && IsHighlight ? (IsHighlightUploader ? "highlight-uploader" : (IsHighlightAuthor ? "highlight-author" : "highlight-text")) : null);
-        string openHighlightBorderTop = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-top width-{lineCh}'>" : null);
-        string openHighlightBorderMiddle = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-middle width-{lineCh}'>" : null);
-        string openHighlightBorderBottom = (writeToHTML && IsHighlight ? $"<span class='{highlightClass} highlight-border-bottom width-{lineCh}'>" : null);
-        string closeHighlightBorder = (writeToHTML && IsHighlight ? "</span>" : null);
+        string highlightClass = (isHTMLHighlight ? (IsHighlightUploader ? "highlight-uploader" : (IsHighlightAuthor ? "highlight-author" : "highlight-text")) : null);
+        string openHighlightBorderTop = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-top width-{lineCh}'>" : null);
+        string openHighlightBorderMiddle = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-middle width-{lineCh}'>" : null);
+        string openHighlightBorderBottom = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-bottom width-{lineCh}'>" : null);
+        string closeHighlightBorder = (isHTMLHighlight ? "</span>" : null);
 
         string id = (writeToHTML ? $"c{CommentNumber}{(IsReply ? $"r{ReplyNumber}" : null)}" : null);
 
-        bool isFavorited = IsFavorited && string.IsNullOrEmpty(uploaderId) == false;
-
-        string commentLink = null;
-        if (settings.ShowCommentLink || writeToHTML)
+        string commentURLPart = null;
+        if (ShowCommentLink(settings) || writeToHTML)
         {
             if (websiteInfo.IsCommentURLQueryString)
-                commentLink = $"&{websiteInfo.CommentURLParameter}={Id}";
+                commentURLPart = $"&{websiteInfo.CommentURLParameter}={Id}";
             else if (websiteInfo.IsCommentURLPath)
-                commentLink = $"/{Id}";
+                commentURLPart = $"/{Id}";
         }
 
-        if (IsPinned)
+        if (ShowPinned())
         {
+            string line = $"Pinned{(string.IsNullOrEmpty(uploaderId) ? null : $" by {uploaderId}")}";
+
             if (writeToHTML)
-                yield return $"<span class='pinned'>{HttpUtility.HtmlEncode($"Pinned{(string.IsNullOrEmpty(uploaderId) ? null : $" by {uploaderId}")}")}</span>";
+                yield return $"<span class='pinned'>{HttpUtility.HtmlEncode(line)}</span>";
             else
-                yield return $"Pinned{(string.IsNullOrEmpty(uploaderId) ? null : $" by {uploaderId}")}";
+                yield return line;
         }
 
-        if (writeToHTML == false && IsHighlight)
+        if (isTextHighlight)
             yield return $"┌{new string('─', widthCh - 2)}┐";
 
         if (writeToHTML)
         {
             string anchorReplyId = (IsReply ? $" id='c{CommentNumber}r{ReplyNumber}'" : null);
 
-            string authorPart;
+            string author;
             if (string.IsNullOrEmpty(Author))
             {
                 if (string.IsNullOrEmpty(AuthorURL))
-                    authorPart = $"<span{anchorReplyId} class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span>";
+                    author = $"<span{anchorReplyId} class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span>";
                 else
-                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span></a>";
+                    author = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span></a>";
             }
             else
             {
+                string authorClass = (AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")));
+
                 if (string.IsNullOrEmpty(AuthorURL))
-                    authorPart = $"<span{anchorReplyId} class='{(AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")))}'>{HttpUtility.HtmlEncode(Author)}</span>";
+                    author = $"<span{anchorReplyId} class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span>";
                 else
-                    authorPart = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='{(AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")))}'>{HttpUtility.HtmlEncode(Author)}</span></a>";
+                    author = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span></a>";
             }
 
-            string timePart = null;
-            if (settings.HideTime == false && string.IsNullOrEmpty(TimeText) == false)
+            string time = null;
+            if (ShowTime(settings))
             {
-                if (string.IsNullOrEmpty(settings.URL) || string.IsNullOrEmpty(commentLink))
-                    timePart = $" <span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span>";
+                if (string.IsNullOrEmpty(settings.URL) || string.IsNullOrEmpty(commentURLPart))
+                    time = $" <span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span>";
                 else
-                    timePart = $" <a href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentLink}")}'><span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span></a>";
+                    time = $" <a href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentURLPart}")}'><span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span></a>";
             }
 
-            string commentLinkPart = null;
-            if (settings.ShowCommentLink && string.IsNullOrEmpty(commentLink) == false)
+            string commentLink = null;
+            if (ShowCommentLink(settings) && string.IsNullOrEmpty(commentURLPart) == false)
             {
                 if (string.IsNullOrEmpty(settings.URL))
-                    commentLinkPart = $" <span class='comment-link-text'>{commentLink}</span>";
+                    commentLink = $" <span class='comment-link-text'>{commentURLPart}</span>";
                 else
-                    commentLinkPart = $" <a class='link' href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentLink}")}'><span class='comment-link'>Highlighted {(IsReply ? "Reply" : "Comment")}</span></a>";
+                    commentLink = $" <a class='link' href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentURLPart}")}'><span class='comment-link'>Highlighted {(IsReply ? "Reply" : "Comment")}</span></a>";
             }
 
-            string copyTextPart = null;
+            string copyText = null;
             if (settings.ShowCopyLinks)
-                copyTextPart = $" <span class='copy-text' data-id='{id}' title='Copy {(IsReply ? "Reply" : "Comment")} To Clipboard'>Copy</span>";
+                copyText = $" <span class='copy-text' data-id='{id}' title='Copy {(IsReply ? "Reply" : "Comment")} To Clipboard'>Copy</span>";
 
-            yield return $"{openHighlightBorderTop}{authorPart}{timePart}{commentLinkPart}{copyTextPart}{closeHighlightBorder}";
+            yield return $"{openHighlightBorderTop}{author}{time}{commentLink}{copyText}{closeHighlightBorder}";
         }
         else
         {
-            string line = $"{(string.IsNullOrEmpty(Author) ? MissingAuthor : Author)}{(settings.HideTime || string.IsNullOrEmpty(TimeText) ? null : $" {TimeText}")}";
-            if (IsHighlight)
+            string line = $"{(string.IsNullOrEmpty(Author) ? MissingAuthor : Author)}{(ShowTime(settings) ? $" {TimeText}" : null)}";
+
+            if (isTextHighlight)
             {
                 int diff = lineCh - line.GetTextLengthForTextFile();
                 yield return $"{(IsReply ? '┤' : '│')} {line}{(diff > 0 ? new string(' ', diff) : null)} │";
@@ -267,10 +271,11 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                 yield return line;
             }
 
-            if (settings.ShowCommentLink && string.IsNullOrEmpty(commentLink) == false)
+            if (ShowCommentLink(settings) && string.IsNullOrEmpty(commentURLPart) == false)
             {
-                line = $"{settings.URL}{commentLink}";
-                if (IsHighlight)
+                line = $"{settings.URL}{commentURLPart}";
+
+                if (isTextHighlight)
                 {
                     int diff = lineCh - line.GetTextLengthForTextFile();
                     yield return $"│ {line}{(diff > 0 ? new string(' ', diff) : null)} │";
@@ -296,14 +301,14 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             {
                 if (writeToHTML)
                 {
-                    if (IsHighlight && lineLength == 0)
+                    if (isHTMLHighlight && lineLength == 0)
                         line = " ";
 
-                    yield return $"{(settings.HideLikes && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
+                    yield return $"{(ShowLikes(settings) == false && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
                 }
                 else
                 {
-                    if (IsHighlight)
+                    if (isTextHighlight)
                     {
                         int diff = lineCh - lineLength;
                         yield return $"│ {line}{(diff > 0 ? new string(' ', diff) : null)} │";
@@ -323,10 +328,10 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                     {
                         string innerLine = (innerLines[k] ?? string.Empty).Trim();
 
-                        if (IsHighlight && innerLine.Length == 0)
+                        if (isHTMLHighlight && innerLine.Length == 0)
                             innerLine = " ";
 
-                        yield return $"{(settings.HideLikes && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{innerLine}</span>{closeHighlightBorder}";
+                        yield return $"{(ShowLikes(settings) == false && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{innerLine}</span>{closeHighlightBorder}";
                     }
                 }
                 else
@@ -335,7 +340,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                     for (int k = 0; k < innerLines.Length; k++)
                     {
                         string innerLine = (innerLines[k] ?? string.Empty).Trim();
-                        if (IsHighlight)
+                        if (isTextHighlight)
                         {
                             int diff = lineCh - innerLine.GetTextLengthForTextFile();
                             yield return $"│ {innerLine}{(diff > 0 ? new string(' ', diff) : null)} │";
@@ -349,7 +354,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             }
         }
 
-        if (settings.HideLikes == false)
+        if (ShowLikes(settings))
         {
             string line = $"{LikeCount} Like{(LikeCount == 1 ? string.Empty : "s")}";
 
@@ -359,7 +364,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             }
             else
             {
-                if (IsHighlight)
+                if (isTextHighlight)
                 {
                     int diff = lineCh - line.GetTextLengthForTextFile();
                     yield return $"│ {line}{(diff > 0 ? new string(' ', diff) : null)} │";
@@ -371,16 +376,21 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             }
         }
 
-        if (writeToHTML == false && IsHighlight)
-            yield return $"{(Count > 0 && isFavorited == false ? '├' : '└')}{new string('─', widthCh - 2)}┘";
+        if (isTextHighlight)
+            yield return $"{(Count > 0 && ShowFavorited(uploaderId) == false ? '├' : '└')}{new string('─', widthCh - 2)}┘";
 
-        if (isFavorited)
+        if (ShowFavorited(uploaderId))
         {
             if (writeToHTML)
                 yield return $"<span class='favorited'><span class='heart'>{HttpUtility.HtmlEncode("❤")}</span>{HttpUtility.HtmlEncode($" by {uploaderId}")}</span>";
             else
                 yield return $"♥ by {uploaderId}";
         }
+    }
+
+    public virtual bool HasRTLLine(bool writeToHTML)
+    {
+        return GetLines(writeToHTML).HasRTLLine();
     }
 
     protected virtual string[] GetLines(bool writeToHTML)
@@ -403,9 +413,33 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         return lines;
     }
 
-    public virtual bool HasRTLLine(bool writeToHTML)
+    protected virtual bool ShowTime(Settings settings)
     {
-        return GetLines(writeToHTML).HasRTLLine();
+        return
+            settings.HideTime == false &&
+            string.IsNullOrEmpty(TimeText) == false;
+    }
+
+    protected virtual bool ShowCommentLink(Settings settings)
+    {
+        return settings.ShowCommentLink;
+    }
+
+    protected virtual bool ShowPinned()
+    {
+        return IsPinned;
+    }
+
+    protected virtual bool ShowLikes(Settings settings)
+    {
+        return settings.HideLikes == false;
+    }
+
+    protected virtual bool ShowFavorited(string uploaderId)
+    {
+        return
+            IsFavorited &&
+            string.IsNullOrEmpty(uploaderId) == false;
     }
 
     #endregion
