@@ -19,6 +19,10 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
     public virtual bool IsTopLevelComment => string.IsNullOrEmpty(Parent);
     public virtual bool IsReply => !IsTopLevelComment;
 
+    protected virtual string MissingAuthor => "Missing Author";
+
+    public static SpecialAuthor[] SpecialAuthors { get; protected set; }
+
     #endregion
 
     #region Comment Writing Properties
@@ -130,10 +134,6 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
     #region To Lines, To String, To Error
 
-    public virtual bool AuthorIsYouTube => Author == "@YouTube" || Author == "YouTube";
-    public virtual bool AuthorIsBiliBili => Author == "@BiliBili" || Author == "BiliBili" || Author == "@哔哩哔哩" || Author == "哔哩哔哩";
-    protected virtual string MissingAuthor => "Missing Author";
-
     public virtual string ToError()
     {
         try
@@ -225,7 +225,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             }
             else
             {
-                string authorClass = (AuthorIsYouTube ? "youtube" : (AuthorIsBiliBili ? "bilibili" : (AuthorIsUploader ? "uploader" : "author")));
+                string authorClass = SpecialAuthors?.FirstOrDefault(sa => sa.IsMatch(Author))?.Class ?? (AuthorIsUploader ? "uploader" : "author");
 
                 if (string.IsNullOrEmpty(AuthorURL))
                     author = $"<span{anchorReplyId} class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span>";

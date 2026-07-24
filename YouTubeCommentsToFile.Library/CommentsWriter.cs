@@ -18,8 +18,6 @@ public partial class CommentsWriter(Settings settings)
     private bool hasHighlightUploader;
     private bool hasHighlightAuthor;
     private bool hasHighlightText;
-    private bool hasYouTube;
-    private bool hasBiliBili;
 
 #if DEBUG
     private static readonly bool HighlightAllComments = false;
@@ -439,7 +437,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out hasYouTube, out hasBiliBili, out commentsCount, out totalComments);
+            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out commentsCount, out totalComments);
 
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
@@ -986,16 +984,12 @@ public partial class CommentsWriter(Settings settings)
         out bool hasHighlightUploader,
         out bool hasHighlightAuthor,
         out bool hasHighlightText,
-        out bool hasYouTube,
-        out bool hasBiliBili,
         out int commentsCount,
         out int totalComments)
     {
         totalComments = comments.Count;
 
         uploaderId = comments.FirstOrDefault(c => c.AuthorIsUploader)?.Author;
-        hasYouTube = comments.HasAny(c => c.AuthorIsYouTube);
-        hasBiliBili = comments.HasAny(c => c.AuthorIsBiliBili);
 
         allAuthors = [.. comments
             .Select(c => c.Author)
@@ -1293,10 +1287,14 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
-            if (hasYouTube)
-                writer.WriteLine($"{s8}.youtube {{ color: rgb({YouTubeTextColor.ToRgb()}); background-color: rgb({YouTubeBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
-            if (hasBiliBili)
-                writer.WriteLine($"{s8}.bilibili {{ color: rgb({BiliBiliTextColor.ToRgb()}); background-color: rgb({BiliBiliBackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+
+            foreach (var line in Comment.SpecialAuthors
+                .Where(sa => comments.HasAny(c => sa.IsMatch(c.Author)))
+                .Select(sa => sa.ToCSS($"{s8}.{{0}} {{{{ color: rgb({{1}}); background-color: rgb({{2}}); font-weight: bold; padding: 0px 6px 0px 6px; }}}}")))
+            {
+                writer.WriteLine(line);
+            }
+
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: rgb({repliedAuthorColor.ToRgb()}); font-weight: bold; }}");
