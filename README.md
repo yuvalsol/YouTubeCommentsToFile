@@ -8,7 +8,7 @@ YouTube Comments To File converts YouTube comments JSON file to a text file or a
 
 The program can also utilize an existing copy of yt-dlp to download and convert comments from YouTube. This mode nullifies the need to execute two scripts, one for yt-dlp, to get the comments JSON file, and another to convert the JSON file to text file or HTML file.
 
-While this program was written with YouTube in mind, it should be applicable for any comment JSON file that yt-dlp can download. Here's a list of [supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md "yt-dlp supported sites") by yt-dlp.
+While this program was written with YouTube in mind, it should be applicable for any comment JSON file that yt-dlp can download, one of which is BiliBili. Here's a list of [supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md "yt-dlp supported sites") by yt-dlp.
 
 YouTube Comments To File requires .NET 8 Runtime.
 
@@ -16,44 +16,7 @@ YouTube Comments To File requires .NET 8 Runtime.
 
 Comment threading is the ability to reply to a reply. A good example is Reddit, where you can have a whole conversation between people in the comments section. YouTube supports threaded comments up to three levels of replies, meaning level 1 top-level comment, level 2 reply to top-level comment, and level 3 reply to reply.
 
-There is a convention on YouTube that if you want to reply to someone else's reply, you write their user name **first** in your reply. This program takes advantage of this convention to build threaded comments for all comments, regardless of YouTube limitation of three levels of replies. This is enabled by default. You can disable comment threading with option [`--disable-threading`](#shared-options "Shared Options"). If disabled, shows the comments the way they appear on YouTube.
-
-## Tutorial
-
-This is a little tutorial how to "Install" this program and use a script to download comments.
-
-1. Download YouTubeCommentsToFile from [Releases](https://github.com/yuvalsol/YouTubeCommentsToFile/releases "YouTubeCommentsToFile Releases").
-2. [Download yt-dlp](https://github.com/yt-dlp/yt-dlp#installation "yt-dlp Installation").
-3. [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
-4. Place YouTubeCommentsToFile, yt-dlp and Deno in the same directory. Make sure that directory **doesn't** need administrative rights (For example, on Windows, **not** under `C:\Program Files`) because you want to update yt-dlp with no prompts.
-5. Create this script file [`DownloadComments.cmd`](./Solution%20Items/DownloadComments.cmd "DownloadComments.cmd") in the same directory as YouTubeCommentsToFile. This script downloads comments to HTML file and the comments are sorted by top comments first.
-
-```batch
-@echo off
-set "url=%~1"
-call YouTubeCommentsToFile download --url "%url%" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --update-yt-dlp
-exit /b %ERRORLEVEL%
-```
-
-- `--url "URL"` Video URL.
-- `--max-comments 100000 --max-replies-per-thread 100` At most 100,000 comments and replies, at most 100 replies for each top-level comment.
-- `--sort-top` Sort by top comments first.
-- `--to-html` Save comments to HTML output file.
-- `--show-comment-navigation-links` Show next comment and previous comment navigation links.
-- `--show-copy-links` Show copy text links.
-- `--uh` Highlight uploader. Comments and replies, written by the uploader of the video, will be highlighted.
-- `--trim-title 150` Limit the title of the video to at most 150 characters.
-- `--delete-json-file` Delete the comments JSON file after successfully writing to the HTML output file.
-- `--update-yt-dlp` Update yt-dlp when using it.
-
-6. Open Command Line/Terminal/shell in the same directory where YouTubeCommentsToFile is at or change the path to it.
-7. Download comments with this command. Don't forget to change the URL below.
-
-```console
-DownloadComments "https://www.youtube.com/watch?v=dtCwxFTMMDg"
-```
-
-8. Repeat steps 6 and 7.
+There is a convention on YouTube that if you want to reply to someone else's reply, you write their user name **first** in your reply. This program takes advantage of this convention to build threaded comments for all comments, regardless of YouTube limitation of three levels of replies. This is enabled by default. You can disable comment threading with option `--disable-threading`. If disabled, shows the comments the way they appear on YouTube.
 
 ## Convert
 
@@ -865,7 +828,7 @@ YouTubeCommentsToFile download --download-path "%YouTube Comments%"
 The program loads configuration files from multiple locations in the following order, from high priority to low priority. Options from high priority configuration take precedence over options from low priority configuration.
 
 1. **Main Configuration**: Configuration files specified at the command line with `--config-locations`.
-2. **Portable Configuration**: Configuration files in the same directory as the `YouTubeCommentsToFile` executable.
+2. **Portable Configuration**: Configuration files in the same directory as the YouTubeCommentsToFile executable.
     - `youtube-comments-to-file-convert.conf`<sup>\*</sup>
     - `youtube-comments-to-file-download.conf`<sup>\*\*</sup>
     - `youtube-comments-to-file.conf`
@@ -949,20 +912,87 @@ This option stops the loading of the configuration stack from the point it appea
                    configuration stack.
 ```
 
-#### Configuration Example
+### Verbosity
 
-This command line reads the options from the configuration file `download.conf` and downloads the video accordingly.
-
-Command Line:
+These options determine what and how much is printed out.
 
 ```console
-YouTubeCommentsToFile download --config-locations download.conf --url "https://www.youtube.com/watch?v=dtCwxFTMMDg"
+-v, --verbose    Print debugging information.
+-q, --quiet      Don't print anything.
+                 If used with '--verbose', print to standard error (stderr).
+--yt-dlp-quiet   Don't print output from yt-dlp.
 ```
 
-Configuration file `download.conf`:
+### General
+
+```console
+--beep           Make a beep sound when finished.
+                 If used with '--quiet', make no sound.
+--beep-errors    Make a beep sound when finished with errors.
+                 If used with '--quiet', make no sound.
+-h, --help       Display help screen.
+--version        Display version information.
+```
+
+## Download Tutorials
+
+These tutorials show how to use YouTubeCommentsToFile with more than just the command line.
+
+### Preparation
+
+1. Download YouTubeCommentsToFile from [Releases](https://github.com/yuvalsol/YouTubeCommentsToFile/releases "YouTubeCommentsToFile Releases").
+2. Download and install [yt-dlp](https://github.com/yt-dlp/yt-dlp#installation "yt-dlp Installation").
+3. Download [Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Deno Releases](https://github.com/denoland/deno/releases "Deno Releases").
+4. Optional: Place YouTubeCommentsToFile, yt-dlp and Deno in the same directory. Make sure that directory **doesn't** need administrative rights (For example, on Windows, **not** under `C:\Program Files`) because you want to update yt-dlp with no prompts.
+
+### Download With Script
+
+1. Create this script [`download-comments.cmd`](./Solution%20Items/download-comments.cmd "download-comments.cmd"). This script downloads comments to HTML file and the comments are sorted by top comments first.
+
+```batch
+@echo off
+set "url=%~1"
+call "C:\Path\To\YouTubeCommentsToFile.exe" download --url "%url%" --download-path "C:\Path\To\Downloads Folder" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --beep-errors --yt-dlp "C:\Path\To\yt-dlp.exe" --update-yt-dlp --deno "C:\Path\To\deno.exe"
+exit /b %ERRORLEVEL%
+```
+
+You can omit the full path to the YouTubeCommentsToFile executable if the script is in the same directory as YouTubeCommentsToFile. You can omit `--yt-dlp` and `--deno` if the executables are in the same directory as the YouTubeCommentsToFile executable.
+
+- `--url "URL"` Video URL.
+- `--download-path "C:\Path\To\Downloads Folder"` Download to the specified directory.
+- `--max-comments 100000 --max-replies-per-thread 100` At most 100,000 comments and replies, at most 100 replies for each top-level comment.
+- `--sort-top` Sort by top comments first.
+- `--to-html` Save comments to HTML output file.
+- `--show-comment-navigation-links` Show next comment and previous comment navigation links.
+- `--show-copy-links` Show copy text links.
+- `--uh` Highlight uploader. Comments and replies, written by the uploader of the video, will be highlighted.
+- `--trim-title 150` Limit the title of the video to at most 150 characters.
+- `--delete-json-file` Delete the comments JSON file after successfully writing to the HTML output file.
+- `--beep-errors` Make a beep sound when finished with errors.
+- `--yt-dlp "C:\Path\To\yt-dlp.exe"` Path to yt-dlp.
+- `--update-yt-dlp` Update yt-dlp before using it.
+- `--deno "C:\Path\To\deno.exe"` Path to Deno.
+
+2. Open Command Line/Terminal/shell in the same directory where YouTubeCommentsToFile is at or change the path to it.
+3. Download comments with this command. Don't forget to change the URL below.
+
+```console
+download-comments "https://www.youtube.com/watch?v=dtCwxFTMMDg"
+```
+
+4. Repeat steps 2 and 3.
+
+### Download From Browser
+
+This tutorial shows how to download comments directly from the browser without copying and pasting the video URL somewhere else.
+
+This download method uses **External Application Launcher** browser extension. This browser extension exposes custom arguments to external programs. This extension will pass the URL from the browser to the YouTubeCommentsToFile executable. [Read more](https://webextension.org/listing/external-application-button.html "External Application Button") on the extension website. The extension is applicable on [Chrome](https://chromewebstore.google.com/detail/external-application-laun/bifmfjgpgndemajpeeoiopbeilbaifdo "External Application Launcher") and other Chromium-based browsers, [Firefox](https://addons.mozilla.org/en-US/firefox/addon/external-application/ "External Application Button (WebExtension)") and [Edge](https://microsoftedge.microsoft.com/addons/detail/external-application-laun/icfhhpfimihpdgglmdlnmpaadfeaacbk "External Application Launcher").
+
+1. Install External Application Launcher extension on your browser.
+2. Create configuration file [`youtube-comments-to-file-download.conf`](./Solution%20Items/youtube-comments-to-file-download.conf "youtube-comments-to-file-download.conf") in the same directory as the YouTubeCommentsToFile executable. You can create this configuration file in other places. Read more about it in [Configuration Stack](#configuration-stack "Configuration Stack").
 
 ```ini
-# Download to the specified directory
+# Download to the specified directory.
 --download-path "C:\Path\To\Downloads Folder"
 
 # At most 100,000 comments and replies.
@@ -993,31 +1023,37 @@ Configuration file `download.conf`:
 # Delete the comments JSON file after successfully writing to the HTML output file.
 --delete-json-file
 
-# Update yt-dlp when using it.
+# Make a beep sound when finished with errors.
+--beep-errors
+
+# Path to yt-dlp.
+--yt-dlp "C:\Path\To\yt-dlp.exe"
+
+# Update yt-dlp before using it.
 --update-yt-dlp
+
+# Path to Deno.
+--deno "C:\Path\To\deno.exe"
 ```
 
-### Verbosity
+3. Open the extension options page through your browser, fill in the following text and check boxes and press the "Add Application" button when done.
+- **Display Name**: Download Comments
+- **Executable Name**: C:\Windows\System32\cmd.exe
+- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe download --url \[HREF\]
+- **Toolbar Button**: Page Context, Link Context, Video Context
+- **Page Pattern**: \*://www.youtube.com/\*, \*://www.youtube-nocookie.com/\*, \*://music.youtube.com/\*, \*://www.bilibili.com/\*, \*://www.bilibili.tv/\*
 
-These options determine what and how much is printed out.
+If the configuration file is not part of the [Configuration Stack](#configuration-stack "Configuration Stack"), different name or different location, specify the path to it with `--config-locations`.
 
-```console
--v, --verbose    Print debugging information.
--q, --quiet      Don't print anything.
-                 If used with '--verbose', print to standard error (stderr).
---yt-dlp-quiet   Don't print output from yt-dlp.
-```
+- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe download --config-locations "C:\Path\To\configuration-file.conf" --url \[HREF\]
 
-### General
+4. Go to YouTube and right-click on a link to a video in the YouTube main page or right-click on the video page itself. The button, to download comments, will be available in the context menu.
 
-```console
---beep           Make a beep sound when finished.
-                 If used with '--quiet', make no sound.
---beep-errors    Make a beep sound when finished with errors.
-                 If used with '--quiet', make no sound.
--h, --help       Display help screen.
---version        Display version information.
-```
+![External Application Launcher](./Solution%20Items/Images/ExternalApplicationLauncher.gif "External Application Launcher")
+
+Side note, you can similarly use these steps to configure downloading the video itself with yt-dlp.
+- **Display Name**: Download Video
+- **Arguments**: /c start /d "C:\Path\To\yt-dlp Directory" yt-dlp.exe --config-location "C:\Path\To\yt-dlp-configuration-file.conf" \[HREF\]
 
 ## Acknowledgments
 

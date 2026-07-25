@@ -9,9 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YouTubeCommentsToFile.Libra
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
-		Solution Items\DownloadComments.cmd = Solution Items\DownloadComments.cmd
 		Publish.cmd = Publish.cmd
+		Solution Items\download-comments.cmd = Solution Items\download-comments.cmd
 		README.md = README.md
+		Solution Items\youtube-comments-to-file-download.conf = Solution Items\youtube-comments-to-file-download.conf
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Icons", "Icons", "{A5BD540D-74D3-4542-8CA2-4A78D4A96CF8}"
