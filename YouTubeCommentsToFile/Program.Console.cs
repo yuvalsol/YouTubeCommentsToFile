@@ -1,6 +1,6 @@
 ﻿namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
     private const ConsoleColor ERROR_COLOR = ConsoleColor.Red;
     private const ConsoleColor WARNING_COLOR = ConsoleColor.Yellow;
@@ -11,110 +11,110 @@ internal static partial class Program
         FOREGROUND_COLOR = VALUES_COLOR = Console.ForegroundColor;
     }
 
-    private static void WriteError(string value, IVerbosityOptions verbosityOptions = null)
+    private void WriteError(string value)
     {
-        Write(value, ERROR_COLOR, verbosityOptions);
+        Write(value, ERROR_COLOR);
     }
 
-    private static void WriteError(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void WriteError(StringBuilder value)
     {
-        Write(value, ERROR_COLOR, verbosityOptions);
+        Write(value, ERROR_COLOR);
     }
 
-    private static void WriteErrorLine(string value, IVerbosityOptions verbosityOptions = null)
+    private void WriteErrorLine(string value)
     {
-        WriteLine(value, ERROR_COLOR, verbosityOptions);
+        WriteLine(value, ERROR_COLOR);
     }
 
-    private static void WriteErrorLine(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void WriteErrorLine(StringBuilder value)
     {
-        WriteLine(value, ERROR_COLOR, verbosityOptions);
+        WriteLine(value, ERROR_COLOR);
     }
 
-    private static void WriteWarning(string value, IVerbosityOptions verbosityOptions = null)
+    private void WriteWarning(string value)
     {
-        Write(value, WARNING_COLOR, verbosityOptions);
+        Write(value, WARNING_COLOR);
     }
 
-    private static void WriteWarning(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void WriteWarning(StringBuilder value)
     {
-        Write(value, WARNING_COLOR, verbosityOptions);
+        Write(value, WARNING_COLOR);
     }
 
-    private static void WriteWarningLine(string value, IVerbosityOptions verbosityOptions = null)
+    private void WriteWarningLine(string value)
     {
-        WriteLine(value, WARNING_COLOR, verbosityOptions);
+        WriteLine(value, WARNING_COLOR);
     }
 
-    private static void WriteWarningLine(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void WriteWarningLine(StringBuilder value)
     {
-        WriteLine(value, WARNING_COLOR, verbosityOptions);
+        WriteLine(value, WARNING_COLOR);
     }
 
-    private static void Write(string value, ConsoleColor color, IVerbosityOptions verbosityOptions = null)
+    private void Write(string value, ConsoleColor color)
     {
         Console.ForegroundColor = color;
-        Write(value, verbosityOptions);
+        Write(value);
         Console.ForegroundColor = FOREGROUND_COLOR;
     }
 
-    private static void Write(StringBuilder value, ConsoleColor color, IVerbosityOptions verbosityOptions = null)
+    private void Write(StringBuilder value, ConsoleColor color)
     {
         Console.ForegroundColor = color;
-        Write(value, verbosityOptions);
+        Write(value);
         Console.ForegroundColor = FOREGROUND_COLOR;
     }
 
-    private static void WriteLine(string value, ConsoleColor color, IVerbosityOptions verbosityOptions = null)
+    private void WriteLine(string value, ConsoleColor color)
     {
         Console.ForegroundColor = color;
-        WriteLine(value, verbosityOptions);
+        WriteLine(value);
         Console.ForegroundColor = FOREGROUND_COLOR;
     }
 
-    private static void WriteLine(StringBuilder value, ConsoleColor color, IVerbosityOptions verbosityOptions = null)
+    private void WriteLine(StringBuilder value, ConsoleColor color)
     {
         Console.ForegroundColor = color;
-        WriteLine(value, verbosityOptions);
+        WriteLine(value);
         Console.ForegroundColor = FOREGROUND_COLOR;
     }
 
-    private static void Write(string value, IVerbosityOptions verbosityOptions = null)
+    private void Write(string value)
     {
-        GetOutputStream(verbosityOptions)?.Write(value);
+        GetOutputStream()?.Write(value);
     }
 
-    private static void Write(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void Write(StringBuilder value)
     {
-        GetOutputStream(verbosityOptions)?.Write(value);
+        GetOutputStream()?.Write(value);
     }
 
-    private static void WriteLine(string value, IVerbosityOptions verbosityOptions = null)
+    private void WriteLine(string value)
     {
-        GetOutputStream(verbosityOptions)?.WriteLine(value);
+        GetOutputStream()?.WriteLine(value);
     }
 
-    private static void WriteLine(StringBuilder value, IVerbosityOptions verbosityOptions = null)
+    private void WriteLine(StringBuilder value)
     {
-        GetOutputStream(verbosityOptions)?.WriteLine(value);
+        GetOutputStream()?.WriteLine(value);
     }
 
-    private static void WriteLine(IVerbosityOptions verbosityOptions = null)
+    private void WriteLine()
     {
-        GetOutputStream(verbosityOptions)?.WriteLine();
+        GetOutputStream()?.WriteLine();
     }
 
-    private static TextWriter GetOutputStream(IVerbosityOptions verbosityOptions = null)
+    private TextWriter GetOutputStream()
     {
         return
-            (verbosityOptions == null ? Console.Out :
-            (verbosityOptions.Verbose && verbosityOptions.Quiet ? Console.Error :
-            (verbosityOptions.Quiet ? null : Console.Out)));
+            (operationOptions == null ? Console.Out :
+            (operationOptions.Verbose && operationOptions.Quiet ? Console.Error :
+            (operationOptions.Quiet ? null : Console.Out)));
     }
 
-    private static void PressAnyKey(IVerbosityOptions verbosityOptions = null)
+    private void PressAnyKey()
     {
-        WriteLine("Press any key to continue . . .", verbosityOptions);
+        WriteLine("Press any key to continue . . .");
         Console.ReadKey(true);
     }
 }

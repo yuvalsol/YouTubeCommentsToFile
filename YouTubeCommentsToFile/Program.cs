@@ -1,15 +1,15 @@
 ﻿namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
     private static int Main(string[] args)
     {
         Console.OutputEncoding = Encoding.UTF8;
 
 #if RELEASE
-        return Run(args);
+        return new Program(args).Run();
 #elif DEBUG
-        return Debug();
+        return Program.Debug();
 #endif
     }
 }

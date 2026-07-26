@@ -2,272 +2,270 @@
 
 namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
-    private static void WriteCommentsToFile(IOperationOptions operationOptions, out bool finishedWithErrors)
-    {
-        var writer = new CommentsWriter(operationOptions.ToSettings());
-
-        bool download = false;
-
-        writer.Start += (sender, e) =>
-        {
-            download = e.Download;
-            WriteLine(GetVersion(), operationOptions);
-            WriteLine(e.Download ? $"Download {e.URL}" : $"Convert {Path.GetFileName(e.JsonFile)}", operationOptions);
-            if (string.IsNullOrEmpty(e.EncodingName) == false)
-                WriteVerboseProperty("Encoding", [e.EncodingName]);
-        };
-
-        writer.StartDownloadComments += (sender, e) =>
-        {
-            WriteVerboseProperty("URL", [e.URL]);
-            WriteVerboseProperty("yt-dlp", [e.YtDlpCommandLine]);
-            if (operationOptions.YtDlpQuiet)
-                Write("Downloading comments...", operationOptions);
-            else
-                WriteLine("Downloading comments...", operationOptions);
-        };
-
-        object lockObj = new();
-
-        if (operationOptions.YtDlpQuiet == false)
-        {
-            writer.DownloadCommentsProgressAsync += (sender, e) =>
-            {
-                lock (lockObj)
-                {
-                    if (e.IsError)
-                    {
-                        if (string.IsNullOrEmpty(e.Line) == false && e.Line.StartsWith("WARNING"))
-                            WriteLine(e.Line, ConsoleColor.DarkYellow, operationOptions);
-                        else
-                            WriteErrorLine(e.Line, operationOptions);
-                    }
-                    else
-                    {
-                        WriteLine(e.Line, operationOptions);
-                    }
-                }
-            };
-        }
-
-        bool isPrintedJsonFile = false;
-        bool hasErrors = false;
-
-        writer.FinishDownloadComments += (sender, e) =>
-        {
-            lock (lockObj)
-            {
-                if (e.Error == null)
-                {
-                    if (operationOptions.YtDlpQuiet)
-                        WriteLine(" Done.", operationOptions);
-                    else
-                        WriteLine("Comments JSON file downloaded successfully.", operationOptions);
-                    WriteVerboseProperty("JSON File", [e.JsonFile]);
-                    isPrintedJsonFile = true;
-                }
-                else
-                {
-                    if (operationOptions.YtDlpQuiet)
-                        WriteLine(operationOptions);
-                    WriteErrorLine("Failed to download comments JSON file.", operationOptions);
-                    hasErrors = true;
-                }
-            }
-        };
-
-        writer.StartDownloadVideoInfo += (sender, e) =>
-        {
-            Write("Downloading video information...", operationOptions);
-        };
-
-        bool isPrintedVideoTitle = false;
-        bool withoutDebuggingInfo =
+    private bool download;
+    private readonly object lockObj = new();
+    private bool isPrintedJsonFile;
+    private bool isPrintedVideoTitle;
+    private readonly bool withoutDebuggingInfo =
 #if RELEASE
             true;
 #elif DEBUG
-            false;
+        false;
 #endif
+    private readonly List<StringBuilder> warningMessages = [];
+    private int lostComments;
 
-        writer.FinishDownloadVideoInfo += (sender, e) =>
-        {
-            if (e.Error == null)
-            {
-                WriteLine(" Done.", operationOptions);
+    private void WriteCommentsToFile()
+    {
+        var writer = new CommentsWriter(operationOptions.ToSettings());
 
-                WriteVerboseProperty("Title", [e.VideoInfo.Title]);
-                if (string.IsNullOrEmpty(e.VideoInfo.Uploader) == false)
-                    WriteVerboseProperty("Uploader", [e.VideoInfo.Uploader]);
-                if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
-                    WriteVerboseProperty("Uploader ID", [e.VideoInfo.UploaderID]);
-                isPrintedVideoTitle = true;
-            }
-            else
-            {
-                WriteLine(operationOptions);
-                WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo), operationOptions);
-                hasErrors = true;
-            }
-        };
-
-        writer.StartLoadJsonFile += (sender, e) =>
-        {
-            if (isPrintedVideoTitle == false && download == false)
-            {
-                WriteVerboseProperty("Title", [e.VideoInfo.Title]);
-                if (string.IsNullOrEmpty(e.VideoInfo.Uploader) == false)
-                    WriteVerboseProperty("Uploader", [e.VideoInfo.Uploader]);
-                if (string.IsNullOrEmpty(e.VideoInfo.UploaderID) == false)
-                    WriteVerboseProperty("Uploader ID", [e.VideoInfo.UploaderID]);
-            }
-
-            Write("Loading JSON file...", operationOptions);
-        };
-
-        writer.FinishLoadJsonFile += (sender, e) =>
-        {
-            if (e.Error == null)
-            {
-                WriteLine(" Done.", operationOptions);
-                if (isPrintedJsonFile == false)
-                    WriteVerboseProperty("JSON File", [e.JsonFile]);
-            }
-            else
-            {
-                WriteLine(operationOptions);
-                WriteErrorLine("Failed to load JSON file.", operationOptions);
-                if (isPrintedJsonFile == false)
-                    WriteErrorLine($"JSON File: {e.JsonFile}", operationOptions);
-                hasErrors = true;
-            }
-        };
-
-        writer.StartProcessComments += (sender, e) =>
-        {
-            Write("Processing comments...", operationOptions);
-        };
-
-        writer.FinishProcessComments += (sender, e) =>
-        {
-            if (e.Error == null)
-            {
-                WriteLine(" Done.", operationOptions);
-
-                if (e.CommentsCount == e.TotalComments)
-                {
-                    WriteVerboseProperty("Comments", [e.CommentsCount.ToString("N0")]);
-                }
-                else
-                {
-                    WriteVerboseProperty("Comments", [e.CommentsCount.ToString("N0")]);
-                    WriteVerboseProperty("Discarded Comments", [(e.TotalComments - e.CommentsCount).ToString("N0")]);
-                    WriteVerboseProperty("Total Comments", [e.TotalComments.ToString("N0")]);
-                }
-            }
-            else
-            {
-                WriteLine(operationOptions);
-                WriteErrorLine("Failed to process comments.", operationOptions);
-                hasErrors = true;
-            }
-        };
-
-        writer.StartWriteComments += (sender, e) =>
-        {
-            Write($"Writing to {(e.WriteToHTML ? "HTML" : "text")} file...", operationOptions);
-        };
-
-        List<StringBuilder> warningMessages = [];
-        int lostComments = 0;
-
-        writer.WriteCommentError += (sender, e) =>
-        {
-            warningMessages.Add(e.Error.GetExceptionErrorMessage($"{(string.IsNullOrEmpty(e.Id) ? null : $"COMMENT ID: {e.Id}{Environment.NewLine}")}{(string.IsNullOrEmpty(e.Parent) ? null : $"PARENT ID: {e.Parent}{Environment.NewLine}")}COMMENT:{Environment.NewLine}{e.Comment}", withoutDebuggingInfo));
-            lostComments += e.LostComments;
-            hasErrors = true;
-        };
-
-        writer.FinishWriteComments += (sender, e) =>
-        {
-            if (e.Error == null && lostComments == 0)
-            {
-                WriteLine(" Done.", operationOptions);
-                WriteVerboseProperty($"{(e.WriteToHTML ? "HTML" : "Text")} File", [e.CommentsFile]);
-            }
-            else
-            {
-                WriteLine(operationOptions);
-
-                if (e.Error != null)
-                {
-                    WriteErrorLine($"Failed to write {(e.WriteToHTML ? "HTML" : "text")} file.", operationOptions);
-                    WriteErrorLine($"{(e.WriteToHTML ? "HTML" : "Text")} File: {e.CommentsFile}", operationOptions);
-                }
-
-                if (lostComments > 0)
-                {
-                    var seperator = new string('-', 17);
-                    WriteWarningLine($"Lost Comments: {lostComments}", operationOptions);
-                    WriteWarningLine(seperator, operationOptions);
-                    WriteWarningLine(string.Join($"{Environment.NewLine}{seperator}{Environment.NewLine}", warningMessages), operationOptions);
-                }
-
-                hasErrors = true;
-            }
-        };
-
-        writer.StartDeleteJsonFile += (sender, e) =>
-        {
-            Write("Deleting JSON file...", operationOptions);
-        };
-
-        writer.FinishDeleteJsonFile += (sender, e) =>
-        {
-            if (e.Error == null)
-            {
-                WriteLine(" Done.", operationOptions);
-            }
-            else
-            {
-                WriteLine(operationOptions);
-                WriteErrorLine("Failed to delete JSON file.", operationOptions);
-                hasErrors = true;
-            }
-        };
-
-        writer.Finish += (sender, e) =>
-        {
-            if (e.Error == null)
-            {
-                if (lostComments == 0)
-                    WriteLine("Finished successfully.", operationOptions);
-                else
-                    WriteLine("Finished with warnings.", operationOptions);
-
-                string processTime = e.ProcessTime.ToString(e.ProcessTime.Days > 0 ? "d':'hh':'mm':'ss'.'fff" : e.ProcessTime.Hours > 0 ? "h':'mm':'ss'.'fff" : "m':'ss'.'fff");
-                WriteVerboseProperty($"Process Time", [processTime]);
-            }
-            else
-            {
-                WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo), operationOptions);
-                hasErrors = true;
-            }
-        };
-
-        void WriteVerboseProperty(string property, string[] values)
-        {
-            if (operationOptions.Verbose)
-                WriteProperty(property, values);
-        }
-
-        void WriteProperty(string property, string[] values)
-        {
-            WriteMessages(GetPropertyMessages(property, values), operationOptions, singleLine: true);
-        }
+        writer.Start += OnStart;
+        writer.StartDownloadComments += OnStartDownloadComments;
+        if (operationOptions.YtDlpQuiet == false)
+            writer.DownloadCommentsProgressAsync += OnDownloadCommentsProgressAsync;
+        writer.FinishDownloadComments += OnFinishDownloadComments;
+        writer.StartDownloadVideoInfo += OnStartDownloadVideoInfo;
+        writer.FinishDownloadVideoInfo += OnFinishDownloadVideoInfo;
+        writer.StartLoadJsonFile += OnStartLoadJsonFile;
+        writer.FinishLoadJsonFile += OnFinishLoadJsonFile;
+        writer.StartProcessComments += OnStartProcessComments;
+        writer.FinishProcessComments += OnFinishProcessComments;
+        writer.StartWriteComments += OnStartWriteComments;
+        writer.WriteCommentError += OnWriteCommentError;
+        writer.FinishWriteComments += OnFinishWriteComments;
+        writer.StartDeleteJsonFile += OnStartDeleteJsonFile;
+        writer.FinishDeleteJsonFile += OnFinishDeleteJsonFile;
+        writer.Finish += OnFinish;
 
         writer.WriteCommentsToFile();
-        finishedWithErrors = hasErrors;
+    }
+
+    private void OnStart(object sender, StartEventArgs e)
+    {
+        download = e.Download;
+        WriteLine(GetVersion());
+        WriteLine(e.Download ? $"Download {e.URL}" : $"Convert {Path.GetFileName(e.JsonFile)}");
+        WriteVerboseProperty("Encoding", e.EncodingName);
+    }
+
+    private void OnStartDownloadComments(object sender, StartDownloadCommentsEventArgs e)
+    {
+        WriteVerboseProperty("URL", e.URL);
+        WriteVerboseProperty("yt-dlp", e.YtDlpCommandLine);
+        if (operationOptions.YtDlpQuiet)
+            Write("Downloading comments...");
+        else
+            WriteLine("Downloading comments...");
+    }
+
+    private void OnDownloadCommentsProgressAsync(object sender, DownloadCommentsProgressEventArgs e)
+    {
+        lock (lockObj)
+        {
+            if (e.IsError)
+            {
+                if (string.IsNullOrEmpty(e.Line) == false && e.Line.StartsWith("WARNING"))
+                    WriteLine(e.Line, ConsoleColor.DarkYellow);
+                else
+                    WriteErrorLine(e.Line);
+            }
+            else
+            {
+                WriteLine(e.Line);
+            }
+        }
+    }
+
+    private void OnFinishDownloadComments(object sender, FinishDownloadCommentsEventArgs e)
+    {
+        lock (lockObj)
+        {
+            if (e.Error == null)
+            {
+                if (operationOptions.YtDlpQuiet)
+                    WriteLine(" Done.");
+                else
+                    WriteLine("Comments JSON file downloaded successfully.");
+                WriteVerboseProperty("JSON File", e.JsonFile);
+                isPrintedJsonFile = true;
+            }
+            else
+            {
+                if (operationOptions.YtDlpQuiet)
+                    WriteLine();
+                WriteErrorLine("Failed to download comments JSON file.");
+                finishedWithErrors = true;
+            }
+        }
+    }
+
+    private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)
+    {
+        Write("Downloading video information...");
+    }
+
+    private void OnFinishDownloadVideoInfo(object sender, FinishDownloadVideoInfoEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            WriteLine(" Done.");
+            WriteVerboseProperty("Title", e.VideoInfo.Title);
+            WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
+            WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
+            isPrintedVideoTitle = true;
+        }
+        else
+        {
+            WriteLine();
+            WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
+            finishedWithErrors = true;
+        }
+    }
+
+    private void OnStartLoadJsonFile(object sender, StartLoadJsonFileEventArgs e)
+    {
+        if (isPrintedVideoTitle == false && download == false)
+        {
+            WriteVerboseProperty("Title", e.VideoInfo.Title);
+            WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
+            WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
+        }
+
+        Write("Loading JSON file...");
+    }
+
+    private void OnFinishLoadJsonFile(object sender, FinishLoadJsonFileEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            WriteLine(" Done.");
+            if (isPrintedJsonFile == false)
+                WriteVerboseProperty("JSON File", e.JsonFile);
+        }
+        else
+        {
+            WriteLine();
+            WriteErrorLine("Failed to load JSON file.");
+            if (isPrintedJsonFile == false)
+                WriteErrorLine($"JSON File: {e.JsonFile}");
+            finishedWithErrors = true;
+        }
+    }
+
+    private void OnStartProcessComments(object sender, StartProcessCommentsEventArgs e)
+    {
+        Write("Processing comments...");
+    }
+
+    private void OnFinishProcessComments(object sender, FinishProcessCommentsEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            WriteLine(" Done.");
+
+            if (e.CommentsCount == e.TotalComments)
+            {
+                WriteVerboseProperty("Comments", e.CommentsCount.ToString("N0"));
+            }
+            else
+            {
+                WriteVerboseProperty("Comments", e.CommentsCount.ToString("N0"));
+                WriteVerboseProperty("Discarded Comments", (e.TotalComments - e.CommentsCount).ToString("N0"));
+                WriteVerboseProperty("Total Comments", e.TotalComments.ToString("N0"));
+            }
+        }
+        else
+        {
+            WriteLine();
+            WriteErrorLine("Failed to process comments.");
+            finishedWithErrors = true;
+        }
+    }
+
+    private void OnStartWriteComments(object sender, StartWriteCommentsEventArgs e)
+    {
+        Write($"Writing to {(e.WriteToHTML ? "HTML" : "text")} file...");
+    }
+
+    private void OnWriteCommentError(object sender, WriteCommentErrorEventArgs e)
+    {
+        warningMessages.Add(e.Error.GetExceptionErrorMessage($"{(string.IsNullOrEmpty(e.Id) ? null : $"COMMENT ID: {e.Id}{Environment.NewLine}")}{(string.IsNullOrEmpty(e.Parent) ? null : $"PARENT ID: {e.Parent}{Environment.NewLine}")}COMMENT:{Environment.NewLine}{e.Comment}", withoutDebuggingInfo));
+        lostComments += e.LostComments;
+        finishedWithErrors = true;
+    }
+
+    private void OnFinishWriteComments(object sender, FinishWriteCommentsEventArgs e)
+    {
+        if (e.Error == null && lostComments == 0)
+        {
+            WriteLine(" Done.");
+            WriteVerboseProperty($"{(e.WriteToHTML ? "HTML" : "Text")} File", e.CommentsFile);
+        }
+        else
+        {
+            WriteLine();
+
+            if (e.Error != null)
+            {
+                WriteErrorLine($"Failed to write {(e.WriteToHTML ? "HTML" : "text")} file.");
+                WriteErrorLine($"{(e.WriteToHTML ? "HTML" : "Text")} File: {e.CommentsFile}");
+            }
+
+            if (lostComments > 0)
+            {
+                var seperator = new string('-', 17);
+                WriteWarningLine($"Lost Comments: {lostComments}");
+                WriteWarningLine(seperator);
+                WriteWarningLine(string.Join($"{Environment.NewLine}{seperator}{Environment.NewLine}", warningMessages));
+            }
+
+            finishedWithErrors = true;
+        }
+    }
+
+    private void OnStartDeleteJsonFile(object sender, StartDeleteJsonFileEventArgs e)
+    {
+        Write("Deleting JSON file...");
+    }
+
+    private void OnFinishDeleteJsonFile(object sender, FinishDeleteJsonFileEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            WriteLine(" Done.");
+        }
+        else
+        {
+            WriteLine();
+            WriteErrorLine("Failed to delete JSON file.");
+            finishedWithErrors = true;
+        }
+    }
+
+    private void OnFinish(object sender, FinishEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            if (lostComments == 0)
+                WriteLine("Finished successfully.");
+            else
+                WriteLine("Finished with warnings.");
+
+            string processTime = e.ProcessTime.ToString(e.ProcessTime.Days > 0 ? "d':'hh':'mm':'ss'.'fff" : e.ProcessTime.Hours > 0 ? "h':'mm':'ss'.'fff" : "m':'ss'.'fff");
+            WriteVerboseProperty($"Process Time", processTime);
+        }
+        else
+        {
+            WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo));
+            finishedWithErrors = true;
+        }
+    }
+
+    private void WriteVerboseProperty(string property, string value)
+    {
+        if (operationOptions.Verbose && string.IsNullOrEmpty(value) == false)
+            WriteMessages(GetPropertyMessages(property, [value]), singleLine: true);
     }
 }

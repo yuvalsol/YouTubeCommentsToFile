@@ -1,6 +1,6 @@
 ﻿namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
     #region Message Colors
 
@@ -58,40 +58,40 @@ internal static partial class Program
 
     #region Write Messages
 
-    private static void WriteMessages(IEnumerable<IEnumerable<(string message, ConsoleColor color)>> messagesGroups, IVerbosityOptions verbosityOptions, bool singleLine)
+    private void WriteMessages(IEnumerable<IEnumerable<(string message, ConsoleColor color)>> messagesGroups, bool singleLine)
     {
         if (singleLine)
         {
             foreach (var messages in messagesGroups)
-                WriteMessages(messages, verbosityOptions, singleLine);
+                WriteMessages(messages, singleLine);
         }
         else
         {
             foreach (var messages in messagesGroups)
             {
-                WriteMessages(messages, verbosityOptions, singleLine);
-                WriteLine(verbosityOptions);
+                WriteMessages(messages, singleLine);
+                WriteLine();
             }
         }
     }
 
-    private static void WriteMessages(IEnumerable<(string message, ConsoleColor color)> messages, IVerbosityOptions verbosityOptions, bool singleLine)
+    private void WriteMessages(IEnumerable<(string message, ConsoleColor color)> messages, bool singleLine)
     {
         if (singleLine)
         {
             foreach (var (message, color) in messages.SkipLast(1))
             {
-                Write(message, color, verbosityOptions);
-                Write(" ", verbosityOptions);
+                Write(message, color);
+                Write(" ");
             }
 
             var last = messages.Last();
-            WriteLine(last.message, last.color, verbosityOptions);
+            WriteLine(last.message, last.color);
         }
         else
         {
             foreach (var (message, color) in messages)
-                WriteLine(message, color, verbosityOptions);
+                WriteLine(message, color);
         }
     }
 

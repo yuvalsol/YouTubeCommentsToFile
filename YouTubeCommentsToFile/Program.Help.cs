@@ -1,47 +1,43 @@
-﻿using CommandLine;
-using CommandLine.Text;
+﻿using CommandLine.Text;
 
 namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
-    private static StringBuilder GetHelp(Parser parser)
+    private StringBuilder GetHelp()
     {
         return new StringBuilder()
             .AppendLine(GetVersion())
             .AppendLine()
-            .AppendLine(GetHelpText<ConvertHelpOptions>(parser, "Convert"))
-            .AppendLine(GetHelpText<DownloadHelpOptions>(parser, "Download"))
-            .AppendLine(GetHelpText<SharedHelpOptions>(parser, "Shared Options"))
-            .AppendLine(GetHelpText<UploaderHelpOptions>(parser, "Uploader"))
-            .AppendLine(GetHelpText<AuthorsHelpOptions>(parser, "Authors"))
-            .AppendLine(GetHelpText<TextsHelpOptions>(parser, "Texts"))
-            .AppendLine(GetHelpText<EncodingHelpOptions>(parser, "Encoding"))
-            .AppendLine(GetHelpText<HTMLColorsHelpOptions>(parser, "HTML Colors"))
-            .AppendLine(GetHelpText<ConfigurationHelpOptions>(parser, "Configuration"))
-            .AppendLine(GetHelpText<VerbosityHelpOptions>(parser, "Verbosity"))
-            .AppendLine(GetHelpText<GeneralHelpOptions>(parser, "General"))
-            .AppendLine(GetHelpText<ConvertExamples>(parser, "Convert Examples"))
+            .AppendLine(GetHelpText<ConvertHelpOptions>("Convert"))
+            .AppendLine(GetHelpText<DownloadHelpOptions>("Download"))
+            .AppendLine(GetHelpText<SharedHelpOptions>("Shared Options"))
+            .AppendLine(GetHelpText<UploaderHelpOptions>("Uploader"))
+            .AppendLine(GetHelpText<AuthorsHelpOptions>("Authors"))
+            .AppendLine(GetHelpText<TextsHelpOptions>("Texts"))
+            .AppendLine(GetHelpText<EncodingHelpOptions>("Encoding"))
+            .AppendLine(GetHelpText<HTMLColorsHelpOptions>("HTML Colors"))
+            .AppendLine(GetHelpText<ConfigurationHelpOptions>("Configuration"))
+            .AppendLine(GetHelpText<VerbosityHelpOptions>("Verbosity"))
+            .AppendLine(GetHelpText<GeneralHelpOptions>("General"))
+            .AppendLine(GetHelpText<ConvertExamples>("Convert Examples"))
             .AppendLine()
-            .AppendLine(GetHelpText<DownloadExamples>(parser, "Download Examples"))
+            .AppendLine(GetHelpText<DownloadExamples>("Download Examples"))
             .AppendLine()
-            .AppendLine(GetHelpText<UploaderExamples>(parser, "Uploader Examples"))
+            .AppendLine(GetHelpText<UploaderExamples>("Uploader Examples"))
             .AppendLine()
-            .AppendLine(GetHelpText<AuthorsExamples>(parser, "Authors Examples"))
+            .AppendLine(GetHelpText<AuthorsExamples>("Authors Examples"))
             .AppendLine()
-            .AppendLine(GetHelpText<TextsExamples>(parser, "Texts Examples"))
+            .AppendLine(GetHelpText<TextsExamples>("Texts Examples"))
             .AppendLine();
     }
 
-    private static string GetHelpText<T>(Parser parser, string heading = null, params string[] descriptionLines)
+    private string GetHelpText<T>(string heading = null)
     {
         return HelpText.AutoBuild(
             parser.ParseArguments<T>(["--help"]),
             h =>
             {
-                if (descriptionLines.HasAny())
-                    h.AddPreOptionsLines(descriptionLines);
-
                 var optionDescriptions = typeof(T).GetInterfaces().SelectMany(it => it.GetCustomAttributes<OptionDescriptionAttribute>().Select(x => x.Description));
                 if (optionDescriptions.HasAny())
                     h.AddPreOptionsLines(optionDescriptions);

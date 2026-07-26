@@ -1,6 +1,6 @@
 ﻿namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
     private static StringBuilder HandledArgumentException(ArgumentException ex)
     {

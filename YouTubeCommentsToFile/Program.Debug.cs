@@ -3,7 +3,7 @@ using YouTubeCommentsToFile.Library;
 
 namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program
 {
     private static int Debug()
     {
@@ -58,7 +58,7 @@ internal static partial class Program
 
     private static int RunDebug(string[] args)
     {
-        return Run(args);
+        return new Program(args).Run();
     }
 
     private static int PrintArgs<TOptions>(TOptions options, bool singleLine = false)
@@ -69,15 +69,13 @@ internal static partial class Program
 
     private static int PrintArgs(string[] args, bool singleLine = false)
     {
-        var rearrangedArgs = args.RearrangeArgs().OrderByPrecedence();
-
         if (singleLine)
         {
-            Console.WriteLine(string.Join(' ', rearrangedArgs));
+            Console.WriteLine(string.Join(' ', args.RearrangeArgs().OrderByPrecedence()));
         }
         else
         {
-            foreach (var arg in rearrangedArgs)
+            foreach (var arg in args.RearrangeArgs().OrderByPrecedence())
                 Console.WriteLine(arg);
         }
 
@@ -89,12 +87,14 @@ internal static partial class Program
         var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
         if (videoInfo != null)
         {
-            WriteLine(videoInfo.ToString());
+            Console.WriteLine(videoInfo.ToString());
             return 0;
         }
         else
         {
-            WriteErrorLine("Failed to get video info.");
+            Console.ForegroundColor = ERROR_COLOR;
+            Console.WriteLine("Failed to get video info.");
+            Console.ForegroundColor = FOREGROUND_COLOR;
             return -1;
         }
     }

@@ -2,23 +2,27 @@
 
 namespace YouTubeCommentsToFile;
 
-internal static partial class Program
+internal partial class Program(string[] args)
 {
+    #region Fields
+
+    private Parser parser = GetParser();
+    private IOperationOptions operationOptions;
+    private string homeConfigurationDirectory;
+    private List<(string message, ConsoleColor color)[]> verboseMessages = [];
+    private bool finishedWithErrors;
+
+    #endregion
+
     #region Run
 
-    private static int Run(string[] args)
+    private int Run()
     {
-        IOperationOptions operationOptions = null;
-        List<(string message, ConsoleColor color)[]> verboseMessages = [];
-        bool finishedWithErrors = false;
-
         try
         {
-            WriteVerboseCommandLine(args, verboseMessages);
+            WriteVerboseCommandLine();
 
-            var parser = GetParser();
-
-            var (parsingOptions, parsingResult) = ParseArgs(parser, args, verboseMessages);
+            var (parsingOptions, parsingResult) = ParseArgs(args);
             operationOptions = parsingOptions;
 
             if (parsingResult == ParsingResult.Version)
@@ -28,7 +32,7 @@ internal static partial class Program
             }
             else if (parsingResult == ParsingResult.Help)
             {
-                WriteHelp(parser);
+                WriteHelp();
                 return 0;
             }
             else if (parsingResult == ParsingResult.Error)
@@ -39,26 +43,26 @@ internal static partial class Program
 
             if (operationOptions.StopConfig == false)
             {
-                string homeConfigurationDirectory = operationOptions.GetHomeConfigurationDirectory(FixPath);
+                homeConfigurationDirectory = operationOptions.GetHomeConfigurationDirectory(FixPath);
                 if (string.IsNullOrWhiteSpace(homeConfigurationDirectory))
                     homeConfigurationDirectory = null;
                 else
-                    WriteVerboseHomeConfigurationDirectory(homeConfigurationDirectory, verboseMessages);
+                    WriteVerboseHomeConfigurationDirectory();
 
-                AddConfigurationStackToConfigLocations(operationOptions, homeConfigurationDirectory, verboseMessages);
+                AddConfigurationStackToConfigLocations();
 
-                ParsingResult mergeParsingResult = MergeConfigLocations(operationOptions, parser, verboseMessages);
+                ParsingResult mergeParsingResult = MergeConfigLocations();
                 if (mergeParsingResult == ParsingResult.Error)
                     parsingResult = ParsingResult.Error;
             }
 
             operationOptions.FixPaths(FixPath);
-            WriteVerboseOptions(operationOptions.NameOf().PrettifyName(), operationOptions.ToArgs(parser), verboseMessages);
+            WriteVerboseOptions();
 
             if (parsingResult == ParsingResult.Error)
             {
                 if (operationOptions.Verbose)
-                    WriteMessages(verboseMessages, operationOptions, singleLine: false);
+                    WriteMessages(verboseMessages, singleLine: false);
                 finishedWithErrors = true;
                 return -1;
             }
@@ -69,43 +73,45 @@ internal static partial class Program
             }
             else if (operationOptions.Help)
             {
-                WriteHelp(parser);
+                WriteHelp();
             }
             else
             {
                 if (operationOptions.Verbose)
-                    WriteMessages(verboseMessages, operationOptions, singleLine: false);
+                    WriteMessages(verboseMessages, singleLine: false);
 
-                WriteCommentsToFile(operationOptions, out finishedWithErrors);
+                WriteCommentsToFile();
             }
 
             return 0;
         }
         catch (ArgumentException ex)
         {
-            WriteErrorLine(HandledArgumentException(ex), operationOptions ?? GetOperationOptions(args));
+            operationOptions ??= GetAdHocOperationOptions();
+            WriteErrorLine(HandledArgumentException(ex));
             finishedWithErrors = true;
             return -1;
         }
         catch (Exception ex)
         {
-            WriteErrorLine(UnhandledException(ex), operationOptions ?? GetOperationOptions(args));
+            operationOptions ??= GetAdHocOperationOptions();
+            WriteErrorLine(UnhandledException(ex));
             finishedWithErrors = true;
             return -1;
         }
         finally
         {
-            var options = operationOptions ?? GetOperationOptions(args);
+            operationOptions ??= GetAdHocOperationOptions();
 
-            if (options.Quiet == false && (options.Beep || (options.BeepErrors && finishedWithErrors)))
+            if (operationOptions.Quiet == false && (operationOptions.Beep || (operationOptions.BeepErrors && finishedWithErrors)))
                 Console.Beep();
 
             if (Debugger.IsAttached)
-                PressAnyKey(options);
+                PressAnyKey();
         }
     }
 
-    private static IOperationOptions GetOperationOptions(string[] args)
+    private IOperationOptions GetAdHocOperationOptions()
     {
         string verbose1 = OptionsHelper.GetOptionShortName(nameof(IVerbosityOptions.Verbose));
         string verbose2 = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.Verbose));
@@ -146,23 +152,23 @@ internal static partial class Program
 
     #region Parse Args
 
-    private static (IOperationOptions operationOptions, ParsingResult parsingResult) ParseArgs(Parser parser, string[] args, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private (IOperationOptions parsingOptions, ParsingResult parsingResult) ParseArgs(string[] args)
     {
-        IOperationOptions operationOptions = null;
+        IOperationOptions parsingOptions = null;
         ParsingResult parsingResult = ParsingResult.ArgumentsNotParsed;
 
-        AddQuotationsToYtDlpOptions(args);
+        AddQuotationsToYtDlpOptions();
 
         parser.ParseArguments<ConvertOptions, DownloadOptions>(args)
             .WithParsed<ConvertOptions>(options =>
             {
-                operationOptions = options;
+                parsingOptions = options;
                 parsingResult = ParsingResult.Success;
             })
             .WithParsed<DownloadOptions>(options =>
             {
                 RemoveQuotationsFromYtDlpOptions(options);
-                operationOptions = options;
+                parsingOptions = options;
                 parsingResult = ParsingResult.Success;
             })
             .WithNotParsed(errors =>
@@ -174,13 +180,13 @@ internal static partial class Program
                     ParsingResult.ArgumentsNotParsed)));
 
                 if (parsingResult == ParsingResult.Error)
-                    WriteParsingErrors(errors, args, verboseMessages);
+                    WriteParsingErrors(errors);
             });
 
-        return (operationOptions, parsingResult);
+        return (parsingOptions, parsingResult);
     }
 
-    private static void AddQuotationsToYtDlpOptions(string[] args)
+    private void AddQuotationsToYtDlpOptions()
     {
         string ytDlpOptions = OptionsHelper.GetOptionLongName(nameof(IDownloadOptions.YtDlpOptions));
         var argYtDlpOptions = args.Select((arg, index) => (arg, index)).FirstOrDefault(x => string.Compare(x.arg, ytDlpOptions) == 0);
@@ -207,7 +213,7 @@ internal static partial class Program
 
     private static void WriteVersion()
     {
-        WriteLine(GetVersion());
+        Console.WriteLine(GetVersion());
     }
 
     private static string GetVersion()
@@ -215,12 +221,12 @@ internal static partial class Program
         return $"{nameof(YouTubeCommentsToFile)}, Version {Assembly.GetExecutingAssembly().GetName().Version.ToString(2)}";
     }
 
-    private static void WriteHelp(Parser parser)
+    private void WriteHelp()
     {
-        WriteLine(GetHelp(parser));
+        Console.WriteLine(GetHelp());
     }
 
-    private static void WriteParsingErrors(IEnumerable<Error> errors, string[] args, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private void WriteParsingErrors(IEnumerable<Error> errors)
     {
         List<string> errorMessages = [
             GetVersion(),
@@ -260,22 +266,22 @@ internal static partial class Program
 
     #region Write Verbose Args
 
-    private static void WriteVerboseCommandLine(string[] args, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private void WriteVerboseCommandLine()
     {
-        WriteVerboseArgs("Command Line", args, verboseMessages);
+        WriteVerboseArgs("Command Line", args);
     }
 
-    private static void WriteVerboseOptions(string optionsName, string[] args, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private void WriteVerboseOptions()
     {
-        WriteVerboseArgs(optionsName, args, verboseMessages);
+        WriteVerboseArgs(operationOptions.NameOf().PrettifyName(), operationOptions.ToArgs(parser));
     }
 
-    private static void WriteVerboseArgs(string property, string[] args, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private void WriteVerboseArgs(string property, string[] args)
     {
-        WriteVerboseArgs(property, args, VALUES_COLOR, verboseMessages);
+        WriteVerboseArgs(property, args, VALUES_COLOR);
     }
 
-    private static void WriteVerboseArgs(string property, string[] args, ConsoleColor valuesColor, List<(string message, ConsoleColor color)[]> verboseMessages)
+    private void WriteVerboseArgs(string property, string[] args, ConsoleColor valuesColor)
     {
         if (args.IsNullOrEmpty())
             return;
@@ -312,52 +318,6 @@ internal static partial class Program
 
         messages = messages.Prepend(GetPropertyMessage(property, PROPERTY_COLOR));
         verboseMessages.Add([.. messages]);
-    }
-
-    /* RegexIsOption:
-     *
-     * short name: -[A-Za-z0-9]
-     * single dash, single char
-     * or
-     * long name: --[A-Za-z0-9][A-Za-z0-9-]*
-     * double dash, first char is not dash
-     */
-    [GeneratedRegex(@"^(?:-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)$")]
-    private static partial Regex RegexIsOption();
-
-    private static IEnumerable<string> RearrangeArgs(this IEnumerable<string> args)
-    {
-        int counter = 0;
-
-        return args
-            .Select((arg, i) => (arg, n: RegexIsOption().IsMatch(arg) ? ++counter : counter))
-            .GroupBy(x => x.n)
-            .Select(g =>
-            (
-                arg: string.Join(' ', g.Skip(1).Select(x => x.arg.Contains(' ') ? $@"""{x.arg}""" : x.arg).Prepend(g.First().arg)),
-                n: g.Key
-            ))
-            .OrderBy(x => x.n)
-            .Select(x => x.arg);
-    }
-
-    private static IEnumerable<string> OrderByPrecedence(this IEnumerable<string> args)
-    {
-        return args
-            .Select(arg =>
-            (
-                arg,
-                match: RegexOption().Match(arg)
-            ))
-            .Select(x =>
-            (
-                x.arg,
-                isOption: x.match.Success,
-                option: (x.match.Success ? x.match.Groups["Option"].Value : null)
-            ))
-            .OrderBy(x => x.isOption)
-            .ThenBy(x => x.isOption ? OptionsHelper.OptionsPrecedence.FirstOrDefault(p => x.option == p.OptionShortName || x.option == p.OptionLongName, OptionsHelper.OptionPrecedence.Default).Index : int.MaxValue)
-            .Select(x => x.arg);
     }
 
     #endregion
