@@ -1518,8 +1518,8 @@ public partial class CommentsWriter(Settings settings)
             if (int.TryParse(videoInfo.UploadDate[6..], out int day) == false)
                 return videoInfo.UploadDate;
 
-            var uploadDate = new DateTime(year, month, day);
-            return uploadDate.ToString("MMM d, yyyy", CultureInfo.InvariantCulture);
+            // Video upload date in UTC (YYYYMMDD)
+            return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc).ToString("d");
         }
         catch
         {
@@ -1529,7 +1529,7 @@ public partial class CommentsWriter(Settings settings)
 
     private static string GetCommentsDownloadDate()
     {
-        return DateTime.Now.ToString("MMM d, yyyy, h:mm tt", CultureInfo.InvariantCulture);
+        return DateTime.Now.ToString("g");
     }
 
     private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
