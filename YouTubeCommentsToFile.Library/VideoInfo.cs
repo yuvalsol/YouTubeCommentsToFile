@@ -15,6 +15,31 @@ public class VideoInfo
     [YtDlpField("description")]
     public string Description { get; internal set; }
 
+    public DateTime? GetUploadDate()
+    {
+        if (string.IsNullOrEmpty(UploadDate))
+            return null;
+
+        try
+        {
+            if (int.TryParse(UploadDate[..4], out int year) == false)
+                return null;
+
+            if (int.TryParse(UploadDate[4..6], out int month) == false)
+                return null;
+
+            if (int.TryParse(UploadDate[6..], out int day) == false)
+                return null;
+
+            // Video upload date in UTC (YYYYMMDD)
+            return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -22,7 +47,7 @@ public class VideoInfo
         sb.AppendLine($"Uploader:     {Uploader}");
         sb.AppendLine($"Uploader ID:  {UploaderID}");
         sb.AppendLine($"Uploader URL: {UploaderURL}");
-        sb.AppendLine($"Upload Date:  {UploadDate}");
+        sb.AppendLine($"Upload Date:  {GetUploadDate()?.ToString("d") ?? UploadDate}");
         sb.AppendLine($"Description:{Environment.NewLine}{Description}");
         return sb.ToString();
     }

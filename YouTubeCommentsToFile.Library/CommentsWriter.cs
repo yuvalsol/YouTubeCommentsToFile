@@ -1364,12 +1364,16 @@ public partial class CommentsWriter(Settings settings)
                         writer.WriteLine($"<a href='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}'>{HttpUtility.HtmlEncode(videoInfo.UploaderID)}</a>");
                 }
 
-                string uploadDate = GetUploadDate();
-                if (string.IsNullOrEmpty(uploadDate) == false)
-                    writer.WriteLine(HttpUtility.HtmlEncode($"Uploaded at {uploadDate}"));
+                DateTime? uploadDate = videoInfo.GetUploadDate();
+                if (uploadDate != null)
+                    writer.WriteLine($"{HttpUtility.HtmlEncode("Uploaded at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(uploadDate.Value.ToString("o"))}'>{HttpUtility.HtmlEncode(uploadDate.Value.ToString("d"))}</time>");
+
+                DateTime downloadDate = DateTime.Now;
+                string downloadDateStr = downloadDate.ToString("g");
+                string downloadDateRoundTrip = downloadDate.ToString("o");
 
                 writer.WriteLine();
-                writer.WriteLine(HttpUtility.HtmlEncode($"Downloaded at {GetCommentsDownloadDate()}"));
+                writer.WriteLine($"{HttpUtility.HtmlEncode("Downloaded at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(downloadDateRoundTrip)}'>{HttpUtility.HtmlEncode(downloadDateStr)}</time>");
             }
             else
             {
@@ -1384,12 +1388,12 @@ public partial class CommentsWriter(Settings settings)
                 if (string.IsNullOrEmpty(settings.URL) == false)
                     writer.WriteLine(settings.URL);
 
-                string uploadDate = GetUploadDate();
-                if (string.IsNullOrEmpty(uploadDate) == false)
-                    writer.WriteLine($"Uploaded at {uploadDate}");
+                DateTime? uploadDate = videoInfo.GetUploadDate();
+                if (uploadDate != null)
+                    writer.WriteLine($"Uploaded at {uploadDate.Value:d}");
 
                 writer.WriteLine();
-                writer.WriteLine($"Downloaded at {GetCommentsDownloadDate()}");
+                writer.WriteLine($"Downloaded at {DateTime.Now:g}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
@@ -1498,36 +1502,6 @@ public partial class CommentsWriter(Settings settings)
             foreach (var widthCh in GetHighlightWidthCh(reply, indentSize, textLineLength, indentCount, writeToHTML))
                 yield return widthCh;
         }
-    }
-
-    private string GetUploadDate()
-    {
-        if (string.IsNullOrEmpty(videoInfo.UploadDate))
-            return null;
-
-        try
-        {
-            if (int.TryParse(videoInfo.UploadDate[..4], out int year) == false)
-                return videoInfo.UploadDate;
-
-            if (int.TryParse(videoInfo.UploadDate[4..6], out int month) == false)
-                return videoInfo.UploadDate;
-
-            if (int.TryParse(videoInfo.UploadDate[6..], out int day) == false)
-                return videoInfo.UploadDate;
-
-            // Video upload date in UTC (YYYYMMDD)
-            return new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc).ToString("d");
-        }
-        catch
-        {
-            return videoInfo.UploadDate;
-        }
-    }
-
-    private static string GetCommentsDownloadDate()
-    {
-        return DateTime.Now.ToString("g");
     }
 
     private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
