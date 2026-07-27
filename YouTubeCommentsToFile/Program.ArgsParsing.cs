@@ -37,6 +37,9 @@ internal partial class Program(string[] args)
             }
             else if (parsingResult == ParsingResult.Error)
             {
+                operationOptions ??= GetAdHocOperationOptions();
+                if (operationOptions.Verbose)
+                    WriteMessages(verboseMessages, singleLine: false);
                 finishedWithErrors = true;
                 return -1;
             }
@@ -106,7 +109,7 @@ internal partial class Program(string[] args)
             if (operationOptions.Quiet == false && (operationOptions.Beep || (operationOptions.BeepOnErrors && finishedWithErrors)))
                 Console.Beep();
 
-            if (Debugger.IsAttached)
+            if ((operationOptions.Quiet == false && operationOptions.PauseOnErrors && finishedWithErrors) || Debugger.IsAttached)
                 PressAnyKey();
         }
     }
@@ -123,6 +126,7 @@ internal partial class Program(string[] args)
 
         string beep = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.Beep));
         string beepOnErrors = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.BeepOnErrors));
+        string pauseOnErrors = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.PauseOnErrors));
 
         return new ConvertOptions()
         {
@@ -130,7 +134,8 @@ internal partial class Program(string[] args)
             Quiet = args.HasAny(arg => arg == quiet1 || arg == quiet2),
             YtDlpQuiet = args.HasAny(arg => arg == ytDlpQuiet),
             Beep = args.HasAny(arg => arg == beep),
-            BeepOnErrors = args.HasAny(arg => arg == beepOnErrors)
+            BeepOnErrors = args.HasAny(arg => arg == beepOnErrors),
+            PauseOnErrors = args.HasAny(arg => arg == pauseOnErrors)
         };
     }
 

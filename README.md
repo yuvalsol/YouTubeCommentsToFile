@@ -335,7 +335,7 @@ YouTubeCommentsToFile (convert|[download])
 
     [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet] [--no-write-comments]
 
-    [--beep] [--beep-on-errors] [-h] [--help] [--version]
+    [--beep] [--beep-on-errors] [--pause-on-errors] [-h] [--help] [--version]
 ```
 
 ### Shared Options
@@ -927,12 +927,15 @@ These options determine what and how much is printed out.
 ### General
 
 ```console
---beep              Make a beep sound when finished.
-                    If used with '--quiet', make no sound.
---beep-on-errors    Make a beep sound when finished with errors.
-                    If used with '--quiet', make no sound.
--h, --help          Display help screen.
---version           Display version information.
+--beep               Make a beep sound when finished.
+                     If used with '--quiet', make no sound.
+--beep-on-errors     Make a beep sound when finished with errors.
+                     If used with '--quiet', make no sound.
+--pause-on-errors    Prevent the console from closing until a key is pressed
+                     when finished with errors. If used with '--quiet',
+                     this option is disabled.
+-h, --help           Display help screen.
+--version            Display version information.
 ```
 
 ## Download Tutorials

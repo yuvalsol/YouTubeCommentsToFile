@@ -431,6 +431,10 @@ internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(2)]
     bool BeepOnErrors { get; set; }
 
+    [Option("pause-on-errors", HelpText = "Prevent the console from closing until a key is pressed when finished with errors. If used with '--quiet', this option is disabled.")]
+    [OptionPrecedence(3)]
+    bool PauseOnErrors { get; set; }
+
     [Option('h', "help", HelpText = "Display help screen.")]
     bool Help { get; set; }
 
@@ -740,6 +744,7 @@ internal abstract class SharedOptions :
     // General
     public bool Beep { get; set; }
     public bool BeepOnErrors { get; set; }
+    public bool PauseOnErrors { get; set; }
     public bool Help { get; set; }
     public bool Version { get; set; }
 
@@ -1020,6 +1025,7 @@ internal abstract class SharedOptions :
         // General
         Beep |= options.Beep;
         BeepOnErrors |= options.BeepOnErrors;
+        PauseOnErrors |= options.PauseOnErrors;
         Help |= options.Help;
         Version |= options.Version;
     }
@@ -1194,6 +1200,7 @@ internal class GeneralHelpOptions : IGeneralOptions
 {
     public bool Beep { get; set; }
     public bool BeepOnErrors { get; set; }
+    public bool PauseOnErrors { get; set; }
     public bool Help { get; set; }
     public bool Version { get; set; }
 }
