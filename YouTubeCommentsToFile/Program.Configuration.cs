@@ -131,7 +131,7 @@ internal partial class Program
     private IEnumerable<string> GetConfigFileNames() => GetConfigurationFileNames(CONFIG, operationOptions.Verb, "config");
     private IEnumerable<string> GetConfigTxtFileNames() => GetConfigurationFileNames(CONFIG_TXT, operationOptions.Verb, "config");
 
-    private IEnumerable<string> GetConfigurationFileNames(string template, string f1, string f2)
+    private static IEnumerable<string> GetConfigurationFileNames(string template, string f1, string f2)
     {
         yield return string.Format(template, f1);
         yield return string.Format(template, f2);
@@ -149,12 +149,12 @@ internal partial class Program
     private IEnumerable<string> GetConfigTxtFiles(string directory) => GetConfigurationFiles(GetConfigTxtFileNames, directory);
     private IEnumerable<string> GetConfigTxtFiles(string directory1, string directory2) => GetConfigurationFiles(GetConfigTxtFileNames, directory1, directory2);
 
-    private IEnumerable<string> GetConfigurationFiles(Func<IEnumerable<string>> GetFileNames, string directory)
+    private static IEnumerable<string> GetConfigurationFiles(Func<IEnumerable<string>> GetFileNames, string directory)
     {
         return GetFileNames().Select(file => Path.Combine(directory, file));
     }
 
-    private IEnumerable<string> GetConfigurationFiles(Func<IEnumerable<string>> GetFileNames, string directory1, string directory2)
+    private static IEnumerable<string> GetConfigurationFiles(Func<IEnumerable<string>> GetFileNames, string directory1, string directory2)
     {
         return GetFileNames().Select(file => Path.Combine(directory1, directory2, file));
     }

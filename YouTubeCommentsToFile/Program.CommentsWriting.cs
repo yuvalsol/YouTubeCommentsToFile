@@ -114,6 +114,7 @@ internal partial class Program
             WriteVerboseProperty("Title", e.VideoInfo.Title);
             WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
             WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
+            WriteVerboseProperty("Upload Date", e.VideoInfo.GetUploadDate()?.ToString("d"));
             isPrintedVideoTitle = true;
         }
         else
@@ -131,6 +132,7 @@ internal partial class Program
             WriteVerboseProperty("Title", e.VideoInfo.Title);
             WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
             WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
+            WriteVerboseProperty("Upload Date", e.VideoInfo.GetUploadDate()?.ToString("d"));
         }
 
         Write("Loading JSON file...");

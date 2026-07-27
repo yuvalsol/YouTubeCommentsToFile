@@ -91,12 +91,16 @@ public class SearchText(string text, bool highlight, bool filter, bool ignoreCas
          *     (IgnoreCase ? CompareOptions.IgnoreCase : CompareOptions.None) | CompareOptions.IgnoreNonSpace
          * ) != -1;
          * 
-         * there is a bug in .NET 8.
+         * there is a bug in .NET 8+ due to changes to globalization (NLS->ICU)
+         * https://github.com/dotnet/runtime/issues/101422
          * when using just CompareOptions.IgnoreNonSpace, it also ignores case:
          * 
          * return CultureInfo.InvariantCulture.CompareInfo.IndexOf(comment.Text, Text,
          *     CompareOptions.IgnoreNonSpace
          * ) != -1;
+         * 
+         * expected to return -1 but returns 0
+         * CultureInfo.InvariantCulture.CompareInfo.IndexOf("ABCDéFGH", "a", CompareOptions.IgnoreNonSpace)
          * 
          * settle for ignoring case without ignoring diacritics
          * 
