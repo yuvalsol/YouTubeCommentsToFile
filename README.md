@@ -333,7 +333,7 @@ YouTubeCommentsToFile ([convert]|download)
 
     [--config-locations <path>] [--ignore-config] [--stop-config]
 
-    [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet]
+    [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet] [--no-write-comments]
 
     [--beep] [--beep-errors] [-h] [--help] [--version]
 ```
@@ -917,10 +917,11 @@ This option stops the loading of the configuration stack from the point it appea
 These options determine what and how much is printed out.
 
 ```console
--v, --verbose    Print debugging information.
--q, --quiet      Don't print anything.
-                 If used with '--verbose', print to standard error (stderr).
---yt-dlp-quiet   Don't print output from yt-dlp.
+-v, --verbose          Print debugging information.
+-q, --quiet            Don't print anything.
+                       If used with '--verbose', print to standard error (stderr).
+--yt-dlp-quiet         Don't print output from yt-dlp.
+--no-write-comments    Don't download or write comments.
 ```
 
 ### General

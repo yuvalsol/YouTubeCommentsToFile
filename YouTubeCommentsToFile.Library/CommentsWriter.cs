@@ -19,11 +19,6 @@ public partial class CommentsWriter(Settings settings)
     private bool hasHighlightAuthor;
     private bool hasHighlightText;
 
-#if DEBUG
-    private static readonly bool HighlightAllComments = false;
-    private static readonly bool FilterAndHighlightCommentsWithEmoji = false;
-#endif
-
     #endregion
 
     #region Events
@@ -185,6 +180,9 @@ public partial class CommentsWriter(Settings settings)
 
     public void WriteCommentsToFile()
     {
+        if (settings.NoWriteComments)
+            return;
+
         long startTime = Stopwatch.GetTimestamp();
 
         FixDownloadPath();
@@ -998,7 +996,7 @@ public partial class CommentsWriter(Settings settings)
         ];
 
 #if DEBUG
-        if (FilterAndHighlightCommentsWithEmoji)
+        if (settings.FilterAndHighlightCommentsWithEmoji)
             comments.RemoveAll(c => c.Text.HasEmoji() == false);
 #endif
 
@@ -1173,9 +1171,9 @@ public partial class CommentsWriter(Settings settings)
             .HasAny(s => s.IsMatch(comment));
 
 #if DEBUG
-        if (HighlightAllComments)
+        if (settings.HighlightAllComments)
             comment.IsHighlightText = true;
-        else if (FilterAndHighlightCommentsWithEmoji)
+        else if (settings.FilterAndHighlightCommentsWithEmoji)
             comment.IsHighlightText = comment.Text.HasEmoji();
 #endif
 

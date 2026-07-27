@@ -20,6 +20,9 @@ internal partial class Program
             .AppendLine(GetHelpText<ConfigurationHelpOptions>("Configuration"))
             .AppendLine(GetHelpText<VerbosityHelpOptions>("Verbosity"))
             .AppendLine(GetHelpText<GeneralHelpOptions>("General"))
+#if DEBUG
+            .AppendLine(GetHelpText<DebugHelpOptions>("Debug"))
+#endif
             .AppendLine(GetHelpText<ConvertExamples>("Convert Examples"))
             .AppendLine()
             .AppendLine(GetHelpText<DownloadExamples>("Download Examples"))

@@ -415,6 +415,9 @@ internal interface IVerbosityOptions : IYouTubeCommentsToFileOptions
 
     [Option("yt-dlp-quiet", HelpText = "Don't print output from yt-dlp.")]
     bool YtDlpQuiet { get; set; }
+
+    [Option("no-write-comments", HelpText = "Don't download or write comments.")]
+    public bool NoWriteComments { get; set; }
 }
 
 [OptionPrecedence(11)]
@@ -435,11 +438,29 @@ internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
     bool Version { get; set; }
 }
 
+#if DEBUG
+[OptionPrecedence(12)]
+internal interface IDebugOptions : IYouTubeCommentsToFileOptions
+{
+    [Option("comments-with-emoji", HelpText = "Filter and highlight comments with emoji.")]
+    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+
+    [Option("hac", HelpText = "Highlight all comments.")]
+    public bool HighlightAllComments { get; set; }
+}
+#endif
+
 #endregion
 
 #region Options
 
-internal interface IOperationOptions : IConfigurationOptions, IVerbosityOptions, IGeneralOptions
+internal interface IOperationOptions :
+    IConfigurationOptions,
+    IVerbosityOptions,
+    IGeneralOptions
+#if DEBUG
+    , IDebugOptions
+#endif
 {
     string Verb { get; }
     bool IsDefaultVerb { get; }
@@ -611,6 +632,9 @@ internal abstract class SharedOptions :
     IConfigurationOptions,
     IVerbosityOptions,
     IGeneralOptions
+#if DEBUG
+    , IDebugOptions
+#endif
 {
     // Shared
     public bool ToHTML { get; set; }
@@ -711,12 +735,19 @@ internal abstract class SharedOptions :
     public bool Verbose { get; set; }
     public bool Quiet { get; set; }
     public bool YtDlpQuiet { get; set; }
+    public bool NoWriteComments { get; set; }
 
     // General
     public bool Beep { get; set; }
     public bool BeepErrors { get; set; }
     public bool Help { get; set; }
     public bool Version { get; set; }
+
+#if DEBUG
+    // Debug
+    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightAllComments { get; set; }
+#endif
 
     public virtual Settings ToSettings()
     {
@@ -789,7 +820,16 @@ internal abstract class SharedOptions :
             HighlightTextBorderColor = ColorHelper.StringToColor(HighlightTextBorderColor),
             LinkColor = ColorHelper.StringToColor(LinkColor),
             CopyTextSuccessColor = ColorHelper.StringToColor(CopyTextSuccessColor),
-            CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor)
+            CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor),
+
+            // Verbosity
+            NoWriteComments = NoWriteComments,
+
+#if DEBUG
+            // Debug
+            FilterAndHighlightCommentsWithEmoji = FilterAndHighlightCommentsWithEmoji,
+            HighlightAllComments = HighlightAllComments
+#endif
         };
 
         // Uploader
@@ -1147,6 +1187,7 @@ internal class VerbosityHelpOptions : IVerbosityOptions
     public bool Verbose { get; set; }
     public bool Quiet { get; set; }
     public bool YtDlpQuiet { get; set; }
+    public bool NoWriteComments { get; set; }
 }
 
 internal class GeneralHelpOptions : IGeneralOptions
@@ -1156,6 +1197,14 @@ internal class GeneralHelpOptions : IGeneralOptions
     public bool Help { get; set; }
     public bool Version { get; set; }
 }
+
+#if DEBUG
+internal class DebugHelpOptions : IDebugOptions
+{
+    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightAllComments { get; set; }
+}
+#endif
 
 #endregion
 

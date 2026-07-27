@@ -95,4 +95,13 @@ public class Settings
     public Color? LinkColor { get; set; }
     public Color? CopyTextSuccessColor { get; set; }
     public Color? CopyTextFailureColor { get; set; }
+
+    // Verbosity
+    public bool NoWriteComments { get; set; }
+
+#if DEBUG
+    // Debug
+    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightAllComments { get; set; }
+#endif
 }
