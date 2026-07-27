@@ -20,10 +20,10 @@ There is a convention on YouTube that if you want to reply to someone else's rep
 
 ## Convert
 
-Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb is optional to specify.
+Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb is required to specify.
 
 ```console
-YouTubeCommentsToFile [convert]
+YouTubeCommentsToFile convert
     --json-file <path>
     [--url <url>]
     [--yt-dlp <path>]
@@ -92,10 +92,10 @@ YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --uf -
 
 ## Download
 
-Downloads comments to text file or HTML file. Uses verb `download`. Verb is required to specify.
+Downloads comments to text file or HTML file. Uses verb `download`. Verb is optional to specify.
 
 ```console
-YouTubeCommentsToFile download
+YouTubeCommentsToFile [download]
     --url <url>
     [--yt-dlp <path>]
     [--deno <path>]
@@ -296,7 +296,7 @@ YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg
 These options determine whether to write a text file, an HTML file or both. They also determine the structure of the output file.
 
 ```console
-YouTubeCommentsToFile ([convert]|download)
+YouTubeCommentsToFile (convert|[download])
     [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
     [--delete-json-file] [--disable-threading]
     [--hide-comment-separators] [--hide-likes] [--hide-replies] [--hide-time]
@@ -953,7 +953,7 @@ These tutorials show how to use YouTubeCommentsToFile with more than just the co
 ```batch
 @echo off
 set "url=%~1"
-call "C:\Path\To\YouTubeCommentsToFile.exe" download --url "%url%" --download-path "C:\Path\To\Downloads Folder" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --beep-errors --yt-dlp "C:\Path\To\yt-dlp.exe" --update-yt-dlp --deno "C:\Path\To\deno.exe"
+call "C:\Path\To\YouTubeCommentsToFile.exe" --url "%url%" --download-path "C:\Path\To\Downloads Folder" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --beep-errors --yt-dlp "C:\Path\To\yt-dlp.exe" --update-yt-dlp --deno "C:\Path\To\deno.exe"
 exit /b %ERRORLEVEL%
 ```
 
@@ -1040,13 +1040,13 @@ This download method uses **External Application Launcher** browser extension. T
 3. Open the extension options page through your browser, fill in the following text and check boxes and press the "Add Application" button when done.
 - **Display Name**: Download Comments
 - **Executable Name**: C:\Windows\System32\cmd.exe
-- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe download --url \[HREF\]
+- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe --url \[HREF\]
 - **Toolbar Button**: Page Context, Link Context, Video Context
 - **Page Pattern**: \*://www.youtube.com/\*, \*://www.youtube-nocookie.com/\*, \*://music.youtube.com/\*, \*://www.bilibili.com/\*, \*://www.bilibili.tv/\*
 
 If the configuration file is not part of the [Configuration Stack](#configuration-stack "Configuration Stack"), different name or different location, specify the path to it with `--config-locations`.
 
-- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe download --config-locations "C:\Path\To\configuration-file.conf" --url \[HREF\]
+- **Arguments**: /c start /d "C:\Path\To\YouTubeCommentsToFile Directory" YouTubeCommentsToFile.exe --config-locations "C:\Path\To\configuration-file.conf" --url \[HREF\]
 
 4. Go to YouTube and right-click on a link to a video in the YouTube main page or right-click on the video page itself. The button, to download comments, will be available in the context menu.
 

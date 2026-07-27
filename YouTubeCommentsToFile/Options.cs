@@ -9,7 +9,7 @@ namespace YouTubeCommentsToFile;
 internal interface IYouTubeCommentsToFileOptions { }
 
 [OptionDescription("Converts comments JSON file to text file or HTML file.")]
-[OptionDescription($"Uses verb 'convert'. Verb is optional to specify.")]
+[OptionDescription($"Uses verb 'convert'. Verb is required to specify.")]
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
@@ -31,7 +31,7 @@ internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 }
 
 [OptionDescription("Downloads comments to text file or HTML file.")]
-[OptionDescription($"Uses verb 'download'. Verb is required to specify.")]
+[OptionDescription($"Uses verb 'download'. Verb is optional to specify.")]
 [OptionPrecedence(2)]
 internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
 {
@@ -479,11 +479,11 @@ internal interface IOperationOptions<TOptions> : IOperationOptions
     void MergeOptions(TOptions options);
 }
 
-[Verb("convert", true)]
+[Verb("convert", false)]
 internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOptions<ConvertOptions>
 {
     public string Verb => "convert";
-    public bool IsDefaultVerb => true;
+    public bool IsDefaultVerb => false;
 
     public string JsonFile { get; set; }
     public string URL { get; set; }
@@ -531,11 +531,11 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     }
 }
 
-[Verb("download", false)]
+[Verb("download", true)]
 internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOptions<DownloadOptions>
 {
     public string Verb => "download";
-    public bool IsDefaultVerb => false;
+    public bool IsDefaultVerb => true;
 
     public string URL { get; set; }
     public string YtDlp { get; set; }
