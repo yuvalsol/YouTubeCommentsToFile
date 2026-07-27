@@ -335,7 +335,7 @@ YouTubeCommentsToFile (convert|[download])
 
     [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet] [--no-write-comments]
 
-    [--beep] [--beep-errors] [-h] [--help] [--version]
+    [--beep] [--beep-on-errors] [-h] [--help] [--version]
 ```
 
 ### Shared Options
@@ -927,12 +927,12 @@ These options determine what and how much is printed out.
 ### General
 
 ```console
---beep           Make a beep sound when finished.
-                 If used with '--quiet', make no sound.
---beep-errors    Make a beep sound when finished with errors.
-                 If used with '--quiet', make no sound.
--h, --help       Display help screen.
---version        Display version information.
+--beep              Make a beep sound when finished.
+                    If used with '--quiet', make no sound.
+--beep-on-errors    Make a beep sound when finished with errors.
+                    If used with '--quiet', make no sound.
+-h, --help          Display help screen.
+--version           Display version information.
 ```
 
 ## Download Tutorials
@@ -953,7 +953,7 @@ These tutorials show how to use YouTubeCommentsToFile with more than just the co
 ```batch
 @echo off
 set "url=%~1"
-call "C:\Path\To\YouTubeCommentsToFile.exe" --url "%url%" --download-path "C:\Path\To\Downloads Folder" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --beep-errors --yt-dlp "C:\Path\To\yt-dlp.exe" --update-yt-dlp --deno "C:\Path\To\deno.exe"
+call "C:\Path\To\YouTubeCommentsToFile.exe" --url "%url%" --download-path "C:\Path\To\Downloads Folder" --max-comments 100000 --max-replies-per-thread 100 --sort-top --to-html --show-comment-navigation-links --show-copy-links --uh --trim-title 150 --delete-json-file --beep-on-errors --yt-dlp "C:\Path\To\yt-dlp.exe" --update-yt-dlp --deno "C:\Path\To\deno.exe"
 exit /b %ERRORLEVEL%
 ```
 
@@ -969,7 +969,7 @@ You can omit the full path to the YouTubeCommentsToFile executable if the script
 - `--uh` Highlight uploader. Comments and replies, written by the uploader of the video, will be highlighted.
 - `--trim-title 150` Limit the title of the video to at most 150 characters.
 - `--delete-json-file` Delete the comments JSON file after successfully writing to the HTML output file.
-- `--beep-errors` Make a beep sound when finished with errors.
+- `--beep-on-errors` Make a beep sound when finished with errors.
 - `--yt-dlp "C:\Path\To\yt-dlp.exe"` Path to yt-dlp.
 - `--update-yt-dlp` Update yt-dlp before using it.
 - `--deno "C:\Path\To\deno.exe"` Path to Deno.
@@ -1025,7 +1025,7 @@ This download method uses **External Application Launcher** browser extension. T
 --delete-json-file
 
 # Make a beep sound when finished with errors.
---beep-errors
+--beep-on-errors
 
 # Path to yt-dlp.
 --yt-dlp "C:\Path\To\yt-dlp.exe"

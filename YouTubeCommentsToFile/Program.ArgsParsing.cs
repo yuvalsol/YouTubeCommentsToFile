@@ -103,7 +103,7 @@ internal partial class Program(string[] args)
         {
             operationOptions ??= GetAdHocOperationOptions();
 
-            if (operationOptions.Quiet == false && (operationOptions.Beep || (operationOptions.BeepErrors && finishedWithErrors)))
+            if (operationOptions.Quiet == false && (operationOptions.Beep || (operationOptions.BeepOnErrors && finishedWithErrors)))
                 Console.Beep();
 
             if (Debugger.IsAttached)
@@ -122,7 +122,7 @@ internal partial class Program(string[] args)
         string ytDlpQuiet = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.YtDlpQuiet));
 
         string beep = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.Beep));
-        string beepErrors = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.BeepErrors));
+        string beepOnErrors = OptionsHelper.GetOptionLongName(nameof(IGeneralOptions.BeepOnErrors));
 
         return new ConvertOptions()
         {
@@ -130,7 +130,7 @@ internal partial class Program(string[] args)
             Quiet = args.HasAny(arg => arg == quiet1 || arg == quiet2),
             YtDlpQuiet = args.HasAny(arg => arg == ytDlpQuiet),
             Beep = args.HasAny(arg => arg == beep),
-            BeepErrors = args.HasAny(arg => arg == beepErrors)
+            BeepOnErrors = args.HasAny(arg => arg == beepOnErrors)
         };
     }
 

@@ -15,13 +15,13 @@ internal partial class Program
         //    URL = "",
         //    YtDlp = @"",
         //    DownloadPath = @"",
-        //    ToHTML = true,
+        //    ToHTMLAndText = true,
         //    SortTop = true,
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
         //    Verbose = true,
-        //    BeepErrors = true
+        //    BeepOnErrors = true
         //});
 
         //return RunDebug(new ConvertOptions
@@ -29,12 +29,12 @@ internal partial class Program
         //    JsonFile = @"",
         //    URL = "",
         //    YtDlp = @"",
-        //    ToHTML = true,
+        //    ToHTMLAndText = true,
         //    HighlightUploader = true,
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
         //    Verbose = true,
-        //    BeepErrors = true
+        //    BeepOnErrors = true
         //});
 
         //return GetVideoInfo("", @"");
