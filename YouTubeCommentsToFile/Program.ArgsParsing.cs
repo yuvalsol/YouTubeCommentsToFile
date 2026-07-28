@@ -162,7 +162,7 @@ internal partial class Program(string[] args)
         IOperationOptions parsingOptions = null;
         ParsingResult parsingResult = ParsingResult.ArgumentsNotParsed;
 
-        AddQuotationsToYtDlpOptions();
+        AddQuotationsToYtDlpOptions(args);
 
         parser.ParseArguments<ConvertOptions, DownloadOptions>(args)
             .WithParsed<ConvertOptions>(options =>
@@ -191,7 +191,7 @@ internal partial class Program(string[] args)
         return (parsingOptions, parsingResult);
     }
 
-    private void AddQuotationsToYtDlpOptions()
+    private static void AddQuotationsToYtDlpOptions(string[] args)
     {
         string ytDlpOptions = OptionsHelper.GetOptionLongName(nameof(IDownloadOptions.YtDlpOptions));
         var argYtDlpOptions = args.Select((arg, index) => (arg, index)).FirstOrDefault(x => string.Compare(x.arg, ytDlpOptions) == 0);
