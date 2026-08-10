@@ -386,25 +386,13 @@ public partial class CommentsWriter(Settings settings)
                 downloadVideoInfoError = ex;
             }
 
-            if (string.IsNullOrEmpty(jsonFile) == false)
-            {
-                videoInfo ??= new VideoInfo()
-                {
-                    Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-                };
-            }
+            GetAdHocVideoInfo();
 
             FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(videoInfo, downloadVideoInfoError));
         }
         else
         {
-            if (string.IsNullOrEmpty(jsonFile) == false)
-            {
-                videoInfo ??= new VideoInfo()
-                {
-                    Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-                };
-            }
+            GetAdHocVideoInfo();
         }
 
         #endregion
@@ -970,6 +958,22 @@ public partial class CommentsWriter(Settings settings)
         videoInfo.Description = videoInfo.Description?.CleanText();
 
         return videoInfo;
+    }
+
+    private void GetAdHocVideoInfo()
+    {
+        if (string.IsNullOrEmpty(jsonFile) == false)
+        {
+            videoInfo ??= new VideoInfo()
+            {
+                Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
+            };
+        }
+
+        videoInfo ??= new VideoInfo()
+        {
+            Title = settings.URL
+        };
     }
 
     #endregion

@@ -84,8 +84,11 @@ internal partial class Program
         }
         else
         {
-            WriteLine();
-            WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
+            WriteWarningLine(" Failed.");
+            if (operationOptions.Verbose)
+                WriteWarningLine(e.Error.GetExceptionErrorMessage(withoutDebuggingInfo: withoutDebuggingInfo));
+            else
+                WriteWarningLine(e.Error.Message);
             finishedWithErrors = true;
         }
     }
@@ -126,16 +129,15 @@ internal partial class Program
             {
                 if (operationOptions.YtDlpQuiet)
                     WriteLine(" Done.");
-                else
-                    WriteLine("Comments JSON file downloaded successfully.");
                 WriteVerboseProperty("JSON File", e.JsonFile);
                 isPrintedJsonFile = true;
             }
             else
             {
                 if (operationOptions.YtDlpQuiet)
-                    WriteLine();
-                WriteErrorLine("Failed to download comments JSON file.");
+                    WriteErrorLine(" Failed.");
+                else
+                    WriteErrorLine("Failed to download comments JSON file.");
                 finishedWithErrors = true;
             }
         }
@@ -164,8 +166,7 @@ internal partial class Program
         }
         else
         {
-            WriteLine();
-            WriteErrorLine("Failed to load JSON file.");
+            WriteErrorLine(" Failed.");
             if (isPrintedJsonFile == false)
                 WriteErrorLine($"JSON File: {e.JsonFile}");
             finishedWithErrors = true;
@@ -196,8 +197,7 @@ internal partial class Program
         }
         else
         {
-            WriteLine();
-            WriteErrorLine("Failed to process comments.");
+            WriteErrorLine(" Failed.");
             finishedWithErrors = true;
         }
     }
@@ -256,8 +256,7 @@ internal partial class Program
         }
         else
         {
-            WriteLine();
-            WriteErrorLine("Failed to delete JSON file.");
+            WriteErrorLine(" Failed.");
             finishedWithErrors = true;
         }
     }
@@ -276,9 +275,7 @@ internal partial class Program
     {
         if (error == null)
         {
-            if (lostComments == 0)
-                WriteLine($"Finished {operation}ing comments successfully.");
-            else
+            if (lostComments > 0)
                 WriteLine($"Finished {operation}ing comments with warnings.");
         }
         else
