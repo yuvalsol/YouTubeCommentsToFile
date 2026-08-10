@@ -12,7 +12,7 @@ internal partial class Program
 
         //return RunDebug(new DownloadOptions
         //{
-        //    URL = "",
+        //    URLsValue = [""],
         //    YtDlp = @"",
         //    DownloadPath = @"",
         //    ToHTMLAndText = true,
@@ -21,12 +21,13 @@ internal partial class Program
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
         //    Verbose = true,
+        //    YtDlpQuiet = false,
         //    BeepOnErrors = true
         //});
 
         //return RunDebug(new ConvertOptions
         //{
-        //    JsonFile = @"",
+        //    JsonFilesValue = [@""],
         //    URL = "",
         //    YtDlp = @"",
         //    ToHTMLAndText = true,
@@ -34,6 +35,7 @@ internal partial class Program
         //    ShowCommentNavigationLinks = true,
         //    DeleteJsonFile = false,
         //    Verbose = true,
+        //    YtDlpQuiet = false,
         //    BeepOnErrors = true
         //});
 
@@ -53,7 +55,7 @@ internal partial class Program
     private static int RunDebug<TOptions>(TOptions options)
         where TOptions : SharedOptions, IOperationOptions
     {
-        return RunDebug(options.ToArgs(GetParser()));
+        return RunDebug(options.ToArgs());
     }
 
     private static int RunDebug(string[] args)
@@ -64,18 +66,28 @@ internal partial class Program
     private static int PrintArgs<TOptions>(TOptions options, bool singleLine = false)
         where TOptions : SharedOptions, IOperationOptions
     {
-        return PrintArgs(options.ToArgs(GetParser()), singleLine);
+        if (singleLine)
+        {
+            Console.WriteLine(options.ToString());
+        }
+        else
+        {
+            foreach (var arg in options.ToVerboseArgs())
+                Console.WriteLine(arg);
+        }
+
+        return 0;
     }
 
     private static int PrintArgs(string[] args, bool singleLine = false)
     {
         if (singleLine)
         {
-            Console.WriteLine(string.Join(' ', args.RearrangeArgs().OrderByPrecedence()));
+            Console.WriteLine(string.Join(' ', args));
         }
         else
         {
-            foreach (var arg in args.RearrangeArgs().OrderByPrecedence())
+            foreach (var arg in args)
                 Console.WriteLine(arg);
         }
 
@@ -87,7 +99,13 @@ internal partial class Program
         var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
         if (videoInfo != null)
         {
-            Console.WriteLine(videoInfo.ToString());
+            PrintVideoInfoProperty(nameof(videoInfo.Title), videoInfo.Title);
+            PrintVideoInfoProperty(nameof(videoInfo.Uploader), videoInfo.Uploader);
+            PrintVideoInfoProperty(nameof(videoInfo.UploaderID), videoInfo.UploaderID);
+            PrintVideoInfoProperty(nameof(videoInfo.UploaderURL), videoInfo.UploaderURL);
+            PrintVideoInfoProperty(nameof(videoInfo.UploadDate), videoInfo.GetUploadDate()?.ToString("d") ?? videoInfo.UploadDate);
+            PrintVideoInfoProperty(nameof(videoInfo.Language), videoInfo.Language);
+            PrintVideoInfoProperty(nameof(videoInfo.Description), videoInfo.Description, true);
             return 0;
         }
         else
@@ -97,6 +115,18 @@ internal partial class Program
             Console.ForegroundColor = FOREGROUND_COLOR;
             return -1;
         }
+    }
+
+    private static void PrintVideoInfoProperty(string property, string value, bool valueNewLine = false)
+    {
+        Console.ForegroundColor = PROPERTY_COLOR;
+        Console.Write(property.ToWords());
+        Console.ForegroundColor = FOREGROUND_COLOR;
+        if (valueNewLine)
+            Console.WriteLine(":");
+        else
+            Console.Write(": ");
+        Console.WriteLine(value);
     }
 }
 #endif

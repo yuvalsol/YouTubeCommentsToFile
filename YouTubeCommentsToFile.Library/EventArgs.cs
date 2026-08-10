@@ -1,11 +1,34 @@
 ﻿namespace YouTubeCommentsToFile.Library;
 
-public sealed class StartEventArgs(bool download, string url, string jsonFile, string encodingName) : EventArgs
+public sealed class StartEventArgs : EventArgs
 {
-    public bool Download => download;
-    public string URL => url;
+}
+
+public sealed class StartConvertEventArgs(string jsonFile, string url, int count, int total, string encodingName) : EventArgs
+{
     public string JsonFile => jsonFile;
+    public string URL => url;
+    public int Count => count;
+    public int Total => total;
     public string EncodingName => encodingName;
+}
+
+public sealed class StartDownloadEventArgs(string url, int count, int total, string encodingName) : EventArgs
+{
+    public string URL => url;
+    public int Count => count;
+    public int Total => total;
+    public string EncodingName => encodingName;
+}
+
+public sealed class StartDownloadVideoInfoEventArgs : EventArgs
+{
+}
+
+public sealed class FinishDownloadVideoInfoEventArgs(VideoInfo videoInfo, Exception error = null) : EventArgs
+{
+    public VideoInfo VideoInfo => videoInfo;
+    public Exception Error => error;
 }
 
 public sealed class StartDownloadCommentsEventArgs(string url, string ytDlpCommandLine) : EventArgs
@@ -25,17 +48,6 @@ public sealed class FinishDownloadCommentsEventArgs(string url, string ytDlpComm
     public string URL => url;
     public string YtDlpCommandLine => ytDlpCommandLine;
     public string JsonFile => jsonFile;
-    public Exception Error => error;
-}
-
-public sealed class StartDownloadVideoInfoEventArgs(VideoInfo videoInfo) : EventArgs
-{
-    public VideoInfo VideoInfo => videoInfo;
-}
-
-public sealed class FinishDownloadVideoInfoEventArgs(VideoInfo videoInfo, Exception error = null) : EventArgs
-{
-    public VideoInfo VideoInfo => videoInfo;
     public Exception Error => error;
 }
 
@@ -72,13 +84,13 @@ public sealed class StartWriteCommentsEventArgs(VideoInfo videoInfo, string comm
     public bool WriteToHTML => writeToHTML;
 }
 
-public sealed class WriteCommentErrorEventArgs(string id, string parent, string comment, Exception error, int lostComments) : EventArgs
+public sealed class WriteCommentErrorEventArgs(string id, string parent, string comment, int lostComments, Exception error) : EventArgs
 {
     public string Id => id;
     public string Parent => parent;
     public string Comment => comment;
-    public Exception Error => error;
     public int LostComments => lostComments;
+    public Exception Error => error;
 }
 
 public sealed class FinishWriteCommentsEventArgs(VideoInfo videoInfo, string commentsFile, bool writeToHTML, Exception error = null) : EventArgs
@@ -100,8 +112,23 @@ public sealed class FinishDeleteJsonFileEventArgs(string jsonFile, Exception err
     public Exception Error => error;
 }
 
-public sealed class FinishEventArgs(TimeSpan processTime, Exception error = null) : EventArgs
+public sealed class FinishConvertEventArgs(TimeSpan processTime, int count, int total, Exception error = null) : EventArgs
 {
     public TimeSpan ProcessTime => processTime;
+    public int Count => count;
+    public int Total => total;
     public Exception Error => error;
+}
+
+public sealed class FinishDownloadEventArgs(TimeSpan processTime, int count, int total, Exception error = null) : EventArgs
+{
+    public TimeSpan ProcessTime => processTime;
+    public int Count => count;
+    public int Total => total;
+    public Exception Error => error;
+}
+
+public sealed class FinishEventArgs(TimeSpan processTime) : EventArgs
+{
+    public TimeSpan ProcessTime => processTime;
 }

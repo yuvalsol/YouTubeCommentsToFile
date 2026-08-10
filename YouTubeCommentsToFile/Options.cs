@@ -13,9 +13,12 @@ internal interface IYouTubeCommentsToFileOptions { }
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("json-file", HelpText = "Path to comments JSON file.")]
+    [Option("json-file", HelpText = "Paths to comments JSON files.")]
     [OptionPrecedence(1)]
-    string JsonFile { get; set; }
+    IEnumerable<string> JsonFilesOption { get; set; }
+
+    [Value(0, MetaName = "[JSON file...]", HelpText = "Paths to comments JSON files.")]
+    IEnumerable<string> JsonFilesValue { get; set; }
 
     [Option("url", HelpText = "Video URL. Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.")]
     [OptionPrecedence(2)]
@@ -35,9 +38,12 @@ internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(2)]
 internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("url", HelpText = "Video URL to download its comments.")]
+    [Option("url", HelpText = "Video URLs to download their comments.")]
     [OptionPrecedence(1)]
-    string URL { get; set; }
+    IEnumerable<string> URLsOption { get; set; }
+
+    [Value(0, MetaName = "[URL...]", HelpText = "Video URLs to download their comments.")]
+    IEnumerable<string> URLsValue { get; set; }
 
     [Option("yt-dlp", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment.")]
     [OptionPrecedence(2)]
@@ -468,13 +474,13 @@ internal interface IOperationOptions :
 {
     string Verb { get; }
     bool IsDefaultVerb { get; }
-    string GetHomeConfigurationDirectory(Func<string, string> FixPath);
+    IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath);
     void FixPaths(Func<string, string> FixPath);
     string NameOf();
     Settings ToSettings();
     string ToString();
-    string ToString(Parser parser);
-    string[] ToArgs(Parser parser);
+    string[] ToArgs();
+    string[] ToVerboseArgs();
 }
 
 internal interface IOperationOptions<TOptions> : IOperationOptions
@@ -486,22 +492,30 @@ internal interface IOperationOptions<TOptions> : IOperationOptions
 [Verb("convert", false)]
 internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOptions<ConvertOptions>
 {
-    public string Verb => "convert";
-    public bool IsDefaultVerb => false;
+    public static readonly string VERB = "convert";
+    public static readonly bool IS_DEFAULT_VERB = false;
 
-    public string JsonFile { get; set; }
+    public string Verb => VERB;
+    public bool IsDefaultVerb => IS_DEFAULT_VERB;
+
+    public IEnumerable<string> JsonFilesOption { get; set; }
+    public IEnumerable<string> JsonFilesValue { get; set; }
+    private IEnumerable<string> JsonFiles => (JsonFilesOption ?? []).Concat(JsonFilesValue ?? []).Distinct();
     public string URL { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
 
-    public string GetHomeConfigurationDirectory(Func<string, string> FixPath)
+    public IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath)
     {
-        return Path.GetDirectoryName(FixPath(JsonFile));
+        return JsonFiles.Select(FixPath).Select(Path.GetDirectoryName);
     }
 
     public void FixPaths(Func<string, string> FixPath)
     {
-        JsonFile = FixPath(JsonFile);
+        if (JsonFilesOption.HasAny())
+            JsonFilesOption = JsonFilesOption.Select(FixPath);
+        if (JsonFilesValue.HasAny())
+            JsonFilesValue = JsonFilesValue.Select(FixPath);
         YtDlp = FixPath(YtDlp);
         Deno = FixPath(Deno);
     }
@@ -515,7 +529,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     {
         var settings = base.ToSettings();
         settings.Download = false;
-        settings.JsonFile = JsonFile;
+        settings.JsonFiles = [.. JsonFiles];
         settings.URL = URL;
         settings.YtDlp = YtDlp;
         settings.Deno = Deno;
@@ -528,20 +542,53 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
             return;
 
         base.MergeOptions(options);
-        if (string.IsNullOrEmpty(JsonFile)) JsonFile = options.JsonFile;
+        if (JsonFilesOption.IsNullOrEmpty()) JsonFilesOption = options.JsonFilesOption;
+        if (JsonFilesValue.IsNullOrEmpty()) JsonFilesValue = options.JsonFilesValue;
         if (string.IsNullOrEmpty(URL)) URL = options.URL;
         if (string.IsNullOrEmpty(YtDlp)) YtDlp = options.YtDlp;
         if (string.IsNullOrEmpty(Deno)) Deno = options.Deno;
+    }
+
+    public override string ToString()
+    {
+        return string.Join(' ', ToVerboseArgs());
+    }
+
+    public string[] ToArgs()
+    {
+        return [
+            Verb,
+            .. OptionsHelper.GetInstanceOptionsPrecedence(this)
+               .Where(x => x.OptionName != nameof(JsonFilesOption))
+               .SelectMany(x => x.ToArgs()),
+            .. JsonFiles,
+        ];
+    }
+
+    public string[] ToVerboseArgs()
+    {
+        return [
+            Verb,
+            .. OptionsHelper.GetInstanceOptionsPrecedence(this)
+               .Where(x => x.OptionName != nameof(JsonFilesOption))
+               .Select(x => x.ToString()),
+            .. JsonFiles.Select(url => url.FormatValue()),
+        ];
     }
 }
 
 [Verb("download", true)]
 internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOptions<DownloadOptions>
 {
-    public string Verb => "download";
-    public bool IsDefaultVerb => true;
+    public static readonly string VERB = "download";
+    public static readonly bool IS_DEFAULT_VERB = true;
 
-    public string URL { get; set; }
+    public string Verb => VERB;
+    public bool IsDefaultVerb => IS_DEFAULT_VERB;
+
+    public IEnumerable<string> URLsOption { get; set; }
+    public IEnumerable<string> URLsValue { get; set; }
+    private IEnumerable<string> URLs => (URLsOption ?? []).Concat(URLsValue ?? []).Distinct();
     public string YtDlp { get; set; }
     public string Deno { get; set; }
     public string DownloadPath { get; set; }
@@ -559,9 +606,9 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
     public bool WindowsFilenames { get; set; }
     public string YtDlpOptions { get; set; }
 
-    public string GetHomeConfigurationDirectory(Func<string, string> FixPath)
+    public IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath)
     {
-        return Path.TrimEndingDirectorySeparator(FixPath(DownloadPath));
+        return [Path.TrimEndingDirectorySeparator(FixPath(DownloadPath))];
     }
 
     public void FixPaths(Func<string, string> FixPath)
@@ -580,7 +627,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
     {
         var settings = base.ToSettings();
         settings.Download = true;
-        settings.URL = URL;
+        settings.URLs = [.. URLs];
         settings.YtDlp = YtDlp;
         settings.Deno = Deno;
         settings.DownloadPath = DownloadPath;
@@ -606,7 +653,8 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
             return;
 
         base.MergeOptions(options);
-        if (string.IsNullOrEmpty(URL)) URL = options.URL;
+        if (URLsOption.IsNullOrEmpty()) URLsOption = options.URLsOption;
+        if (URLsValue.IsNullOrEmpty()) URLsValue = options.URLsValue;
         if (string.IsNullOrEmpty(YtDlp)) YtDlp = options.YtDlp;
         if (string.IsNullOrEmpty(Deno)) Deno = options.Deno;
         if (string.IsNullOrEmpty(DownloadPath)) DownloadPath = options.DownloadPath;
@@ -623,6 +671,33 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
         UpdateYtDlp |= options.UpdateYtDlp;
         WindowsFilenames |= options.WindowsFilenames;
         if (string.IsNullOrEmpty(YtDlpOptions)) YtDlpOptions = options.YtDlpOptions;
+    }
+
+    public override string ToString()
+    {
+        return string.Join(' ', ToVerboseArgs());
+    }
+
+    public string[] ToArgs()
+    {
+        return [
+            Verb,
+            .. OptionsHelper.GetInstanceOptionsPrecedence(this)
+               .Where(x => x.OptionName != nameof(URLsOption))
+               .SelectMany(x => x.ToArgs()),
+            .. URLs,
+        ];
+    }
+
+    public string[] ToVerboseArgs()
+    {
+        return [
+            Verb,
+            .. OptionsHelper.GetInstanceOptionsPrecedence(this)
+               .Where(x => x.OptionName != nameof(URLsOption))
+               .Select(x => x.ToString()),
+            .. URLs.Select(url => url.FormatValue()),
+        ];
     }
 }
 
@@ -827,9 +902,6 @@ internal abstract class SharedOptions :
             CopyTextSuccessColor = ColorHelper.StringToColor(CopyTextSuccessColor),
             CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor),
 
-            // Verbosity
-            NoWriteComments = NoWriteComments,
-
 #if DEBUG
             // Debug
             FilterAndHighlightCommentsWithEmoji = FilterAndHighlightCommentsWithEmoji,
@@ -1029,21 +1101,6 @@ internal abstract class SharedOptions :
         Help |= options.Help;
         Version |= options.Version;
     }
-
-    public override string ToString()
-    {
-        return ToString(null);
-    }
-
-    public virtual string ToString(Parser parser)
-    {
-        return (parser ?? Parser.Default).FormatCommandLine(this);
-    }
-
-    public virtual string[] ToArgs(Parser parser)
-    {
-        return (parser ?? Parser.Default).FormatCommandLineArgs(this);
-    }
 }
 
 #endregion
@@ -1052,7 +1109,8 @@ internal abstract class SharedOptions :
 
 internal class ConvertHelpOptions : IConvertOptions
 {
-    public string JsonFile { get; set; }
+    public IEnumerable<string> JsonFilesOption { get; set; }
+    public IEnumerable<string> JsonFilesValue { get; set; }
     public string URL { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
@@ -1060,7 +1118,8 @@ internal class ConvertHelpOptions : IConvertOptions
 
 internal class DownloadHelpOptions : IDownloadOptions
 {
-    public string URL { get; set; }
+    public IEnumerable<string> URLsOption { get; set; }
+    public IEnumerable<string> URLsValue { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
     public string DownloadPath { get; set; }
@@ -1242,7 +1301,7 @@ internal class ConvertExamples : BaseExamples
                 "1. Convert to text file",
                 new ConvertOptions
                 {
-                    JsonFile = JSON_FILE
+                    JsonFilesValue = [JSON_FILE]
                 }
             );
 
@@ -1250,7 +1309,7 @@ internal class ConvertExamples : BaseExamples
                 "2. Convert to HTML file",
                 new ConvertOptions
                 {
-                    JsonFile = JSON_FILE,
+                    JsonFilesValue = [JSON_FILE],
                     ToHTML = true
                 }
             );
@@ -1259,7 +1318,7 @@ internal class ConvertExamples : BaseExamples
                 "3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description",
                 new ConvertOptions
                 {
-                    JsonFile = JSON_FILE,
+                    JsonFilesOption = [JSON_FILE],
                     URL = URL,
                     YtDlp = YT_DLP,
                     Deno = DENO,
@@ -1274,7 +1333,7 @@ internal class ConvertExamples : BaseExamples
                 "4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted",
                 new ConvertOptions
                 {
-                    JsonFile = JSON_FILE,
+                    JsonFilesValue = [JSON_FILE],
                     HighlightUploader = true,
                     HighlightAuthors = [$"@{ALICE}", BOB],
                     HighlightTexts = [PHRASE1, PHRASE2]
@@ -1285,7 +1344,7 @@ internal class ConvertExamples : BaseExamples
                 "5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed",
                 new ConvertOptions
                 {
-                    JsonFile = JSON_FILE,
+                    JsonFilesValue = [JSON_FILE],
                     FilterUploader = true,
                     FilterAuthors = [$"@{ALICE}", BOB],
                     FilterTexts = [PHRASE1, PHRASE2]
@@ -1306,7 +1365,7 @@ internal class DownloadExamples : BaseExamples
                 "1. Download to text file",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH
@@ -1317,7 +1376,7 @@ internal class DownloadExamples : BaseExamples
                 "2. Download to HTML file",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1329,7 +1388,7 @@ internal class DownloadExamples : BaseExamples
                 "3. Download to more robust HTML file",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1344,7 +1403,7 @@ internal class DownloadExamples : BaseExamples
                 $"4. The '--yt-dlp' option can be omitted if yt-dlp is at the same directory as {nameof(YouTubeCommentsToFile)}",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     DownloadPath = DOWNLOAD_PATH
                 }
             );
@@ -1353,7 +1412,7 @@ internal class DownloadExamples : BaseExamples
                 "5. Download all comments, sort by top comments first",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1365,7 +1424,7 @@ internal class DownloadExamples : BaseExamples
                 "6. Download up to 10,000 top-level comments and replies, at most 100 replies for each top-level comment, sort by new comments first (default)",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1378,7 +1437,7 @@ internal class DownloadExamples : BaseExamples
                 "7. Download all top-level comments, up to 1000 replies, at most 10 replies for each top-level comment, sort by new comments first",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1392,7 +1451,7 @@ internal class DownloadExamples : BaseExamples
                 "8. Download up to 1000 top-level comments, no replies, sort by top comments first",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,
@@ -1406,7 +1465,7 @@ internal class DownloadExamples : BaseExamples
                 "9. Download to text file, use configuration file for yt-dlp, use cookies file for restricted video",
                 new DownloadOptions
                 {
-                    URL = URL,
+                    URLsValue = [URL],
                     YtDlp = YT_DLP,
                     Deno = DENO,
                     DownloadPath = DOWNLOAD_PATH,

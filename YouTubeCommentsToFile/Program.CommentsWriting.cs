@@ -8,26 +8,28 @@ internal partial class Program
     private readonly object lockObj = new();
     private bool isPrintedJsonFile;
     private bool isPrintedVideoTitle;
+    private readonly List<StringBuilder> warningMessages = [];
+    private int lostComments;
     private readonly bool withoutDebuggingInfo =
 #if RELEASE
             true;
 #elif DEBUG
         false;
 #endif
-    private readonly List<StringBuilder> warningMessages = [];
-    private int lostComments;
 
     private void WriteCommentsToFile()
     {
         var writer = new CommentsWriter(operationOptions.ToSettings());
 
         writer.Start += OnStart;
+        writer.StartConvert += OnStartConvert;
+        writer.StartDownload += OnStartDownload;
+        writer.StartDownloadVideoInfo += OnStartDownloadVideoInfo;
+        writer.FinishDownloadVideoInfo += OnFinishDownloadVideoInfo;
         writer.StartDownloadComments += OnStartDownloadComments;
         if (operationOptions.YtDlpQuiet == false)
             writer.DownloadCommentsProgressAsync += OnDownloadCommentsProgressAsync;
         writer.FinishDownloadComments += OnFinishDownloadComments;
-        writer.StartDownloadVideoInfo += OnStartDownloadVideoInfo;
-        writer.FinishDownloadVideoInfo += OnFinishDownloadVideoInfo;
         writer.StartLoadJsonFile += OnStartLoadJsonFile;
         writer.FinishLoadJsonFile += OnFinishLoadJsonFile;
         writer.StartProcessComments += OnStartProcessComments;
@@ -37,6 +39,8 @@ internal partial class Program
         writer.FinishWriteComments += OnFinishWriteComments;
         writer.StartDeleteJsonFile += OnStartDeleteJsonFile;
         writer.FinishDeleteJsonFile += OnFinishDeleteJsonFile;
+        writer.FinishConvert += OnFinishConvert;
+        writer.FinishDownload += OnFinishDownload;
         writer.Finish += OnFinish;
 
         writer.WriteCommentsToFile();
@@ -44,10 +48,46 @@ internal partial class Program
 
     private void OnStart(object sender, StartEventArgs e)
     {
-        download = e.Download;
-        WriteLine(GetVersion());
-        WriteLine(e.Download ? $"Download {e.URL}" : $"Convert {Path.GetFileName(e.JsonFile)}");
+    }
+
+    private void OnStartConvert(object sender, StartConvertEventArgs e)
+    {
+        download = false;
+        WriteLine($"{(e.Total > 1 ? $"{e.Count}/{e.Total} " : null)}Convert {Path.GetFileName(e.JsonFile)}");
+        if (string.IsNullOrEmpty(e.URL) == false)
+            WriteLine($"URL: {e.URL}");
         WriteVerboseProperty("Encoding", e.EncodingName);
+    }
+
+    private void OnStartDownload(object sender, StartDownloadEventArgs e)
+    {
+        download = true;
+        WriteLine($"{(e.Total > 1 ? $"{e.Count}/{e.Total} " : null)}Download {e.URL}");
+        WriteVerboseProperty("Encoding", e.EncodingName);
+    }
+
+    private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)
+    {
+        Write("Downloading video information...");
+    }
+
+    private void OnFinishDownloadVideoInfo(object sender, FinishDownloadVideoInfoEventArgs e)
+    {
+        if (e.Error == null)
+        {
+            WriteLine(" Done.");
+            WriteVerboseProperty("Title", e.VideoInfo.Title);
+            WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
+            WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
+            WriteVerboseProperty("Upload Date", e.VideoInfo.GetUploadDate()?.ToString("d"));
+            isPrintedVideoTitle = true;
+        }
+        else
+        {
+            WriteLine();
+            WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
+            finishedWithErrors = true;
+        }
     }
 
     private void OnStartDownloadComments(object sender, StartDownloadCommentsEventArgs e)
@@ -98,30 +138,6 @@ internal partial class Program
                 WriteErrorLine("Failed to download comments JSON file.");
                 finishedWithErrors = true;
             }
-        }
-    }
-
-    private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)
-    {
-        Write("Downloading video information...");
-    }
-
-    private void OnFinishDownloadVideoInfo(object sender, FinishDownloadVideoInfoEventArgs e)
-    {
-        if (e.Error == null)
-        {
-            WriteLine(" Done.");
-            WriteVerboseProperty("Title", e.VideoInfo.Title);
-            WriteVerboseProperty("Uploader", e.VideoInfo.Uploader);
-            WriteVerboseProperty("Uploader ID", e.VideoInfo.UploaderID);
-            WriteVerboseProperty("Upload Date", e.VideoInfo.GetUploadDate()?.ToString("d"));
-            isPrintedVideoTitle = true;
-        }
-        else
-        {
-            WriteLine();
-            WriteWarningLine(e.Error.GetExceptionErrorMessage("Failed to download video information.", withoutDebuggingInfo));
-            finishedWithErrors = true;
         }
     }
 
@@ -246,23 +262,59 @@ internal partial class Program
         }
     }
 
-    private void OnFinish(object sender, FinishEventArgs e)
+    private void OnFinishConvert(object sender, FinishConvertEventArgs e)
     {
-        if (e.Error == null)
+        OnFinishOperation("convert", e.ProcessTime, e.Total, e.Error);
+    }
+
+    private void OnFinishDownload(object sender, FinishDownloadEventArgs e)
+    {
+        OnFinishOperation("download", e.ProcessTime, e.Total, e.Error);
+    }
+
+    private void OnFinishOperation(string operation, TimeSpan processTime, int total, Exception error)
+    {
+        if (error == null)
         {
             if (lostComments == 0)
-                WriteLine("Finished successfully.");
+                WriteLine($"Finished {operation}ing comments successfully.");
             else
-                WriteLine("Finished with warnings.");
-
-            string processTime = e.ProcessTime.ToString(e.ProcessTime.Days > 0 ? "d':'hh':'mm':'ss'.'fff" : e.ProcessTime.Hours > 0 ? "h':'mm':'ss'.'fff" : "m':'ss'.'fff");
-            WriteVerboseProperty($"Process Time", processTime);
+                WriteLine($"Finished {operation}ing comments with warnings.");
         }
         else
         {
-            WriteErrorLine(e.Error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo));
+            WriteErrorLine(error.GetExceptionErrorMessage("Failed to write comments file.", withoutDebuggingInfo));
             finishedWithErrors = true;
         }
+
+        WriteVerboseProcessTime($"{operation.PrettifyName()} Process Time", processTime);
+
+        if (total > 1)
+        {
+            Console.WriteLine();
+            ResetCommentsWritingFields();
+        }
+    }
+
+    private void ResetCommentsWritingFields()
+    {
+        isPrintedJsonFile = false;
+        isPrintedVideoTitle = false;
+        warningMessages.Clear();
+        lostComments = 0;
+    }
+
+    private void OnFinish(object sender, FinishEventArgs e)
+    {
+        WriteVerboseProcessTime("Total Process Time", e.ProcessTime);
+    }
+
+    private void WriteVerboseProcessTime(string property, TimeSpan processTime)
+    {
+        WriteVerboseProperty(
+            property,
+            processTime.ToString(processTime.Days > 0 ? "d':'hh':'mm':'ss'.'fff" : processTime.Hours > 0 ? "h':'mm':'ss'.'fff" : "m':'ss'.'fff")
+        );
     }
 
     private void WriteVerboseProperty(string property, string value)

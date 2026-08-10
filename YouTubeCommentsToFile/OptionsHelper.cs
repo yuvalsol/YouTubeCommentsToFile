@@ -27,7 +27,7 @@ internal static class OptionsHelper
                 derivedInterfaces
                 .Where(optionsType => derivedInterfaces.HasAny(other => other != optionsType && other.IsAssignableFrom(optionsType)) == false)
                 .SelectMany(GetOptionsPrecedence)
-                .DistinctBy(x => x.OptionPrecedence) // IConvertOptions and IDownloadOptions share options
+                .DistinctBy(x => x.OptionPrecedence)
                 .OrderBy(x => x.Group)
                 .ThenBy(x => x.Ordinal)
                 .ThenBy(x => x.OptionPrecedence.LongName)
@@ -37,29 +37,20 @@ internal static class OptionsHelper
 
     private static IEnumerable<(OptionPrecedence OptionPrecedence, int Group, int Ordinal)> GetOptionsPrecedence(Type optionsType)
     {
-        int group = optionsType.GetCustomAttribute<OptionPrecedenceAttribute>()?.Ordinal ?? int.MaxValue;
-
-        return optionsType
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
-            .Select(property =>
-            (
-                OptionName: property.Name,
-                optionAttr: property.GetCustomAttribute<OptionAttribute>(),
-                optionPrecedenceAttr: property.GetCustomAttribute<OptionPrecedenceAttribute>()
-            ))
-            .Where(x => x.optionAttr != null)
+        return
+            GetPrecedence(optionsType)
             .Select(x =>
             (
-                optionPrecedence: new OptionPrecedence(
+                new OptionPrecedence(
                     x.OptionName,
-                    x.optionAttr.ShortName,
-                    x.optionAttr.LongName,
-                    OptionShortName: string.IsNullOrEmpty(x.optionAttr.ShortName) ? null : $"-{x.optionAttr.ShortName}",
-                    OptionLongName: string.IsNullOrEmpty(x.optionAttr.LongName) ? null : $"--{x.optionAttr.LongName}",
+                    x.ShortName,
+                    x.LongName,
+                    x.OptionShortName,
+                    x.OptionLongName,
                     Index: 0
                 ),
-                Group: group,
-                Ordinal: x.optionPrecedenceAttr?.Ordinal ?? int.MaxValue
+                x.Group,
+                x.Ordinal
             ));
     }
 
@@ -71,5 +62,129 @@ internal static class OptionsHelper
     public static string GetOptionLongName(string optionName)
     {
         return OptionsPrecedence.FirstOrDefault(x => x.OptionName == optionName, OptionPrecedence.Default).OptionLongName;
+    }
+
+    public record OptionPrecedenceWithValue(
+        string OptionName,
+        object OptionValue,
+        string ShortName,
+        string LongName,
+        string OptionShortName,
+        string OptionLongName,
+        int Index
+        ) : OptionPrecedence(
+            OptionName,
+            ShortName,
+            LongName,
+            OptionShortName,
+            OptionLongName,
+            Index)
+    {
+        public IEnumerable<string> ToArgs()
+        {
+            yield return string.IsNullOrEmpty(OptionLongName) ? OptionShortName : OptionLongName;
+
+            if (OptionValue is bool)
+            {
+                yield break;
+            }
+            else if (OptionValue is IEnumerable<string> values)
+            {
+                foreach (var val in values)
+                    yield return val;
+            }
+            else
+            {
+                yield return OptionValue.ToString();
+            }
+        }
+
+        public override string ToString()
+        {
+            string option = string.IsNullOrEmpty(OptionLongName) ? OptionShortName : OptionLongName;
+
+            if (OptionValue is bool)
+                return option;
+            else if (OptionValue is IEnumerable<string> values)
+                return $"{option} {string.Join(' ', values.Select(val => val.FormatValue()))}";
+            else
+                return $"{option} {OptionValue.ToString().FormatValue()}";
+        }
+    }
+
+    public static OptionPrecedenceWithValue[] GetInstanceOptionsPrecedence(object obj)
+    {
+        var baseInterface = typeof(IYouTubeCommentsToFileOptions);
+        var derivedInterfaces = obj.GetType().GetInterfaces().Where(t => t != baseInterface && baseInterface.IsAssignableFrom(t)).ToArray();
+
+        return [..
+            derivedInterfaces
+            .Where(optionsType => derivedInterfaces.HasAny(other => other != optionsType && other.IsAssignableFrom(optionsType)) == false)
+            .SelectMany(optionsType => GetInstanceOptionsPrecedence(optionsType, obj))
+            .OrderBy(x => x.Group)
+            .ThenBy(x => x.Ordinal)
+            .ThenBy(x => x.OptionPrecedence.LongName)
+            .Select((x, i) => x.OptionPrecedence with { Index = i })];
+    }
+
+    private static IEnumerable<(OptionPrecedenceWithValue OptionPrecedence, int Group, int Ordinal)> GetInstanceOptionsPrecedence(Type optionsType, object obj)
+    {
+        return
+            GetPrecedence(optionsType, obj)
+            .Where(x =>
+                (x.OptionValue == null ||
+                (x.OptionValue is bool val && val == false) ||
+                (x.OptionValue is string str && string.IsNullOrEmpty(str)) ||
+                (x.OptionValue is IEnumerable<string> values && values.IsNullOrEmpty())) == false)
+            .Select(x =>
+            (
+                new OptionPrecedenceWithValue(
+                    x.OptionName,
+                    x.OptionValue,
+                    x.ShortName,
+                    x.LongName,
+                    x.OptionShortName,
+                    x.OptionLongName,
+                    Index: 0
+                ),
+                x.Group,
+                x.Ordinal
+            ));
+    }
+
+    public static IEnumerable<(
+        string OptionName,
+        object OptionValue,
+        string ShortName,
+        string LongName,
+        string OptionShortName,
+        string OptionLongName,
+        int Group,
+        int Ordinal)>
+        GetPrecedence(Type optionsType, object obj = null)
+    {
+        int group = optionsType.GetCustomAttribute<OptionPrecedenceAttribute>()?.Ordinal ?? int.MaxValue;
+
+        return optionsType
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
+            .Select(property =>
+            (
+                OptionName: property.Name,
+                OptionValue: obj != null ? property.GetValue(obj) : null,
+                optionAttr: property.GetCustomAttribute<OptionAttribute>(),
+                optionPrecedenceAttr: property.GetCustomAttribute<OptionPrecedenceAttribute>()
+            ))
+            .Where(x => x.optionAttr != null)
+            .Select(x =>
+            (
+                x.OptionName,
+                x.OptionValue,
+                x.optionAttr.ShortName,
+                x.optionAttr.LongName,
+                OptionShortName: string.IsNullOrEmpty(x.optionAttr.ShortName) ? null : $"-{x.optionAttr.ShortName}",
+                OptionLongName: string.IsNullOrEmpty(x.optionAttr.LongName) ? null : $"--{x.optionAttr.LongName}",
+                Group: group,
+                Ordinal: x.optionPrecedenceAttr?.Ordinal ?? int.MaxValue
+            ));
     }
 }

@@ -12,6 +12,8 @@ public class VideoInfo
     public string UploaderURL { get; internal set; }
     [YtDlpField("upload_date")]
     public string UploadDate { get; internal set; }
+    [YtDlpField("language")]
+    public string Language { get; internal set; }
     [YtDlpField("description")]
     public string Description { get; internal set; }
 
@@ -48,6 +50,7 @@ public class VideoInfo
         sb.AppendLine($"Uploader ID:  {UploaderID}");
         sb.AppendLine($"Uploader URL: {UploaderURL}");
         sb.AppendLine($"Upload Date:  {GetUploadDate()?.ToString("d") ?? UploadDate}");
+        sb.AppendLine($"Language:     {Language}");
         sb.AppendLine($"Description:{Environment.NewLine}{Description}");
         return sb.ToString();
     }

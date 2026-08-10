@@ -34,4 +34,18 @@ public static partial class StringExtensions
         name = $"{char.ToUpper(name[0])}{name[1..]}";
         return name;
     }
+
+    public static string FormatValue(this string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return value;
+
+        if (value.Contains(' ') && value.Contains('"') == false)
+            return $@"""{value}""";
+
+        if (value.Contains(' ') || value.Contains('"'))
+            return $@"""{value.Replace(@"""", @"\""")}""";
+
+        return value;
+    }
 }

@@ -5,9 +5,11 @@ public class Settings
     public bool Download { get; set; }
 
     // Convert
-    public string JsonFile { get; set; }
+    public string[] JsonFiles { get; set; }
+    public string URL { get; set; }
 
     // Download
+    public string[] URLs { get; set; }
     public string DownloadPath { get; set; }
     public uint? MaxComments { get; set; }
     public uint? MaxParents { get; set; }
@@ -24,7 +26,6 @@ public class Settings
     public string YtDlpOptions { get; set; }
 
     // Shared
-    public string URL { get; set; }
     public string YtDlp { get; set; }
     public string Deno { get; set; }
     public bool ToHTML { get; set; }
@@ -95,9 +96,6 @@ public class Settings
     public Color? LinkColor { get; set; }
     public Color? CopyTextSuccessColor { get; set; }
     public Color? CopyTextFailureColor { get; set; }
-
-    // Verbosity
-    public bool NoWriteComments { get; set; }
 
 #if DEBUG
     // Debug

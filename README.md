@@ -24,18 +24,19 @@ Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb
 
 ```console
 YouTubeCommentsToFile convert
-    --json-file <path>
+    [--json-file <path>...]
     [--url <url>]
     [--yt-dlp <path>]
     [--deno <path>]
+    [JSON file...]
 ```
 
 ### Convert Command Line Options
 
-The full path to the comments JSON file. The name of the output file is the same as the name of the JSON file.
+List of paths to comments JSON files. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option is the same as placing the paths at the end of the command line (`[JSON file...]`) and they can be used together interchangeably. The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
 
 ```console
---json-file               Path to comments JSON file.
+--json-file               Paths to comments JSON files.
 ```
 
 Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.
@@ -63,13 +64,13 @@ Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile direc
 1. Convert to text file:
 
 ```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json"
+YouTubeCommentsToFile convert "C:\Path\To\Comments File.json"
 ```
 
 2. Convert to HTML file:
 
 ```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --to-html
+YouTubeCommentsToFile convert --to-html "C:\Path\To\Comments File.json"
 ```
 
 3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description:
@@ -81,13 +82,13 @@ YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --url 
 4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted:
 
 ```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --uh --ah @Alice Bob --th "Alice and Bob" "are entangled"
+YouTubeCommentsToFile convert --uh --ah @Alice Bob --th "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
 ```
 
 5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed:
 
 ```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --uf --af @Alice Bob --tf "Alice and Bob" "are entangled"
+YouTubeCommentsToFile convert --uf --af @Alice Bob --tf "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
 ```
 
 ## Download
@@ -96,7 +97,7 @@ Downloads comments to text file or HTML file. Uses verb `download`. Verb is opti
 
 ```console
 YouTubeCommentsToFile [download]
-    --url <url>
+    [--url <url>...]
     [--yt-dlp <path>]
     [--deno <path>]
     [--download-path <path>]
@@ -113,6 +114,7 @@ YouTubeCommentsToFile [download]
     [--only-download-comments]
     [--update-yt-dlp]
     [--yt-dlp-options <options>]
+    [URL...]
 ```
 
 YouTubeCommentsToFile builds a yt-dlp command line for downloading comments out of the options provided by the user. Then, it runs yt-dlp to download the comments JSON file. Once the JSON file is downloaded, YouTubeCommentsToFile converts it to a text file or an HTML file or both. If the option is enabled, the JSON file is deleted.
@@ -135,10 +137,10 @@ yt-dlp --write-comments
 
 ### Download Command Line Options
 
-The video to download its comments.
+List of video URLs to download their comments. This option can be used multiple times. This option can have space-separated URLs as its value. This option is the same as placing the URLs at the end of the command line (`[URL...]`) and they can be used together interchangeably. The `--url` option is useful when specifying URLs in [configuration files](#configuration "Configuration").
 
 ```console
---url                     Video URL to download its comments.
+--url                     Video URLs to download their comments.
 ```
 
 Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile directory. If not found, check if yt-dlp is accessible in the current environment. It is not necessary to set `--yt-dlp` if yt-dlp is accessible, for example, yt-dlp directory is set in Windows `PATH` environment variable.
@@ -240,105 +242,58 @@ Quick reminder, double quotes in double quotes need to be escaped with a backsla
 1. Download to text file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder"
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 2. Download to HTML file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 3. Download to more robust HTML file:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html --show-comment-navigation-links --show-copy-links --uh
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --to-html --show-comment-navigation-links --show-copy-links --uh https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 4. The `--yt-dlp` option can be omitted if yt-dlp is at the same directory as YouTubeCommentsToFile:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --download-path "C:\Path\To\Downloads Folder"
+YouTubeCommentsToFile download --download-path "C:\Path\To\Downloads Folder" https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 5. Download all comments, sort by top comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --sort-top
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --sort-top https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 6. Download up to 10,000 top-level comments and replies, at most 100 replies for each top-level comment, sort by new comments first (default):
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-comments 10000 --max-replies-per-thread 100
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-comments 10000 --max-replies-per-thread 100 https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 7. Download all top-level comments, up to 1000 replies, at most 10 replies for each top-level comment, sort by new comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-replies 1000 --max-replies-per-thread 10 --sort-new
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-replies 1000 --max-replies-per-thread 10 --sort-new https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 8. Download up to 1000 top-level comments, no replies, sort by top comments first:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-parents 1000 --max-replies 0 --sort-top
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --max-parents 1000 --max-replies 0 --sort-top https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
 9. Download to text file, use configuration file for yt-dlp, use cookies file for restricted video:
 
 ```console
-YouTubeCommentsToFile download --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --yt-dlp-options "--config-locations \"C:\Path\To\yt-dlp.conf\" --cookies cookies.txt"
+YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --yt-dlp-options "--config-locations \"C:\Path\To\yt-dlp.conf\" --cookies cookies.txt" https://www.youtube.com/watch?v=dtCwxFTMMDg
 ```
 
-## Convert and Download Shared Options
-
-These options determine whether to write a text file, an HTML file or both. They also determine the structure of the output file.
-
-```console
-YouTubeCommentsToFile (convert|[download])
-    [--to-html] [--to-html-and-text] [--dark-theme] [--hide-header]
-    [--delete-json-file] [--disable-threading]
-    [--hide-comment-separators] [--hide-likes] [--hide-replies] [--hide-time]
-    [--hide-video-description] [--indent-size] [--show-comment-link]
-    [--show-comment-navigation-links] [--show-copy-links] [--text-line-length]
-
-    [-u] [--uh] [--uf] [--uhf]
-
-    [--ah <authors>] [--af <authors>] [--afi <authors>]
-    [--ahf <authors>] [--ahfi <authors>] [-a <authors>] [--ahi <authors>]
-
-    [--th <texts>] [--tf <texts>] [--tfi <texts>] [--thf <texts>] [--thfi <texts>]
-    [-t <texts>] [--thi <texts>]
-
-    [--encoding-code-page <codepage>] [--utf8] [--arabic-iso]
-    [--arabic-windows] [--baltic-iso-13] [--baltic-iso-4] [--baltic-windows]
-    [--central-european] [--chinese-simplified] [--chinese-traditional]
-    [--cyrillic-iso] [--cyrillic-windows] [--eastern-european]
-    [--greek-iso] [--greek-windows] [--hebrew-iso] [--hebrew-windows]
-    [--japanese] [--korean] [--south-european] [--thai] [--turkish-iso]
-    [--turkish-windows] [--vietnamese] [--western-european-iso-1]
-    [--western-european-iso-15] [--western-european-windows]
-
-    [--text-color <color>] [--background-color <color>] [--author-color <color>]
-    [--replied-author-color <color>] [--other-author-color <color>]
-    [--small-elements-color <color>] [--favorited-background-color <color>]
-    [--header-background-color <color>] [--highlight-uploader-text-color <color>]
-    [--highlight-uploader-background-color <color>] [--highlight-uploader-border-color <color>]
-    [--highlight-author-text-color <color>] [--highlight-author-background-color <color>]
-    [--highlight-author-border-color <color>] [--highlight-text-text-color <color>]
-    [--highlight-text-background-color <color>] [--highlight-text-border-color <color>]
-    [--link-color <color>] [--copy-text-success-color <color>]
-    [--copy-text-failure-color <color>]
-
-    [--config-locations <path>] [--ignore-config] [--stop-config]
-
-    [-v] [--verbose] [-q] [--quiet] [--yt-dlp-quiet] [--no-write-comments]
-
-    [--beep] [--beep-on-errors] [--pause-on-errors] [-h] [--help] [--version]
-```
-
-### Shared Options
+## Shared Options
 
 When both `--to-html` and `--to-html-and-text` are disabled, writes only to text file.
 
@@ -403,7 +358,7 @@ Delete JSON file after comments were written successfully to the output file.
                                  on successful completion.
 ```
 
-### Uploader
+## Uploader
 
 Highlight uploader: Search for comments and replies written by the uploader of the video. If found, highlight the comment or reply.
 
@@ -415,7 +370,7 @@ Filter uploader: Search for comments and replies written by the uploader of the 
 --uhf        Highlight and filter uploader.
 ```
 
-#### Uploader Examples
+### Uploader Examples
 
 1. Highlight all comments written by the uploader of the video:
 
@@ -429,7 +384,7 @@ YouTubeCommentsToFile download --uh
 YouTubeCommentsToFile download --uf
 ```
 
-### Authors
+## Authors
 
 Highlight authors: Search for comments and replies written by **any** of the specified authors. If found, highlight the comment or reply.
 
@@ -446,7 +401,7 @@ Author name can be written with or without a leading @.
 -a, --ahi    Highlight authors. Author search is case-insensitive.
 ```
 
-#### Authors Examples
+### Authors Examples
 
 1. Highlight all comments written by either `@Alice` or `@Bob`. Search for author names is case sensitive:
 
@@ -466,7 +421,7 @@ YouTubeCommentsToFile download --ahi alice @bob
 YouTubeCommentsToFile download --afi alice bob
 ```
 
-### Texts
+## Texts
 
 Highlight texts: Search for **any** of the specified texts in the comment or reply. If found, highlight the comment or reply.
 
@@ -481,7 +436,7 @@ Filter texts: Search for **any** of the specified texts in the comment or reply.
 -t, --thi    Highlight texts. Text search is case-insensitive.
 ```
 
-#### Texts Examples
+### Texts Examples
 
 1. Highlight all comments that contain any of the text phrases `Alice and Bob` and `are entangled`. Search for text phrases is case sensitive:
 
@@ -501,7 +456,7 @@ YouTubeCommentsToFile download --thi "alice and bob" "are entangled"
 YouTubeCommentsToFile download --tf "Alice and Bob" "are entangled"
 ```
 
-### Encoding
+## Encoding
 
 If the video page is not in English (the title, the description, majority of the comments) and downloading comments fails or comes out garbled, use this option to change the encoding. You need to find beforehand what is the code page of the non-English language.
 
@@ -551,7 +506,7 @@ Or, use one of these predefined encodings.
 --western-european-windows    Western European (Windows-1252). Code page 1252.
 ```
 
-### HTML Colors
+## HTML Colors
 
 These options set the colors of various HTML elements. A color value can be a known name (`Honeydew`), hex code (`#F0FFF0`; `F0FFF0`) or RGB (`240, 255, 240`; `240 255 240`).
 
@@ -755,7 +710,7 @@ The following are the colors of these themes.
     </tbody>
 </table>
 
-### Configuration
+## Configuration
 
 Configuration files allow to set options for the program without having to specify them at the command line every time. A configuration file is a text file with a list of command line options.
 
@@ -773,7 +728,7 @@ Configuration files allow to set options for the program without having to speci
 - Options passed at the command line always override the same options set within configuration files.
 - Configuration file doesn't support verbs `convert` and `download`. The verb needs to be passed at the command line.
 
-#### Configuration File
+### Configuration File
 
 - One option per line.
 - No whitespace after `-` or `--`.
@@ -781,7 +736,7 @@ Configuration files allow to set options for the program without having to speci
 - Values with a space need to be between quotes, just like in the command line.
 - Configuration files are decoded first with UTF-8 encoding and fallback to the current system locale encoding.
 
-#### Environment Variables
+### Environment Variables
 
 Environment variables can be specified in options that set a path to a file or to a directory:\
 `--config-locations`, `--json-file`, `--download-path`, `--yt-dlp`, `--deno`.
@@ -795,7 +750,7 @@ On Windows, `%APPDATA%` usually located at `C:\Users\<username>\AppData\Roaming`
 
 On Linux, if `$XDG_CONFIG_HOME` is not set, it falls back to `~/.config`. `$XDG_CACHE_HOME` falls back to `~/.cache`.
 
-##### Environment Variables Examples
+#### Environment Variables Examples
 
 1. Two configuration files, one for `convert` operation and one for `download` operation, are located at the user's settings directory, `C:\Users\<username>\AppData\Roaming`, and are directly specified with `--config-locations` at the command line.
 
@@ -823,7 +778,7 @@ Variable value: `C:\Users\<username>\YouTube Comments`
 YouTubeCommentsToFile download --download-path "%YouTube Comments%"
 ```
 
-#### Configuration Stack
+### Configuration Stack
 
 The program loads configuration files from multiple locations in the following order, from high priority to low priority. Options from high priority configuration take precedence over options from low priority configuration.
 
@@ -896,7 +851,7 @@ The program loads configuration files from multiple locations in the following o
 <sup>\**</sup> Only for `download` operation.\
 <sup>\*\*\*</sup> The name of the file is `config` without a file extension.
 
-#### Configuration Control
+### Configuration Control
 
 This options ignores the current config location but continues loading the rest of the configuration stack. If this option is specified in the command line, all the `--config-locations`, in the command line, are not loaded. If this option is specified in a configuration file, the file is not loaded.
 
@@ -912,7 +867,7 @@ This option stops the loading of the configuration stack from the point it appea
                    configuration stack.
 ```
 
-### Verbosity
+## Verbosity
 
 These options determine what and how much is printed out.
 
@@ -924,7 +879,7 @@ These options determine what and how much is printed out.
 --no-write-comments    Don't download or write comments.
 ```
 
-### General
+## General
 
 ```console
 --beep               Make a beep sound when finished.

@@ -43,9 +43,9 @@ internal partial class Program
 
     private IEnumerable<string> GetHomeConfiguration()
     {
-        if (string.IsNullOrEmpty(homeConfigurationDirectory))
+        if (homeConfigurationDirectories.IsNullOrEmpty())
             return [];
-        return GetConfFiles(homeConfigurationDirectory);
+        return homeConfigurationDirectories.SelectMany(GetConfFiles);
     }
 
 #if LINUX_BUILD
@@ -321,7 +321,7 @@ internal partial class Program
 
     private (IOperationOptions parsingOptions, ParsingResult parsingResult) GetOptionsFromConfigFile(string configFile)
     {
-        string[] args = [.. ReadLines(configFile).SelectMany(line => line.ToArgs())];
+        string[] args = [.. ReadLines(configFile).SelectMany(ToArgs)];
 
         if (args.IsNullOrEmpty())
         {
@@ -357,6 +357,45 @@ internal partial class Program
         ));
     }
 
+    /* RegexOption:
+     *
+     * prefix spaces: \s*
+     * <Option>:
+     *     short name: -[A-Za-z0-9]
+     *     single dash, single char
+     *     or
+     *     long name: --[A-Za-z0-9][A-Za-z0-9-]*
+     *     double dash, first char is not dash
+     * Values: (
+     *     at least one space: \s+
+     *     <Value>:
+     *         value in quotes: ""(?<Value>.*?)""
+     *         or
+     *         value not in quotes: (?<Value>[^#\s][^#]*?)
+     *         first char is not # or space, rest of the chars are not #
+     * )? - if there are any values
+     * suffix: \s*(?:#.*)?$
+     * spaces or inline comment
+     */
+    [GeneratedRegex(@"^\s*(?<Option>-[A-Za-z0-9]|--[A-Za-z0-9][A-Za-z0-9-]*)(?:(?:\s+(?:""(?<Value>.*?)""|(?<Value>[^#\s][^#]*?)))+)?\s*(?:#.*)?$")]
+    private static partial Regex RegexOption();
+
+    private static IEnumerable<string> ToArgs(string line)
+    {
+        Match match = RegexOption().Match(line);
+        if (match.Success == false)
+            yield break;
+
+        yield return match.Groups["Option"].Value;
+
+        Group gValue = match.Groups["Value"];
+        if (gValue.Success == false)
+            yield break;
+
+        foreach (Capture capture in gValue.Captures)
+            yield return capture.Value;
+    }
+
     private void ConcatConfigLocations(IOperationOptions options, string configFile)
     {
         if (options.ConfigLocations.IsNullOrEmpty())
@@ -370,10 +409,13 @@ internal partial class Program
 
     #region Write Verbose Configuration
 
-    private void WriteVerboseHomeConfigurationDirectory()
+    private void WriteVerboseHomeConfigurationDirectories()
     {
-        if (string.IsNullOrEmpty(homeConfigurationDirectory) == false)
-            verboseMessages.Add([.. GetPropertyMessages(nameof(homeConfigurationDirectory).PrettifyName(), [homeConfigurationDirectory])]);
+        if (homeConfigurationDirectories.HasAny())
+        {
+            string property = $"Home Configuration {(homeConfigurationDirectories.Length == 1 ? "Directory" : "Directories")}";
+            verboseMessages.Add([.. GetPropertyMessages(property, homeConfigurationDirectories)]);
+        }
     }
 
     private void WriteVerboseConfigurationStack()

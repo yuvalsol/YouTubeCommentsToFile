@@ -7,7 +7,6 @@ public partial class CommentsWriter(Settings settings)
     #region Fields
 
     private readonly Settings settings = settings ?? new();
-
     private int codePage = -1;
     private Encoding encoding;
     private WebsiteInfo websiteInfo;
@@ -24,11 +23,13 @@ public partial class CommentsWriter(Settings settings)
     #region Events
 
     public EventHandler<StartEventArgs> Start;
+    public EventHandler<StartConvertEventArgs> StartConvert;
+    public EventHandler<StartDownloadEventArgs> StartDownload;
+    public EventHandler<StartDownloadVideoInfoEventArgs> StartDownloadVideoInfo;
+    public EventHandler<FinishDownloadVideoInfoEventArgs> FinishDownloadVideoInfo;
     public EventHandler<StartDownloadCommentsEventArgs> StartDownloadComments;
     public EventHandler<DownloadCommentsProgressEventArgs> DownloadCommentsProgressAsync;
     public EventHandler<FinishDownloadCommentsEventArgs> FinishDownloadComments;
-    public EventHandler<StartDownloadVideoInfoEventArgs> StartDownloadVideoInfo;
-    public EventHandler<FinishDownloadVideoInfoEventArgs> FinishDownloadVideoInfo;
     public EventHandler<StartLoadJsonFileEventArgs> StartLoadJsonFile;
     public EventHandler<FinishLoadJsonFileEventArgs> FinishLoadJsonFile;
     public EventHandler<StartProcessCommentsEventArgs> StartProcessComments;
@@ -38,6 +39,8 @@ public partial class CommentsWriter(Settings settings)
     public EventHandler<FinishWriteCommentsEventArgs> FinishWriteComments;
     public EventHandler<StartDeleteJsonFileEventArgs> StartDeleteJsonFile;
     public EventHandler<FinishDeleteJsonFileEventArgs> FinishDeleteJsonFile;
+    public EventHandler<FinishConvertEventArgs> FinishConvert;
+    public EventHandler<FinishDownloadEventArgs> FinishDownload;
     public EventHandler<FinishEventArgs> Finish;
 
     #endregion
@@ -87,10 +90,6 @@ public partial class CommentsWriter(Settings settings)
     private static readonly Color CopyTextFailureDarkThemeColor = Color.FromArgb(213, 15, 15);
 
     private static readonly Color HeartColor = Color.FromArgb(255, 0, 51);
-    private static readonly Color YouTubeTextColor = Color.White;
-    private static readonly Color YouTubeBackgroundColor = Color.Red;
-    private static readonly Color BiliBiliTextColor = Color.White;
-    private static readonly Color BiliBiliBackgroundColor = Color.FromArgb(6, 182, 242);
 
     #endregion
 
@@ -108,7 +107,420 @@ public partial class CommentsWriter(Settings settings)
 
     #endregion
 
+    #region Write Comments To File
+
+    public void WriteCommentsToFile()
+    {
+        long startTime = Stopwatch.GetTimestamp();
+
+        FixDownloadPath();
+
+        FixYtDlpAndDeno();
+
+        bool isYtDlpAccessible;
+        if (isYtDlpAccessible = string.IsNullOrEmpty(settings.YtDlp) && IsYtDlpAccessible())
+            settings.YtDlp = "yt-dlp";
+
+        bool isDenoAccessible = string.IsNullOrEmpty(settings.Deno) && IsDenoAccessible();
+
+        if (settings.Download)
+        {
+            if (settings.URLs.IsNullOrEmpty())
+                throw new ArgumentException("URL not specified.", nameof(settings.URLs));
+
+            foreach (var url in settings.URLs)
+            {
+                settings.URL = url;
+                if (ValidateAndCleanURL() == false)
+                    throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URLs));
+            }
+
+            if (isYtDlpAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.YtDlp))
+                    throw new ArgumentException("Path to yt-dlp not specified.", nameof(settings.YtDlp));
+
+                if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
+                    throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+
+                if (File.Exists(settings.YtDlp) == false)
+                    throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+            }
+
+            if (isDenoAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.Deno) == false)
+                {
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
+                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
+
+                    if (File.Exists(settings.Deno) == false)
+                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
+                }
+            }
+
+            if (string.IsNullOrEmpty(settings.DownloadPath))
+                throw new ArgumentException("Download path not specified.", nameof(settings.DownloadPath));
+
+            if (settings.TrimTitle != null && settings.TrimTitle.Value < 1)
+                throw new ArgumentOutOfRangeException(nameof(settings.TrimTitle), settings.TrimTitle.Value, "Minimum length is 1 character.");
+        }
+        else
+        {
+            if (settings.JsonFiles.IsNullOrEmpty())
+                throw new ArgumentException("JSON file not specified.", nameof(settings.JsonFiles));
+
+            foreach (var jsonFile in settings.JsonFiles)
+            {
+                if (string.IsNullOrEmpty(jsonFile))
+                    throw new ArgumentException($"Not a JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+
+                if (string.Compare(Path.GetExtension(jsonFile), ".json", StringComparison.OrdinalIgnoreCase) != 0)
+                    throw new ArgumentException($"Not a JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+
+                if (File.Exists(jsonFile) == false)
+                    throw new ArgumentException($"Could not find JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+            }
+
+            if (ValidateAndCleanURL() == false)
+                throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URL));
+
+            if (isYtDlpAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.YtDlp) == false)
+                {
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
+                        throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+
+                    if (File.Exists(settings.YtDlp) == false)
+                        throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
+                }
+            }
+
+            if (isDenoAccessible == false)
+            {
+                if (string.IsNullOrEmpty(settings.Deno) == false)
+                {
+                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
+                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
+
+                    if (File.Exists(settings.Deno) == false)
+                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
+                }
+            }
+        }
+
+        if (settings.IndentSize != null)
+        {
+            if (settings.IndentSize.Value < INDENT_MIN_SIZE)
+                throw new ArgumentOutOfRangeException(nameof(settings.IndentSize), settings.IndentSize.Value, $"Minimum indentation size is {INDENT_MIN_SIZE} characters.");
+
+            if (settings.IndentSize.Value > INDENT_MAX_SIZE)
+                throw new ArgumentOutOfRangeException(nameof(settings.IndentSize), settings.IndentSize.Value, $"Maximum indentation size is {INDENT_MAX_SIZE} characters.");
+        }
+
+        if (settings.TextLineLength != null)
+        {
+            if (settings.TextLineLength.Value < TEXT_LINE_MIN_LENGTH)
+                throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Minimum line length is {TEXT_LINE_MIN_LENGTH} characters.");
+
+            if (settings.TextLineLength.Value > TEXT_LINE_MAX_LENGTH)
+                throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Maximum line length is {TEXT_LINE_MAX_LENGTH} characters.");
+        }
+
+        Start?.Raise(this, () => new StartEventArgs());
+
+        if (settings.Download)
+        {
+            int count = 0;
+            foreach (var url in settings.URLs)
+            {
+                settings.URL = url;
+                ValidateAndCleanURL();
+
+                codePage = GetEncodingCodePage();
+                encoding = GetEncoding(codePage);
+
+                StartDownload?.Raise(this, () => new StartDownloadEventArgs(settings.URL, ++count, settings.URLs.Length, encoding?.EncodingName));
+                long startTimeOperation = Stopwatch.GetTimestamp();
+
+                Exception operationError = null;
+                RunOperation(ref operationError);
+
+                TimeSpan ptOperation = Stopwatch.GetElapsedTime(startTimeOperation);
+                FinishDownload?.Raise(this, () => new FinishDownloadEventArgs(ptOperation, count, settings.URLs.Length, operationError));
+            }
+        }
+        else
+        {
+            int count = 0;
+            foreach (var jfile in settings.JsonFiles)
+            {
+                jsonFile = jfile;
+
+                codePage = GetEncodingCodePage();
+                encoding = GetEncoding(codePage);
+
+                StartConvert?.Raise(this, () => new StartConvertEventArgs(jsonFile, settings.URL, ++count, settings.JsonFiles.Length, encoding?.EncodingName));
+                long startTimeOperation = Stopwatch.GetTimestamp();
+
+                Exception operationError = null;
+                RunOperation(ref operationError);
+
+                TimeSpan ptOperation = Stopwatch.GetElapsedTime(startTimeOperation);
+                FinishConvert?.Raise(this, () => new FinishConvertEventArgs(ptOperation, count, settings.JsonFiles.Length, operationError));
+            }
+        }
+
+        TimeSpan ptTotal = Stopwatch.GetElapsedTime(startTime);
+        Finish?.Raise(this, () => new FinishEventArgs(ptTotal));
+    }
+
+    private void FixDownloadPath()
+    {
+        if (string.IsNullOrEmpty(settings.DownloadPath))
+            settings.DownloadPath = AppContext.BaseDirectory;
+        settings.DownloadPath = Path.TrimEndingDirectorySeparator(settings.DownloadPath);
+    }
+
+    private void FixYtDlpAndDeno()
+    {
+        if (string.IsNullOrEmpty(settings.YtDlp) == false && string.IsNullOrEmpty(settings.Deno) == false)
+            return;
+
+        string[] files = Directory.GetFiles(AppContext.BaseDirectory);
+        if (string.IsNullOrEmpty(settings.YtDlp))
+            settings.YtDlp = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
+        if (string.IsNullOrEmpty(settings.Deno))
+            settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), DENO_PROGRAM) == 0);
+    }
+
+    private bool ValidateAndCleanURL()
+    {
+        if (string.IsNullOrEmpty(settings.URL))
+        {
+            if (settings.Download)
+            {
+                return false;
+            }
+            else
+            {
+                websiteInfo = new YouTube();
+                return true;
+            }
+        }
+
+        UriBuilder uriBuilder;
+        try
+        {
+            uriBuilder = new UriBuilder(settings.URL);
+        }
+        catch
+        {
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(uriBuilder.Host))
+            return false;
+
+        if (ValidateAndCleanURL(new YouTube(), uriBuilder))
+            return true;
+
+        if (ValidateAndCleanURL(new BiliBili(), uriBuilder))
+            return true;
+
+        if (ValidateAndCleanURL(new WebsiteInfo(uriBuilder), uriBuilder))
+            return true;
+
+        return false;
+    }
+
+    private bool ValidateAndCleanURL(WebsiteInfo website, UriBuilder uriBuilder)
+    {
+        if (website.ValidateURL(uriBuilder, out string cleanURL))
+        {
+            websiteInfo = website;
+            settings.URL = cleanURL;
+            return true;
+        }
+
+        return false;
+    }
+
+    private void RunOperation(ref Exception operationError)
+    {
+        #region Get Video Info
+
+        if (string.IsNullOrEmpty(settings.URL) == false &&
+            string.IsNullOrEmpty(settings.YtDlp) == false &&
+            settings.HideHeader == false)
+        {
+            StartDownloadVideoInfo?.Raise(this, () => new StartDownloadVideoInfoEventArgs());
+
+            Exception downloadVideoInfoError = null;
+
+            try
+            {
+                videoInfo = GetVideoInfo();
+            }
+            catch (Exception ex)
+            {
+                downloadVideoInfoError = ex;
+            }
+
+            if (string.IsNullOrEmpty(jsonFile) == false)
+            {
+                videoInfo ??= new VideoInfo()
+                {
+                    Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
+                };
+            }
+
+            FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(videoInfo, downloadVideoInfoError));
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(jsonFile) == false)
+            {
+                videoInfo ??= new VideoInfo()
+                {
+                    Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
+                };
+            }
+        }
+
+        #endregion
+
+        #region Download Comments
+
+        if (settings.Download)
+        {
+            string ytDlpCommandLine = GetYtDlpCommandLine();
+
+            StartDownloadComments?.Raise(this, () => new StartDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine));
+
+            try
+            {
+                if (Directory.Exists(settings.DownloadPath) == false)
+                    Directory.CreateDirectory(settings.DownloadPath);
+
+                if (DownloadComments(ytDlpCommandLine, out jsonFile, out string errorMessage))
+                {
+                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile));
+
+                    if (settings.OnlyDownloadComments)
+                        return;
+                }
+                else
+                {
+                    var error = operationError = new Exception(errorMessage);
+                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, error));
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                operationError = ex;
+                FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, ex));
+                return;
+            }
+        }
+
+        #endregion
+
+        #region Get Comments
+
+        StartLoadJsonFile?.Raise(this, () => new StartLoadJsonFileEventArgs(videoInfo, jsonFile));
+
+        try
+        {
+            comments = GetComments<YtDlpComment>();
+            FinishLoadJsonFile?.Raise(this, () => new FinishLoadJsonFileEventArgs(videoInfo, jsonFile));
+        }
+        catch (Exception ex)
+        {
+            operationError = ex;
+            FinishLoadJsonFile?.Raise(this, () => new FinishLoadJsonFileEventArgs(videoInfo, jsonFile, ex));
+            return;
+        }
+
+        #endregion
+
+        #region Process Comments
+
+        int commentsCount = 0;
+        int totalComments = 0;
+
+        StartProcessComments?.Raise(this, () => new StartProcessCommentsEventArgs(videoInfo));
+
+        try
+        {
+            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out commentsCount, out totalComments);
+
+            if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
+            {
+                videoInfo.UploaderID = uploaderId;
+                videoInfo.UploaderURL = $"{websiteInfo.ChannelURL}{uploaderId}";
+            }
+
+            FinishProcessComments?.Raise(this, () => new FinishProcessCommentsEventArgs(videoInfo, commentsCount, totalComments));
+        }
+        catch (Exception ex)
+        {
+            operationError = ex;
+            FinishProcessComments?.Raise(this, () => new FinishProcessCommentsEventArgs(videoInfo, commentsCount, totalComments, ex));
+            return;
+        }
+
+        #endregion
+
+        #region Write Comments
+
+        if (settings.ToHTMLAndText || settings.ToHTML == false)
+        {
+            if (WriteCommentsFile(writeToHTML: false, ref operationError) == false)
+                return;
+        }
+
+        if (settings.ToHTMLAndText || settings.ToHTML)
+        {
+            if (WriteCommentsFile(writeToHTML: true, ref operationError) == false)
+                return;
+        }
+
+        #endregion
+
+        #region Delete Json File
+
+        if (settings.DeleteJsonFile && File.Exists(jsonFile))
+        {
+            StartDeleteJsonFile?.Raise(this, () => new StartDeleteJsonFileEventArgs(jsonFile));
+
+            try
+            {
+                DeleteJsonFile();
+                FinishDeleteJsonFile?.Raise(this, () => new FinishDeleteJsonFileEventArgs(jsonFile));
+            }
+            catch (Exception ex)
+            {
+                FinishDeleteJsonFile?.Raise(this, () => new FinishDeleteJsonFileEventArgs(jsonFile, ex));
+            }
+        }
+
+        #endregion
+    }
+
+    #endregion
+
     #region yt-dlp and deno
+
+#if LINUX_BUILD
+    private const string YT_DLP_PROGRAM = "yt-dlp";
+    private const string DENO_PROGRAM = "deno";
+#else
+    private const string YT_DLP_PROGRAM = "yt-dlp.exe";
+    private const string DENO_PROGRAM = "deno.exe";
+#endif
 
     private static Process GetProcess(string program, string arguments, Encoding encoding = null)
     {
@@ -164,395 +576,6 @@ public partial class CommentsWriter(Settings settings)
         {
             return false;
         }
-    }
-
-    #endregion
-
-    #region Write Comments To File
-
-#if LINUX_BUILD
-    private const string YT_DLP_PROGRAM = "yt-dlp";
-    private const string DENO_PROGRAM = "deno";
-#else
-    private const string YT_DLP_PROGRAM = "yt-dlp.exe";
-    private const string DENO_PROGRAM = "deno.exe";
-#endif
-
-    public void WriteCommentsToFile()
-    {
-        if (settings.NoWriteComments)
-            return;
-
-        long startTime = Stopwatch.GetTimestamp();
-
-        FixDownloadPath();
-
-        FixYtDlpAndDeno();
-
-        bool isYtDlpAccessible;
-        if (isYtDlpAccessible = string.IsNullOrEmpty(settings.YtDlp) && IsYtDlpAccessible())
-            settings.YtDlp = "yt-dlp";
-
-        bool isDenoAccessible = string.IsNullOrEmpty(settings.Deno) && IsDenoAccessible();
-
-        if (ValidateAndCleanURL() == false)
-            throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URL));
-
-        if (settings.Download)
-        {
-            if (string.IsNullOrEmpty(settings.URL))
-                throw new ArgumentException("URL not specified.", nameof(settings.URL));
-
-            if (isYtDlpAccessible == false)
-            {
-                if (string.IsNullOrEmpty(settings.YtDlp))
-                    throw new ArgumentException("Path to yt-dlp not specified.", nameof(settings.YtDlp));
-
-                if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
-                    throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
-
-                if (File.Exists(settings.YtDlp) == false)
-                    throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
-            }
-
-            if (isDenoAccessible == false)
-            {
-                if (string.IsNullOrEmpty(settings.Deno) == false)
-                {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
-                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
-
-                    if (File.Exists(settings.Deno) == false)
-                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
-                }
-            }
-
-            if (string.IsNullOrEmpty(settings.DownloadPath))
-                throw new ArgumentException("Download path not specified.", nameof(settings.DownloadPath));
-
-            if (settings.TrimTitle != null && settings.TrimTitle.Value < 1)
-                throw new ArgumentOutOfRangeException(nameof(settings.TrimTitle), settings.TrimTitle.Value, "Minimum length is 1 character.");
-        }
-        else
-        {
-            if (string.IsNullOrEmpty(settings.JsonFile))
-                throw new ArgumentException("JSON file not specified.", nameof(settings.JsonFile));
-
-            if (string.Compare(Path.GetExtension(settings.JsonFile), ".json", StringComparison.OrdinalIgnoreCase) != 0)
-                throw new ArgumentException($"Not a JSON file '{settings.JsonFile}'.", nameof(settings.JsonFile));
-
-            if (File.Exists(settings.JsonFile) == false)
-                throw new ArgumentException($"Could not find JSON file '{settings.JsonFile}'.", nameof(settings.JsonFile));
-
-            if (isYtDlpAccessible == false)
-            {
-                if (string.IsNullOrEmpty(settings.YtDlp) == false)
-                {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.YtDlp), "yt-dlp") != 0)
-                        throw new ArgumentException($"Not yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
-
-                    if (File.Exists(settings.YtDlp) == false)
-                        throw new ArgumentException($"Could not find yt-dlp '{settings.YtDlp}'.", nameof(settings.YtDlp));
-                }
-            }
-
-            if (isDenoAccessible == false)
-            {
-                if (string.IsNullOrEmpty(settings.Deno) == false)
-                {
-                    if (string.Compare(Path.GetFileNameWithoutExtension(settings.Deno), "deno") != 0)
-                        throw new ArgumentException($"Not deno '{settings.Deno}'.", nameof(settings.Deno));
-
-                    if (File.Exists(settings.Deno) == false)
-                        throw new ArgumentException($"Could not find deno '{settings.Deno}'.", nameof(settings.Deno));
-                }
-            }
-        }
-
-        if (settings.IndentSize != null)
-        {
-            if (settings.IndentSize.Value < INDENT_MIN_SIZE)
-                throw new ArgumentOutOfRangeException(nameof(settings.IndentSize), settings.IndentSize.Value, $"Minimum indentation size is {INDENT_MIN_SIZE} characters.");
-
-            if (settings.IndentSize.Value > INDENT_MAX_SIZE)
-                throw new ArgumentOutOfRangeException(nameof(settings.IndentSize), settings.IndentSize.Value, $"Maximum indentation size is {INDENT_MAX_SIZE} characters.");
-        }
-
-        if (settings.TextLineLength != null)
-        {
-            if (settings.TextLineLength.Value < TEXT_LINE_MIN_LENGTH)
-                throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Minimum line length is {TEXT_LINE_MIN_LENGTH} characters.");
-
-            if (settings.TextLineLength.Value > TEXT_LINE_MAX_LENGTH)
-                throw new ArgumentOutOfRangeException(nameof(settings.TextLineLength), settings.TextLineLength.Value, $"Maximum line length is {TEXT_LINE_MAX_LENGTH} characters.");
-        }
-
-        codePage = GetEncodingCodePage();
-        encoding = GetEncoding(codePage);
-
-        Start?.Raise(this, () => new StartEventArgs(settings.Download, settings.URL, settings.JsonFile, encoding?.EncodingName));
-
-        #region Get Video Info
-
-        // running GetVideoInfoAsync() in the background,
-        // while downloading lots of comments, is going to save running time
-
-        CancellationTokenSource cts = null;
-        CancellationToken ct = default;
-        Task<VideoInfo> taskVideoInfo = null;
-        Exception downloadVideoInfoError = null;
-
-        bool isDownloadVideoInfo =
-            string.IsNullOrEmpty(settings.URL) == false &&
-            string.IsNullOrEmpty(settings.YtDlp) == false &&
-            settings.HideHeader == false;
-
-        if (isDownloadVideoInfo)
-        {
-            try
-            {
-                cts = new CancellationTokenSource();
-                ct = cts.Token;
-                taskVideoInfo = GetVideoInfoAsync(ct);
-            }
-            catch (Exception ex)
-            {
-                isDownloadVideoInfo = false;
-                downloadVideoInfoError = ex;
-            }
-        }
-
-        #endregion
-
-        #region Download Comments
-
-        if (settings.Download)
-        {
-            string ytDlpCommandLine = GetYtDlpCommandLine();
-
-            StartDownloadComments?.Raise(this, () => new StartDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine));
-
-            try
-            {
-                if (Directory.Exists(settings.DownloadPath) == false)
-                    Directory.CreateDirectory(settings.DownloadPath);
-
-                if (DownloadComments(ytDlpCommandLine, out jsonFile, out string errorMessage))
-                {
-                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile));
-
-                    if (settings.OnlyDownloadComments)
-                    {
-                        TimeSpan pt = Stopwatch.GetElapsedTime(startTime);
-                        Finish?.Raise(this, () => new FinishEventArgs(pt));
-                        return;
-                    }
-                }
-                else
-                {
-                    cts?.Cancel();
-
-                    var error = new Exception(errorMessage);
-                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, error));
-                    Finish?.Raise(this, () => new FinishEventArgs(TimeSpan.Zero, error));
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                cts?.Cancel();
-
-                FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, ex));
-                Finish?.Raise(this, () => new FinishEventArgs(TimeSpan.Zero, ex));
-                return;
-            }
-        }
-        else
-        {
-            jsonFile = settings.JsonFile;
-        }
-
-        #endregion
-
-        #region Download Video Info
-
-        if (isDownloadVideoInfo)
-        {
-            StartDownloadVideoInfo?.Raise(this, () => new StartDownloadVideoInfoEventArgs(videoInfo));
-
-            try
-            {
-                if (taskVideoInfo.Wait(VIDEO_INFO_TIMEOUT, ct) && taskVideoInfo.IsCanceled == false)
-                    videoInfo = taskVideoInfo.Result;
-
-                if (taskVideoInfo.Exception != null)
-                    downloadVideoInfoError = taskVideoInfo.Exception;
-            }
-            catch (Exception ex)
-            {
-                downloadVideoInfoError = ex;
-            }
-
-            videoInfo ??= new VideoInfo()
-            {
-                Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-            };
-
-            FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(videoInfo, downloadVideoInfoError));
-        }
-
-        videoInfo ??= new VideoInfo()
-        {
-            Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-        };
-
-        #endregion
-
-        #region Get Comments
-
-        StartLoadJsonFile?.Raise(this, () => new StartLoadJsonFileEventArgs(videoInfo, jsonFile));
-
-        try
-        {
-            comments = GetComments<YtDlpComment>();
-            FinishLoadJsonFile?.Raise(this, () => new FinishLoadJsonFileEventArgs(videoInfo, jsonFile));
-        }
-        catch (Exception ex)
-        {
-            FinishLoadJsonFile?.Raise(this, () => new FinishLoadJsonFileEventArgs(videoInfo, jsonFile, ex));
-            Finish?.Raise(this, () => new FinishEventArgs(TimeSpan.Zero, ex));
-            return;
-        }
-
-        #endregion
-
-        #region Process Comments
-
-        int commentsCount = 0;
-        int totalComments = 0;
-
-        StartProcessComments?.Raise(this, () => new StartProcessCommentsEventArgs(videoInfo));
-
-        try
-        {
-            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out commentsCount, out totalComments);
-
-            if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
-            {
-                videoInfo.UploaderID = uploaderId;
-                videoInfo.UploaderURL = $"{websiteInfo.ChannelURL}{uploaderId}";
-            }
-
-            FinishProcessComments?.Raise(this, () => new FinishProcessCommentsEventArgs(videoInfo, commentsCount, totalComments));
-        }
-        catch (Exception ex)
-        {
-            FinishProcessComments?.Raise(this, () => new FinishProcessCommentsEventArgs(videoInfo, commentsCount, totalComments, ex));
-            Finish?.Raise(this, () => new FinishEventArgs(TimeSpan.Zero, ex));
-            return;
-        }
-
-        #endregion
-
-        #region Write Comments
-
-        if (settings.ToHTMLAndText || settings.ToHTML == false)
-        {
-            if (WriteCommentsFile(false) == false)
-                return;
-        }
-
-        if (settings.ToHTMLAndText || settings.ToHTML)
-        {
-            if (WriteCommentsFile(true) == false)
-                return;
-        }
-
-        #endregion
-
-        #region Delete Json File
-
-        if (settings.DeleteJsonFile && File.Exists(jsonFile))
-        {
-            StartDeleteJsonFile?.Raise(this, () => new StartDeleteJsonFileEventArgs(jsonFile));
-
-            try
-            {
-                DeleteJsonFile();
-                FinishDeleteJsonFile?.Raise(this, () => new FinishDeleteJsonFileEventArgs(jsonFile));
-            }
-            catch (Exception ex)
-            {
-                FinishDeleteJsonFile?.Raise(this, () => new FinishDeleteJsonFileEventArgs(jsonFile, ex));
-            }
-        }
-
-        #endregion
-
-        TimeSpan processTime = Stopwatch.GetElapsedTime(startTime);
-        Finish?.Raise(this, () => new FinishEventArgs(processTime));
-    }
-
-    private void FixDownloadPath()
-    {
-        if (string.IsNullOrEmpty(settings.DownloadPath))
-            settings.DownloadPath = AppContext.BaseDirectory;
-        settings.DownloadPath = Path.TrimEndingDirectorySeparator(settings.DownloadPath);
-    }
-
-    private void FixYtDlpAndDeno()
-    {
-        if (string.IsNullOrEmpty(settings.YtDlp) == false && string.IsNullOrEmpty(settings.Deno) == false)
-            return;
-
-        string[] files = Directory.GetFiles(AppContext.BaseDirectory);
-        if (string.IsNullOrEmpty(settings.YtDlp))
-            settings.YtDlp = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
-        if (string.IsNullOrEmpty(settings.Deno))
-            settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), DENO_PROGRAM) == 0);
-    }
-
-    private bool ValidateAndCleanURL()
-    {
-        if (string.IsNullOrEmpty(settings.URL))
-        {
-            websiteInfo = new YouTube();
-            return true;
-        }
-
-        UriBuilder uriBuilder;
-        try
-        {
-            uriBuilder = new UriBuilder(settings.URL);
-        }
-        catch
-        {
-            return false;
-        }
-
-        if (string.IsNullOrEmpty(uriBuilder.Host))
-            return false;
-
-        if (ValidateAndCleanURL(new YouTube(), uriBuilder))
-            return true;
-
-        if (ValidateAndCleanURL(new BiliBili(), uriBuilder))
-            return true;
-
-        if (ValidateAndCleanURL(new WebsiteInfo(uriBuilder), uriBuilder))
-            return true;
-
-        return false;
-    }
-
-    private bool ValidateAndCleanURL(WebsiteInfo website, UriBuilder uriBuilder)
-    {
-        if (website.ValidateURL(uriBuilder, out string cleanURL) == false)
-            return false;
-
-        websiteInfo = website;
-        settings.URL = cleanURL;
-        return true;
     }
 
     #endregion
@@ -650,7 +673,7 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(settings.Deno) == false)
             ytDlpCommandLine += $@" --js-runtimes ""deno:{settings.Deno}""";
 
-        ytDlpCommandLine += $@" ""{settings.URL}""";
+        ytDlpCommandLine += $@" {settings.URL}";
 
         return ytDlpCommandLine;
     }
@@ -815,44 +838,26 @@ public partial class CommentsWriter(Settings settings)
 
     private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
 
-    private async Task<VideoInfo> GetVideoInfoAsync(CancellationToken ct)
+    private VideoInfo GetVideoInfo()
     {
-        try
+        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
+        return GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
+    }
+
+    private static VideoInfo GetVideoInfo(string ytDlp, string ytDlpCommandLine, Encoding encoding)
+    {
+        string outputText = null;
+        int exitCode = -1;
+
         {
-            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
-
-            ct.ThrowIfCancellationRequested();
-
-            string outputText = null;
-            int exitCode = -1;
-
-            {
-                using var process = GetProcess(settings.YtDlp, ytDlpCommandLine, encoding);
-                process.Start();
-                await process.WaitForExitAsync(ct);
-
-                outputText = process.StandardOutput.ReadToEnd();
-                exitCode = process.ExitCode;
-            }
-
-            ct.ThrowIfCancellationRequested();
-
-            var videoInfo = GetVideoInfoFromOutputText(outputText, exitCode);
-
-            ct.ThrowIfCancellationRequested();
-
-            return videoInfo;
+            using var process = GetProcess(ytDlp, ytDlpCommandLine, encoding);
+            process.Start();
+            process.WaitForExit(VIDEO_INFO_TIMEOUT);
+            outputText = process.StandardOutput.ReadToEnd();
+            exitCode = process.ExitCode;
         }
-        catch (OperationCanceledException ex) when (ex.CancellationToken == ct)
-        {
-            // swallow the exception
-            // and finish the task gracefully
-            return null;
-        }
-        catch
-        {
-            throw;
-        }
+
+        return GetVideoInfoFromOutputText(outputText, exitCode);
     }
 
 #if DEBUG
@@ -871,22 +876,11 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(ytDlp))
             return null;
 
-        Encoding encoding = GetEncoding(codePage);
-
         string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, codePage, updateYtDlp);
 
-        string outputText = null;
-        int exitCode = -1;
+        Encoding encoding = GetEncoding(codePage);
 
-        {
-            using var process = GetProcess(ytDlp, ytDlpCommandLine, encoding);
-            process.Start();
-            process.WaitForExit(VIDEO_INFO_TIMEOUT);
-            outputText = process.StandardOutput.ReadToEnd();
-            exitCode = process.ExitCode;
-        }
-
-        return GetVideoInfoFromOutputText(outputText, exitCode);
+        return GetVideoInfo(ytDlp, ytDlpCommandLine, encoding);
     }
 #endif
 
@@ -907,7 +901,7 @@ public partial class CommentsWriter(Settings settings)
         if (updateYtDlp)
             ytDlpCommandLine += " --update-to nightly";
 
-        ytDlpCommandLine += $@" ""{url}""";
+        ytDlpCommandLine += $@" {url}";
 
         return ytDlpCommandLine;
     }
@@ -1192,7 +1186,7 @@ public partial class CommentsWriter(Settings settings)
 
     #region Write Comments
 
-    private bool WriteCommentsFile(bool writeToHTML)
+    private bool WriteCommentsFile(bool writeToHTML, ref Exception operationError)
     {
         string commentsFile = Path.Combine(
             Path.GetDirectoryName(jsonFile),
@@ -1209,8 +1203,8 @@ public partial class CommentsWriter(Settings settings)
         }
         catch (Exception ex)
         {
+            operationError = ex;
             FinishWriteComments?.Raise(this, () => new FinishWriteCommentsEventArgs(videoInfo, commentsFile, writeToHTML, ex));
-            Finish?.Raise(this, () => new FinishEventArgs(TimeSpan.Zero, ex));
             return false;
         }
     }
@@ -1650,7 +1644,7 @@ public partial class CommentsWriter(Settings settings)
         {
             int lostComments = 0;
             CountLostComments(comment, ref lostComments);
-            WriteCommentError?.Raise(this, () => new WriteCommentErrorEventArgs(comment.Id, comment.Parent, comment.ToError(), ex, lostComments));
+            WriteCommentError?.Raise(this, () => new WriteCommentErrorEventArgs(comment.Id, comment.Parent, comment.ToError(), lostComments, ex));
             return;
         }
 

@@ -6,10 +6,10 @@ internal partial class Program(string[] args)
 {
     #region Fields
 
-    private Parser parser = GetParser();
+    private readonly Parser parser = GetParser();
     private IOperationOptions operationOptions;
-    private string homeConfigurationDirectory;
-    private List<(string message, ConsoleColor color)[]> verboseMessages = [];
+    private string[] homeConfigurationDirectories;
+    private readonly List<(string message, ConsoleColor color)[]> verboseMessages = [];
     private bool finishedWithErrors;
 
     #endregion
@@ -20,6 +20,7 @@ internal partial class Program(string[] args)
     {
         try
         {
+            WriteVerboseVersion();
             WriteVerboseCommandLine();
 
             var (parsingOptions, parsingResult) = ParseArgs(args);
@@ -46,11 +47,13 @@ internal partial class Program(string[] args)
 
             if (operationOptions.StopConfig == false)
             {
-                homeConfigurationDirectory = operationOptions.GetHomeConfigurationDirectory(FixPath);
-                if (string.IsNullOrWhiteSpace(homeConfigurationDirectory))
-                    homeConfigurationDirectory = null;
-                else
-                    WriteVerboseHomeConfigurationDirectory();
+                homeConfigurationDirectories = [..
+                    operationOptions.GetHomeConfigurationDirectories(FixPath)
+                    .Where(directory => string.IsNullOrWhiteSpace(directory) == false)
+                    .Distinct()
+                ];
+
+                WriteVerboseHomeConfigurationDirectories();
 
                 AddConfigurationStackToConfigLocations();
 
@@ -82,8 +85,11 @@ internal partial class Program(string[] args)
             {
                 if (operationOptions.Verbose)
                     WriteMessages(verboseMessages, singleLine: false);
+                else
+                    WriteLine(GetVersion());
 
-                WriteCommentsToFile();
+                if (operationOptions.NoWriteComments == false)
+                    WriteCommentsToFile();
             }
 
             return 0;
@@ -136,7 +142,7 @@ internal partial class Program(string[] args)
             Beep = args.HasAny(arg => arg == beep),
             BeepOnErrors = args.HasAny(arg => arg == beepOnErrors),
             PauseOnErrors = args.HasAny(arg => arg == pauseOnErrors)
-        };
+        }.Cast<IOperationOptions>();
     }
 
     #endregion
@@ -161,6 +167,11 @@ internal partial class Program(string[] args)
     {
         IOperationOptions parsingOptions = null;
         ParsingResult parsingResult = ParsingResult.ArgumentsNotParsed;
+
+        // this is necessary
+        // CommandLineParser throws an error (multiple '--url' argument error)
+        // if there are multiple '--url' and no 'download' verb
+        args = AddVerbToArgs(args);
 
         AddQuotationsToYtDlpOptions(args);
 
@@ -189,6 +200,19 @@ internal partial class Program(string[] args)
             });
 
         return (parsingOptions, parsingResult);
+    }
+
+    private static string[] AddVerbToArgs(string[] args)
+    {
+        if (args.IsNullOrEmpty())
+            return args;
+
+        if (args[0] == ConvertOptions.VERB || args[0] == DownloadOptions.VERB)
+            return args;
+
+        return
+            (ConvertOptions.IS_DEFAULT_VERB ? [ConvertOptions.VERB, .. args] :
+            (DownloadOptions.IS_DEFAULT_VERB ? [DownloadOptions.VERB, .. args] : args));
     }
 
     private static void AddQuotationsToYtDlpOptions(string[] args)
@@ -235,7 +259,7 @@ internal partial class Program(string[] args)
     {
         List<string> errorMessages = [
             GetVersion(),
-            $"{nameof(YouTubeCommentsToFile)} {string.Join(' ', args.Select(arg => arg.Contains(' ') ? $@"""{arg}""" : arg))}",
+            $"{nameof(YouTubeCommentsToFile)} {string.Join(' ', args.Select(arg => arg.FormatValue()))}",
             $"{nameof(YouTubeCommentsToFile)} Errors:"
         ];
 
@@ -271,6 +295,11 @@ internal partial class Program(string[] args)
 
     #region Write Verbose Args
 
+    private void WriteVerboseVersion()
+    {
+        verboseMessages.Add([.. GetValueMessages([GetVersion()], VALUES_COLOR)]);
+    }
+
     private void WriteVerboseCommandLine()
     {
         WriteVerboseArgs("Command Line", args);
@@ -278,7 +307,7 @@ internal partial class Program(string[] args)
 
     private void WriteVerboseOptions()
     {
-        WriteVerboseArgs(operationOptions.NameOf().PrettifyName(), operationOptions.ToArgs(parser));
+        WriteVerboseArgs(operationOptions.NameOf().PrettifyName(), operationOptions.ToVerboseArgs());
     }
 
     private void WriteVerboseArgs(string property, string[] args)
@@ -290,8 +319,6 @@ internal partial class Program(string[] args)
     {
         if (args.IsNullOrEmpty())
             return;
-
-        args = [.. args.RearrangeArgs().OrderByPrecedence()];
 
         string ignoreConfig = OptionsHelper.GetOptionLongName(nameof(IConfigurationOptions.IgnoreConfig));
         var ignoreConfigIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == ignoreConfig).Select(x => x.i);
