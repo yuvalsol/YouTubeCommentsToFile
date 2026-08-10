@@ -1385,7 +1385,7 @@ public partial class CommentsWriter(Settings settings)
                 string downloadDateRoundTrip = downloadDate.ToString("o");
 
                 writer.WriteLine();
-                writer.WriteLine($"{HttpUtility.HtmlEncode("Downloaded at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(downloadDateRoundTrip)}'>{HttpUtility.HtmlEncode(downloadDateStr)}</time>");
+                writer.WriteLine($"{HttpUtility.HtmlEncode("Comments processed at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(downloadDateRoundTrip)}'>{HttpUtility.HtmlEncode(downloadDateStr)}</time>");
             }
             else
             {
@@ -1405,7 +1405,7 @@ public partial class CommentsWriter(Settings settings)
                     writer.WriteLine($"Uploaded at {uploadDate.Value:d}");
 
                 writer.WriteLine();
-                writer.WriteLine($"Downloaded at {DateTime.Now:g}");
+                writer.WriteLine($"Comments processed at {DateTime.Now:g}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
