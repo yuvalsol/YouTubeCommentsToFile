@@ -113,6 +113,8 @@ public partial class CommentsWriter(Settings settings)
     {
         long startTime = Stopwatch.GetTimestamp();
 
+        FixJsonFiles();
+
         FixDownloadPath();
 
         FixYtDlpAndDeno();
@@ -274,6 +276,22 @@ public partial class CommentsWriter(Settings settings)
 
         TimeSpan ptTotal = Stopwatch.GetElapsedTime(startTime);
         Finish?.Raise(this, () => new FinishEventArgs(ptTotal));
+    }
+
+    private void FixJsonFiles()
+    {
+        if (settings.JsonFiles.IsNullOrEmpty())
+            return;
+
+        settings.JsonFiles = [..
+            settings.JsonFiles
+            .SelectMany(jsonFile =>
+            {
+                if (string.IsNullOrEmpty(jsonFile) == false && Directory.Exists(jsonFile))
+                    return Directory.GetFiles(jsonFile, "*.json");
+                return [jsonFile];
+            })
+            .Distinct()];
     }
 
     private void FixDownloadPath()

@@ -33,10 +33,10 @@ YouTubeCommentsToFile convert
 
 ### Convert Command Line Options
 
-List of paths to comments JSON files. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option is the same as placing the paths at the end of the command line (`[JSON file...]`) and they can be used together interchangeably. The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
+List of paths to comments JSON files or directories. If the specified path is a directory, the program will look for JSON files in that directory. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option is the same as placing the paths at the end of the command line (`[JSON file...]`) and they can be used together interchangeably. The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
 
 ```console
---json-file               Paths to comments JSON files.
+--json-file               Paths to comments JSON files or directories.
 ```
 
 Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.

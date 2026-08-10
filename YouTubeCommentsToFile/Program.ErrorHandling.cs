@@ -5,13 +5,7 @@ internal partial class Program
     private static StringBuilder HandledArgumentException(ArgumentException ex)
     {
         ex = ReplaceParamaterNameWithOptionLongName(ex);
-
-        var assemblyName = Assembly.GetExecutingAssembly().GetName();
-
-        return new StringBuilder()
-            .AppendLine($"Error - {assemblyName.Name} {assemblyName.Version.ToString(2)}")
-            .AppendLine()
-            .AppendLine(ex.Message);
+        return new StringBuilder(ex.Message);
     }
 
     private static ArgumentException ReplaceParamaterNameWithOptionLongName(ArgumentException ex)
@@ -41,10 +35,7 @@ internal partial class Program
 
     private static StringBuilder UnhandledException(Exception ex)
     {
-        var assemblyName = Assembly.GetExecutingAssembly().GetName();
-
-        var errorMessage = new StringBuilder()
-            .AppendLine($"Unhandled Error - {assemblyName.Name} {assemblyName.Version.ToString(2)}");
+        var errorMessage = new StringBuilder();
 
         try
         {

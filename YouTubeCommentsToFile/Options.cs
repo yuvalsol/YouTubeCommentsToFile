@@ -13,11 +13,11 @@ internal interface IYouTubeCommentsToFileOptions { }
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("json-file", HelpText = "Paths to comments JSON files.")]
+    [Option("json-file", HelpText = "Paths to comments JSON files or directories.")]
     [OptionPrecedence(1)]
     IEnumerable<string> JsonFilesOption { get; set; }
 
-    [Value(0, MetaName = "[JSON file...]", HelpText = "Paths to comments JSON files.")]
+    [Value(0, MetaName = "[JSON file...]", HelpText = "Paths to comments JSON files or directories.")]
     IEnumerable<string> JsonFilesValue { get; set; }
 
     [Option("url", HelpText = "Video URL. Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.")]
@@ -474,7 +474,7 @@ internal interface IOperationOptions :
 {
     string Verb { get; }
     bool IsDefaultVerb { get; }
-    IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath);
+    string[] GetHomeConfigurationDirectories(Func<string, string> FixPath);
     void FixPaths(Func<string, string> FixPath);
     string NameOf();
     Settings ToSettings();
@@ -505,9 +505,23 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     public string YtDlp { get; set; }
     public string Deno { get; set; }
 
-    public IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath)
+    public string[] GetHomeConfigurationDirectories(Func<string, string> FixPath)
     {
-        return JsonFiles.Select(FixPath).Select(Path.GetDirectoryName);
+        return [..
+            JsonFiles
+            .Select(FixPath)
+            .Select(jsonFile =>
+            {
+                if (string.IsNullOrEmpty(jsonFile))
+                    return null;
+
+                if (Directory.Exists(jsonFile))
+                    return Path.TrimEndingDirectorySeparator(jsonFile);
+
+                return Path.GetDirectoryName(jsonFile);
+            })
+            .Where(directory => string.IsNullOrWhiteSpace(directory) == false)
+            .Distinct()];
     }
 
     public void FixPaths(Func<string, string> FixPath)
@@ -606,8 +620,11 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
     public bool WindowsFilenames { get; set; }
     public string YtDlpOptions { get; set; }
 
-    public IEnumerable<string> GetHomeConfigurationDirectories(Func<string, string> FixPath)
+    public string[] GetHomeConfigurationDirectories(Func<string, string> FixPath)
     {
+        if (string.IsNullOrEmpty(DownloadPath))
+            return [];
+
         return [Path.TrimEndingDirectorySeparator(FixPath(DownloadPath))];
     }
 

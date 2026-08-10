@@ -47,12 +47,7 @@ internal partial class Program(string[] args)
 
             if (operationOptions.StopConfig == false)
             {
-                homeConfigurationDirectories = [..
-                    operationOptions.GetHomeConfigurationDirectories(FixPath)
-                    .Where(directory => string.IsNullOrWhiteSpace(directory) == false)
-                    .Distinct()
-                ];
-
+                homeConfigurationDirectories = operationOptions.GetHomeConfigurationDirectories(FixPath);
                 WriteVerboseHomeConfigurationDirectories();
 
                 AddConfigurationStackToConfigLocations();
@@ -326,7 +321,12 @@ internal partial class Program(string[] args)
         string stopConfig = OptionsHelper.GetOptionLongName(nameof(IConfigurationOptions.StopConfig));
         var stopConfigIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == stopConfig).Select(x => x.i);
 
-        if (ignoreConfigIndexes.IsNullOrEmpty() && stopConfigIndexes.IsNullOrEmpty())
+        string noWriteComments = OptionsHelper.GetOptionLongName(nameof(IVerbosityOptions.NoWriteComments));
+        var noWriteCommentsIndexes = args.Select((arg, i) => (arg, i)).Where(x => x.arg == noWriteComments).Select(x => x.i);
+
+        if (ignoreConfigIndexes.IsNullOrEmpty() &&
+            stopConfigIndexes.IsNullOrEmpty() &&
+            noWriteCommentsIndexes.IsNullOrEmpty())
         {
             verboseMessages.Add([.. GetPropertyMessages(property, args, valuesColor)]);
             return;
@@ -336,6 +336,7 @@ internal partial class Program(string[] args)
 
         ColorArgs(ignoreConfigIndexes, ConsoleColor.DarkYellow);
         ColorArgs(stopConfigIndexes, ConsoleColor.DarkRed);
+        ColorArgs(noWriteCommentsIndexes, ConsoleColor.DarkMagenta);
 
         void ColorArgs(IEnumerable<int> indexes, ConsoleColor color)
         {
