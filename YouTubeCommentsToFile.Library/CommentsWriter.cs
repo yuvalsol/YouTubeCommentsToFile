@@ -365,9 +365,108 @@ public partial class CommentsWriter(Settings settings)
         return false;
     }
 
+    #endregion
+
+    #region yt-dlp and deno
+
+#if LINUX_BUILD
+    private const string YT_DLP_PROGRAM = "yt-dlp";
+    private const string DENO_PROGRAM = "deno";
+#else
+    private const string YT_DLP_PROGRAM = "yt-dlp.exe";
+    private const string DENO_PROGRAM = "deno.exe";
+#endif
+
+    private static Process GetProcess(string program, string arguments, Encoding encoding = null)
+    {
+        var process = new Process();
+        process.StartInfo.FileName = program;
+        process.StartInfo.Arguments = arguments;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.StandardOutputEncoding = encoding ?? Encoding.Latin1;
+        process.StartInfo.StandardErrorEncoding = encoding ?? Encoding.Latin1;
+        return process;
+    }
+
+    [GeneratedRegex(@"^\d+(?:[.-]\d+){2,}$")]
+    private static partial Regex RegexYtDlpVersion();
+
+    private static bool IsYtDlpAccessible()
+    {
+        return IsProgramAccessible("yt-dlp", "--version", RegexYtDlpVersion());
+    }
+
+    [GeneratedRegex(@"^deno \d+(?:[.-]\d+){2,}$")]
+    private static partial Regex RegexDenoVersion();
+
+    private static bool IsDenoAccessible()
+    {
+        return IsProgramAccessible("deno", "-version", RegexDenoVersion());
+    }
+
+    private static bool IsProgramAccessible(string program, string versionArgument, Regex regexVersion)
+    {
+        try
+        {
+            string version = null;
+            int exitCode = -1;
+
+            {
+                using var process = GetProcess(program, versionArgument);
+                process.Start();
+                process.WaitForExit(VIDEO_INFO_TIMEOUT);
+                version = process.StandardOutput.ReadToEnd().Trim();
+                exitCode = process.ExitCode;
+            }
+
+            return
+                exitCode == 0 &&
+                string.IsNullOrEmpty(version) == false &&
+                regexVersion.IsMatch(version);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    #endregion
+
+    #region Encoding
+
+    private int GetEncodingCodePage()
+    {
+        if (0 <= settings.EncodingCodePage && settings.EncodingCodePage <= 65535)
+            return settings.EncodingCodePage.Value;
+
+        return typeof(Settings)
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
+            .Select(getter => new { getter, attr = getter.GetCustomAttribute<CodePageAttribute>() })
+            .Where(x => x.attr != null)
+            .Where(x => x.getter.GetValue(settings) as bool? == true)
+            .Select(x => x.attr.CodePage)
+            .FirstOrDefault(websiteInfo.EncodingCodePage ?? -1);
+    }
+
+    private static Encoding GetEncoding(int codePage)
+    {
+        if (codePage == -1)
+            return null;
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(codePage);
+    }
+
+    #endregion
+
+    #region Run Operation
+
     private void RunOperation(ref Exception operationError)
     {
-        #region Get Video Info
+        #region Download Video Info
 
         if (string.IsNullOrEmpty(settings.URL) == false &&
             string.IsNullOrEmpty(settings.YtDlp) == false &&
@@ -518,97 +617,140 @@ public partial class CommentsWriter(Settings settings)
 
     #endregion
 
-    #region yt-dlp and deno
+    #region Download Video Info
 
-#if LINUX_BUILD
-    private const string YT_DLP_PROGRAM = "yt-dlp";
-    private const string DENO_PROGRAM = "deno";
-#else
-    private const string YT_DLP_PROGRAM = "yt-dlp.exe";
-    private const string DENO_PROGRAM = "deno.exe";
-#endif
+    private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
 
-    private static Process GetProcess(string program, string arguments, Encoding encoding = null)
+    private VideoInfo GetVideoInfo()
     {
-        var process = new Process();
-        process.StartInfo.FileName = program;
-        process.StartInfo.Arguments = arguments;
-        process.StartInfo.CreateNoWindow = true;
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.StandardOutputEncoding = encoding ?? Encoding.Latin1;
-        process.StartInfo.StandardErrorEncoding = encoding ?? Encoding.Latin1;
-        return process;
+        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
+        return GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
     }
 
-    [GeneratedRegex(@"^\d+(?:[.-]\d+){2,}$")]
-    private static partial Regex RegexYtDlpVersion();
-
-    private static bool IsYtDlpAccessible()
+    private static VideoInfo GetVideoInfo(string ytDlp, string ytDlpCommandLine, Encoding encoding)
     {
-        return IsProgramAccessible("yt-dlp", "--version", RegexYtDlpVersion());
-    }
+        string outputText = null;
+        int exitCode = -1;
 
-    [GeneratedRegex(@"^deno \d+(?:[.-]\d+){2,}$")]
-    private static partial Regex RegexDenoVersion();
-
-    private static bool IsDenoAccessible()
-    {
-        return IsProgramAccessible("deno", "-version", RegexDenoVersion());
-    }
-
-    private static bool IsProgramAccessible(string program, string versionArgument, Regex regexVersion)
-    {
-        try
         {
-            string version = null;
-            int exitCode = -1;
-
-            {
-                using var process = GetProcess(program, versionArgument);
-                process.Start();
-                process.WaitForExit(VIDEO_INFO_TIMEOUT);
-                version = process.StandardOutput.ReadToEnd().Trim();
-                exitCode = process.ExitCode;
-            }
-
-            return
-                exitCode == 0 &&
-                string.IsNullOrEmpty(version) == false &&
-                regexVersion.IsMatch(version);
+            using var process = GetProcess(ytDlp, ytDlpCommandLine, encoding);
+            process.Start();
+            process.WaitForExit(VIDEO_INFO_TIMEOUT);
+            outputText = process.StandardOutput.ReadToEnd();
+            exitCode = process.ExitCode;
         }
-        catch
+
+        return GetVideoInfoFromOutputText(outputText, exitCode);
+    }
+
+#if DEBUG
+    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
+    {
+        if (string.IsNullOrEmpty(ytDlp))
         {
-            return false;
+            ytDlp =
+                Directory.GetFiles(AppContext.BaseDirectory)
+                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
         }
-    }
 
-    #endregion
+        if (string.IsNullOrEmpty(ytDlp) && IsYtDlpAccessible())
+            ytDlp = "yt-dlp";
 
-    #region Encoding
-
-    private int GetEncodingCodePage()
-    {
-        if (0 <= settings.EncodingCodePage && settings.EncodingCodePage <= 65535)
-            return settings.EncodingCodePage.Value;
-
-        return typeof(Settings)
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
-            .Select(getter => new { getter, attr = getter.GetCustomAttribute<CodePageAttribute>() })
-            .Where(x => x.attr != null)
-            .Where(x => x.getter.GetValue(settings) as bool? == true)
-            .Select(x => x.attr.CodePage)
-            .FirstOrDefault(websiteInfo.EncodingCodePage ?? -1);
-    }
-
-    private static Encoding GetEncoding(int codePage)
-    {
-        if (codePage == -1)
+        if (string.IsNullOrEmpty(ytDlp))
             return null;
 
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        return Encoding.GetEncoding(codePage);
+        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, codePage, updateYtDlp);
+
+        Encoding encoding = GetEncoding(codePage);
+
+        return GetVideoInfo(ytDlp, ytDlpCommandLine, encoding);
+    }
+#endif
+
+    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int codePage, bool updateYtDlp)
+    {
+        var fields = typeof(VideoInfo)
+            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
+            .Select(getter => getter.GetCustomAttribute<YtDlpFieldAttribute>().Field);
+
+        if (hideVideoDescription)
+            fields = fields.Where(field => field != "description");
+
+        string ytDlpCommandLine = $@"--print ""{string.Join(string.Empty, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
+
+        if (codePage != -1)
+            ytDlpCommandLine += $" --encoding {codePage}";
+
+        if (updateYtDlp)
+            ytDlpCommandLine += " --update-to nightly";
+
+        ytDlpCommandLine += $@" {url}";
+
+        return ytDlpCommandLine;
+    }
+
+    private static VideoInfo GetVideoInfoFromOutputText(string outputText, int exitCode)
+    {
+        if (exitCode != 0 || string.IsNullOrEmpty(outputText))
+            return null;
+
+        string GetFieldValue(string field)
+        {
+            int startIndex = outputText.IndexOf($"[{field}]");
+            if (startIndex == -1)
+                return null;
+
+            startIndex += $"[{field}]".Length;
+
+            int toIndex = outputText.IndexOf($"[{field}]", startIndex);
+            if (toIndex == -1)
+                return null;
+
+            string value = outputText[startIndex..toIndex];
+
+            if (string.IsNullOrEmpty(value))
+                return value;
+
+            if (value.Contains('\n') == false)
+                return value;
+
+            return string.Join(
+                Environment.NewLine,
+                value.Split([Environment.NewLine, "\n"], StringSplitOptions.TrimEntries)
+            );
+        }
+
+        var videoInfo = new VideoInfo();
+
+        var properties = typeof(VideoInfo).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty);
+        foreach (var property in properties)
+        {
+            var ytDlpField = property.GetCustomAttribute<YtDlpFieldAttribute>();
+            string value = GetFieldValue(ytDlpField.Field);
+            property.SetValue(videoInfo, value);
+        }
+
+        videoInfo.Title = videoInfo.Title?.CleanText().Replace(" l ", " | ");
+        videoInfo.Uploader = videoInfo.Uploader?.Trim();
+        videoInfo.Description = videoInfo.Description?.CleanText();
+
+        return videoInfo;
+    }
+
+    private void GetAdHocVideoInfo()
+    {
+        if (string.IsNullOrEmpty(jsonFile) == false)
+        {
+            videoInfo ??= new VideoInfo()
+            {
+                Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
+            };
+        }
+
+        videoInfo ??= new VideoInfo()
+        {
+            Title = settings.URL
+        };
     }
 
     #endregion
@@ -836,144 +978,6 @@ public partial class CommentsWriter(Settings settings)
 
         // Return cost
         return d[n, m];
-    }
-
-    #endregion
-
-    #region Download Video Info
-
-    private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
-
-    private VideoInfo GetVideoInfo()
-    {
-        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
-        return GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
-    }
-
-    private static VideoInfo GetVideoInfo(string ytDlp, string ytDlpCommandLine, Encoding encoding)
-    {
-        string outputText = null;
-        int exitCode = -1;
-
-        {
-            using var process = GetProcess(ytDlp, ytDlpCommandLine, encoding);
-            process.Start();
-            process.WaitForExit(VIDEO_INFO_TIMEOUT);
-            outputText = process.StandardOutput.ReadToEnd();
-            exitCode = process.ExitCode;
-        }
-
-        return GetVideoInfoFromOutputText(outputText, exitCode);
-    }
-
-#if DEBUG
-    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
-    {
-        if (string.IsNullOrEmpty(ytDlp))
-        {
-            ytDlp =
-                Directory.GetFiles(AppContext.BaseDirectory)
-                .FirstOrDefault(file => string.Compare(Path.GetFileName(file), YT_DLP_PROGRAM) == 0);
-        }
-
-        if (string.IsNullOrEmpty(ytDlp) && IsYtDlpAccessible())
-            ytDlp = "yt-dlp";
-
-        if (string.IsNullOrEmpty(ytDlp))
-            return null;
-
-        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, codePage, updateYtDlp);
-
-        Encoding encoding = GetEncoding(codePage);
-
-        return GetVideoInfo(ytDlp, ytDlpCommandLine, encoding);
-    }
-#endif
-
-    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int codePage, bool updateYtDlp)
-    {
-        var fields = typeof(VideoInfo)
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
-            .Select(getter => getter.GetCustomAttribute<YtDlpFieldAttribute>().Field);
-
-        if (hideVideoDescription)
-            fields = fields.Where(field => field != "description");
-
-        string ytDlpCommandLine = $@"--print ""{string.Join(string.Empty, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
-
-        if (codePage != -1)
-            ytDlpCommandLine += $" --encoding {codePage}";
-
-        if (updateYtDlp)
-            ytDlpCommandLine += " --update-to nightly";
-
-        ytDlpCommandLine += $@" {url}";
-
-        return ytDlpCommandLine;
-    }
-
-    private static VideoInfo GetVideoInfoFromOutputText(string outputText, int exitCode)
-    {
-        if (exitCode != 0 || string.IsNullOrEmpty(outputText))
-            return null;
-
-        string GetFieldValue(string field)
-        {
-            int startIndex = outputText.IndexOf($"[{field}]");
-            if (startIndex == -1)
-                return null;
-
-            startIndex += $"[{field}]".Length;
-
-            int toIndex = outputText.IndexOf($"[{field}]", startIndex);
-            if (toIndex == -1)
-                return null;
-
-            string value = outputText[startIndex..toIndex];
-
-            if (string.IsNullOrEmpty(value))
-                return value;
-
-            if (value.Contains('\n') == false)
-                return value;
-
-            return string.Join(
-                Environment.NewLine,
-                value.Split([Environment.NewLine, "\n"], StringSplitOptions.TrimEntries)
-            );
-        }
-
-        var videoInfo = new VideoInfo();
-
-        var properties = typeof(VideoInfo).GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty);
-        foreach (var property in properties)
-        {
-            var ytDlpField = property.GetCustomAttribute<YtDlpFieldAttribute>();
-            string value = GetFieldValue(ytDlpField.Field);
-            property.SetValue(videoInfo, value);
-        }
-
-        videoInfo.Title = videoInfo.Title?.CleanText().Replace(" l ", " | ");
-        videoInfo.Uploader = videoInfo.Uploader?.Trim();
-        videoInfo.Description = videoInfo.Description?.CleanText();
-
-        return videoInfo;
-    }
-
-    private void GetAdHocVideoInfo()
-    {
-        if (string.IsNullOrEmpty(jsonFile) == false)
-        {
-            videoInfo ??= new VideoInfo()
-            {
-                Title = Path.GetFileNameWithoutExtension(jsonFile).CleanText()
-            };
-        }
-
-        videoInfo ??= new VideoInfo()
-        {
-            Title = settings.URL
-        };
     }
 
     #endregion
