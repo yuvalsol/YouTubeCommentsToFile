@@ -1305,6 +1305,9 @@ public partial class CommentsWriter(Settings settings)
             string metaDescription = GetMetaDescription();
             if (string.IsNullOrEmpty(metaDescription) == false)
                 writer.WriteLine($"{s4}<meta name='description' content='{HttpUtility.HtmlAttributeEncode(metaDescription)}'>");
+            string[] keywords = videoInfo.GetKeywords();
+            if (keywords.HasAny())
+                writer.WriteLine($"{s4}<meta name='keywords' content='{HttpUtility.HtmlAttributeEncode(string.Join(", ", keywords))}'>");
             writer.WriteLine($"{s4}<meta name='article:published_time' content='{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}'>");
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}* {{ font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; }}");

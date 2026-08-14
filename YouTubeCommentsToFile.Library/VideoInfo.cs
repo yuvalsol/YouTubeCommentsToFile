@@ -14,6 +14,8 @@ public class VideoInfo
     public string UploadDate { get; internal set; }
     [YtDlpField("description")]
     public string Description { get; internal set; }
+    [YtDlpField("tags")]
+    public string Tags { get; internal set; }
 
     public DateTime? GetUploadDate()
     {
@@ -40,6 +42,28 @@ public class VideoInfo
         }
     }
 
+    public string[] GetKeywords()
+    {
+        if (string.IsNullOrEmpty(Tags))
+            return [];
+
+        string tags = Tags;
+
+        if (tags.StartsWith('[') && tags.EndsWith(']'))
+            tags = tags[1..^1];
+
+        string[] keywords = tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        for (int i = 0; i < keywords.Length; i++)
+        {
+            string keyword = keywords[i];
+            if (keyword.StartsWith('\'') && keyword.EndsWith('\''))
+                keywords[i] = keyword[1..^1];
+        }
+
+        return keywords;
+    }
+
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -49,6 +73,7 @@ public class VideoInfo
         sb.AppendLine($"Uploader URL: {UploaderURL}");
         sb.AppendLine($"Upload Date:  {GetUploadDate()?.ToString("d") ?? UploadDate}");
         sb.AppendLine($"Description:{Environment.NewLine}{Description}");
+        sb.AppendLine($"Keywords: {string.Join(", ", GetKeywords())}");
         return sb.ToString();
     }
 }
