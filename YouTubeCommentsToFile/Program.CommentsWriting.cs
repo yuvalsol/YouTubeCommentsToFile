@@ -22,6 +22,7 @@ internal partial class Program
         var writer = new CommentsWriter(operationOptions.ToSettings());
 
         writer.Start += OnStart;
+        writer.Encodings += OnEncodings;
         writer.StartConvert += OnStartConvert;
         writer.StartDownload += OnStartDownload;
         writer.StartDownloadVideoInfo += OnStartDownloadVideoInfo;
@@ -50,20 +51,24 @@ internal partial class Program
     {
     }
 
+    private void OnEncodings(object sender, EncodingsEventArgs e)
+    {
+        if (e.Encoding != null)
+            WriteVerboseProperty("Encoding", $"{e.Encoding.EncodingName} {e.Encoding.WebName} ({e.Encoding.CodePage})");
+    }
+
     private void OnStartConvert(object sender, StartConvertEventArgs e)
     {
         download = false;
         WriteLine($"{(e.Total > 1 ? $"{e.Count}/{e.Total} " : null)}Convert {Path.GetFileName(e.JsonFile)}");
         if (string.IsNullOrEmpty(e.URL) == false)
             WriteLine($"URL: {e.URL}");
-        WriteVerboseProperty("Encoding", e.EncodingName);
     }
 
     private void OnStartDownload(object sender, StartDownloadEventArgs e)
     {
         download = true;
         WriteLine($"{(e.Total > 1 ? $"{e.Count}/{e.Total} " : null)}Download {e.URL}");
-        WriteVerboseProperty("Encoding", e.EncodingName);
     }
 
     private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)

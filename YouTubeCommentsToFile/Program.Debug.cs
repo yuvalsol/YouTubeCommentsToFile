@@ -94,9 +94,9 @@ internal partial class Program
         return 0;
     }
 
-    private static int GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
+    private static int GetVideoInfo(string url, string ytDlp = null, Encoding encoding = null, bool updateYtDlp = false)
     {
-        var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, codePage, updateYtDlp);
+        var videoInfo = CommentsWriter.GetVideoInfo(url, ytDlp, encoding, updateYtDlp);
         if (videoInfo != null)
         {
             PrintVideoInfoProperty(nameof(videoInfo.Title), videoInfo.Title);

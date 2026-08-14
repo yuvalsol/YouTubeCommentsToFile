@@ -7,9 +7,8 @@ public partial class CommentsWriter(Settings settings)
     #region Fields
 
     private readonly Settings settings = settings ?? new();
-    private int codePage = -1;
-    private Encoding encoding;
     private WebsiteInfo websiteInfo;
+    private Encoding encoding;
     private VideoInfo videoInfo;
     private string jsonFile;
     private List<Comment> comments;
@@ -23,6 +22,7 @@ public partial class CommentsWriter(Settings settings)
     #region Events
 
     public EventHandler<StartEventArgs> Start;
+    public EventHandler<EncodingsEventArgs> Encodings;
     public EventHandler<StartConvertEventArgs> StartConvert;
     public EventHandler<StartDownloadEventArgs> StartDownload;
     public EventHandler<StartDownloadVideoInfoEventArgs> StartDownloadVideoInfo;
@@ -240,10 +240,10 @@ public partial class CommentsWriter(Settings settings)
                 settings.URL = url;
                 ValidateAndCleanURL();
 
-                codePage = GetEncodingCodePage();
-                encoding = GetEncoding(codePage);
+                SetEncoding();
+                Encodings?.Raise(this, () => new EncodingsEventArgs(encoding));
 
-                StartDownload?.Raise(this, () => new StartDownloadEventArgs(settings.URL, ++count, settings.URLs.Length, encoding?.EncodingName));
+                StartDownload?.Raise(this, () => new StartDownloadEventArgs(settings.URL, ++count, settings.URLs.Length));
                 long startTimeOperation = Stopwatch.GetTimestamp();
 
                 Exception operationError = null;
@@ -260,10 +260,10 @@ public partial class CommentsWriter(Settings settings)
             {
                 jsonFile = jfile;
 
-                codePage = GetEncodingCodePage();
-                encoding = GetEncoding(codePage);
+                SetEncoding();
+                Encodings?.Raise(this, () => new EncodingsEventArgs(encoding));
 
-                StartConvert?.Raise(this, () => new StartConvertEventArgs(jsonFile, settings.URL, ++count, settings.JsonFiles.Length, encoding?.EncodingName));
+                StartConvert?.Raise(this, () => new StartConvertEventArgs(jsonFile, settings.URL, ++count, settings.JsonFiles.Length));
                 long startTimeOperation = Stopwatch.GetTimestamp();
 
                 Exception operationError = null;
@@ -386,8 +386,8 @@ public partial class CommentsWriter(Settings settings)
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
         process.StartInfo.RedirectStandardError = true;
-        process.StartInfo.StandardOutputEncoding = encoding ?? Encoding.Latin1;
-        process.StartInfo.StandardErrorEncoding = encoding ?? Encoding.Latin1;
+        process.StartInfo.StandardOutputEncoding = encoding ?? Encoding.UTF8;
+        process.StartInfo.StandardErrorEncoding = encoding ?? Encoding.UTF8;
         return process;
     }
 
@@ -437,6 +437,16 @@ public partial class CommentsWriter(Settings settings)
 
     #region Encoding
 
+    private void SetEncoding()
+    {
+        int codePage = GetEncodingCodePage();
+        if (codePage == -1)
+            return;
+
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        encoding = Encoding.GetEncoding(codePage);
+    }
+
     private int GetEncodingCodePage()
     {
         if (0 <= settings.EncodingCodePage && settings.EncodingCodePage <= 65535)
@@ -449,15 +459,6 @@ public partial class CommentsWriter(Settings settings)
             .Where(x => x.getter.GetValue(settings) as bool? == true)
             .Select(x => x.attr.CodePage)
             .FirstOrDefault(websiteInfo.EncodingCodePage ?? -1);
-    }
-
-    private static Encoding GetEncoding(int codePage)
-    {
-        if (codePage == -1)
-            return null;
-
-        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-        return Encoding.GetEncoding(codePage);
     }
 
     #endregion
@@ -623,7 +624,7 @@ public partial class CommentsWriter(Settings settings)
 
     private VideoInfo GetVideoInfo()
     {
-        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, codePage, settings.UpdateYtDlp);
+        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, encoding, settings.UpdateYtDlp);
         return GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
     }
 
@@ -644,7 +645,7 @@ public partial class CommentsWriter(Settings settings)
     }
 
 #if DEBUG
-    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, int codePage = -1, bool updateYtDlp = false)
+    public static VideoInfo GetVideoInfo(string url, string ytDlp = null, Encoding encoding = null, bool updateYtDlp = false)
     {
         if (string.IsNullOrEmpty(ytDlp))
         {
@@ -659,15 +660,13 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(ytDlp))
             return null;
 
-        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, codePage, updateYtDlp);
-
-        Encoding encoding = GetEncoding(codePage);
+        string ytDlpCommandLine = GetVideoInfoCommandLine(url, false, encoding, updateYtDlp);
 
         return GetVideoInfo(ytDlp, ytDlpCommandLine, encoding);
     }
 #endif
 
-    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, int codePage, bool updateYtDlp)
+    private static string GetVideoInfoCommandLine(string url, bool hideVideoDescription, Encoding encoding, bool updateYtDlp)
     {
         var fields = typeof(VideoInfo)
             .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
@@ -678,8 +677,8 @@ public partial class CommentsWriter(Settings settings)
 
         string ytDlpCommandLine = $@"--print ""{string.Join(string.Empty, fields.Select(field => $@"[{field}]%({field}|)s[{field}]"))}"" --skip-download --no-write-info-json";
 
-        if (codePage != -1)
-            ytDlpCommandLine += $" --encoding {codePage}";
+        if (encoding != null && string.IsNullOrEmpty(encoding.WebName) == false)
+            ytDlpCommandLine += $" --encoding {encoding.WebName}";
 
         if (updateYtDlp)
             ytDlpCommandLine += " --update-to nightly";
@@ -809,8 +808,8 @@ public partial class CommentsWriter(Settings settings)
         if (settings.WindowsFilenames)
             ytDlpCommandLine += " --windows-filenames";
 
-        if (codePage != -1)
-            ytDlpCommandLine += $" --encoding {codePage}";
+        if (encoding != null && string.IsNullOrEmpty(encoding.WebName) == false)
+            ytDlpCommandLine += $" --encoding {encoding.WebName}";
 
         if (settings.UpdateYtDlp)
             ytDlpCommandLine += " --update-to nightly";
@@ -991,7 +990,7 @@ public partial class CommentsWriter(Settings settings)
         {
             string content = File.ReadAllText(jsonFile).Trim();
             if (content.IsNullOrEmpty() || content == "NA")
-            return [];
+                return [];
         }
 
         using var jsonStream = new StreamReader(jsonFile);

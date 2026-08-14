@@ -4,21 +4,24 @@ public sealed class StartEventArgs : EventArgs
 {
 }
 
-public sealed class StartConvertEventArgs(string jsonFile, string url, int count, int total, string encodingName) : EventArgs
+public sealed class EncodingsEventArgs(Encoding encoding) : EventArgs
+{
+    public Encoding Encoding => encoding;
+}
+
+public sealed class StartConvertEventArgs(string jsonFile, string url, int count, int total) : EventArgs
 {
     public string JsonFile => jsonFile;
     public string URL => url;
     public int Count => count;
     public int Total => total;
-    public string EncodingName => encodingName;
 }
 
-public sealed class StartDownloadEventArgs(string url, int count, int total, string encodingName) : EventArgs
+public sealed class StartDownloadEventArgs(string url, int count, int total) : EventArgs
 {
     public string URL => url;
     public int Count => count;
     public int Total => total;
-    public string EncodingName => encodingName;
 }
 
 public sealed class StartDownloadVideoInfoEventArgs : EventArgs
