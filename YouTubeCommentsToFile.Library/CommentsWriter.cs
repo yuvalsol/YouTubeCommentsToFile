@@ -1243,6 +1243,10 @@ public partial class CommentsWriter(Settings settings)
 
     private void WriteComments(string commentsFile, bool writeToHTML)
     {
+        DateTime processDate = DateTime.Now;
+        string processDateStr = processDate.ToString("g");
+        string processDateRoundTrip = processDate.ToString("o");
+
         int indentSize = GetIndentSize(writeToHTML);
         int textLineLength = GetTextLineLength(writeToHTML);
 
@@ -1305,6 +1309,7 @@ public partial class CommentsWriter(Settings settings)
             string metaDescription = GetMetaDescription();
             if (string.IsNullOrEmpty(metaDescription) == false)
                 writer.WriteLine($"{s4}<meta name='description' content='{HttpUtility.HtmlAttributeEncode(metaDescription)}'>");
+            writer.WriteLine($"{s4}<meta name='article:published_time' content='{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}'>");
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}* {{ font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; }}");
             writer.WriteLine($"{s8}html, body {{ color: rgb({textColor.ToRgb()}); background-color: rgb({backgroundColor.ToRgb()}); line-height: 1; }}");
@@ -1396,12 +1401,8 @@ public partial class CommentsWriter(Settings settings)
                 if (uploadDate != null)
                     writer.WriteLine($"{HttpUtility.HtmlEncode("Uploaded at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(uploadDate.Value.ToString("o"))}'>{HttpUtility.HtmlEncode(uploadDate.Value.ToString("d"))}</time>");
 
-                DateTime downloadDate = DateTime.Now;
-                string downloadDateStr = downloadDate.ToString("g");
-                string downloadDateRoundTrip = downloadDate.ToString("o");
-
                 writer.WriteLine();
-                writer.WriteLine($"{HttpUtility.HtmlEncode("Comments processed at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(downloadDateRoundTrip)}'>{HttpUtility.HtmlEncode(downloadDateStr)}</time>");
+                writer.WriteLine($"{HttpUtility.HtmlEncode("Comments processed at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}'>{HttpUtility.HtmlEncode(processDateStr)}</time>");
             }
             else
             {
@@ -1421,7 +1422,7 @@ public partial class CommentsWriter(Settings settings)
                     writer.WriteLine($"Uploaded at {uploadDate.Value:d}");
 
                 writer.WriteLine();
-                writer.WriteLine($"Comments processed at {DateTime.Now:g}");
+                writer.WriteLine($"Comments processed at {processDateStr}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
