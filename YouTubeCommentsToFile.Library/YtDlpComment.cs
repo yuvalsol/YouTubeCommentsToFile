@@ -42,13 +42,4 @@ internal class YtDlpComment : Comment
     public override bool IsTopLevelComment => base.IsTopLevelComment || Parent == "root";
 
     protected override string MissingAuthor => "Author Missing";
-
-    static YtDlpComment()
-    {
-        SpecialAuthors =
-        [
-            new("youtube", Color.White, Color.Red, "YouTube"),
-            new("bilibili", Color.White, Color.FromArgb(6, 182, 242), "BiliBili", "哔哩哔哩")
-        ];
-    }
 }

@@ -1322,14 +1322,8 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
-
-            foreach (var line in Comment.SpecialAuthors
-                .Where(sa => comments.HasAny(c => sa.IsMatch(c.Author)))
-                .Select(sa => sa.ToCSS($"{s8}.{{0}} {{{{ color: rgb({{1}}); background-color: rgb({{2}}); font-weight: bold; padding: 0px 6px 0px 6px; }}}}")))
-            {
-                writer.WriteLine(line);
-            }
-
+            foreach (var sa in SpecialAuthor.SpecialAuthors.Where(sa => comments.HasAny(c => sa.IsSpecialAuthor(c))))
+                writer.WriteLine($"{s8}.{sa.Class} {{ color: rgb({sa.Color.ToRgb()}); background-color: rgb({sa.BackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: rgb({repliedAuthorColor.ToRgb()}); font-weight: bold; }}");

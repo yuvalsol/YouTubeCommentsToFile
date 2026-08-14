@@ -21,8 +21,6 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
     protected virtual string MissingAuthor => "Missing Author";
 
-    public static SpecialAuthor[] SpecialAuthors { get; protected set; }
-
     #endregion
 
     #region Comment Writing Properties
@@ -225,7 +223,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             }
             else
             {
-                string authorClass = SpecialAuthors?.FirstOrDefault(sa => sa.IsMatch(Author))?.Class ?? (AuthorIsUploader ? "uploader" : "author");
+                string authorClass = SpecialAuthor.SpecialAuthors.FirstOrDefault(sa => sa.IsSpecialAuthor(this))?.Class ?? (AuthorIsUploader ? "uploader" : "author");
 
                 if (string.IsNullOrEmpty(AuthorURL))
                     author = $"<span{anchorReplyId} class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span>";

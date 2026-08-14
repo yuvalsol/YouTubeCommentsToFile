@@ -1,20 +1,19 @@
 ﻿namespace YouTubeCommentsToFile.Library;
 
-internal class SpecialAuthor(string @class, Color color, Color backgroundColor, params string[] names)
+internal record SpecialAuthor(string Class, Color Color, Color BackgroundColor, params string[] Names)
 {
-    public string Class => @class;
-    public Color Color => color;
-    public Color BackgroundColor => backgroundColor;
-    public string[] Names => names;
+    public static IEnumerable<SpecialAuthor> SpecialAuthors =>
+    [
+        new("youtube", Color.White, Color.Red, "YouTube"),
+        new("bilibili", Color.White, Color.FromArgb(6, 182, 242), "BiliBili", "哔哩哔哩"),
+        new("reddit", Color.White, Color.FromArgb(255, 69, 0), "Reddit")
+    ];
 
-    public bool IsMatch(string author)
+    public bool IsSpecialAuthor(Comment comment)
     {
-        return Names.HasAny(name => author == name || author == $"@{name}");
-    }
-
-    public string ToCSS(string format)
-    {
-        return string.Format(format, Class, Color.ToRgb(), BackgroundColor.ToRgb());
+        return Names.HasAny(name =>
+            string.Compare(comment.Author, name, StringComparison.InvariantCultureIgnoreCase) == 0 ||
+            string.Compare(comment.Author, $"@{name}", StringComparison.InvariantCultureIgnoreCase) == 0
+        );
     }
 }
-
