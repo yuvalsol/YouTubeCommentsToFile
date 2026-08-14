@@ -987,6 +987,13 @@ public partial class CommentsWriter(Settings settings)
     private List<Comment> GetComments<TComment>()
         where TComment : Comment, new()
     {
+        if (new FileInfo(jsonFile).Length < 10)
+        {
+            string content = File.ReadAllText(jsonFile).Trim();
+            if (content.IsNullOrEmpty() || content == "NA")
+            return [];
+        }
+
         using var jsonStream = new StreamReader(jsonFile);
         using var jsonReader = new JsonTextReader(jsonStream);
         return [.. new JsonSerializer().Deserialize<List<TComment>>(jsonReader).Cast<Comment>()];
