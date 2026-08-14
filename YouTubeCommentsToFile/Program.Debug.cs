@@ -104,7 +104,6 @@ internal partial class Program
             PrintVideoInfoProperty(nameof(videoInfo.UploaderID), videoInfo.UploaderID);
             PrintVideoInfoProperty(nameof(videoInfo.UploaderURL), videoInfo.UploaderURL);
             PrintVideoInfoProperty(nameof(videoInfo.UploadDate), videoInfo.GetUploadDate()?.ToString("d") ?? videoInfo.UploadDate);
-            PrintVideoInfoProperty(nameof(videoInfo.Language), videoInfo.Language);
             PrintVideoInfoProperty(nameof(videoInfo.Description), videoInfo.Description, true);
             return 0;
         }

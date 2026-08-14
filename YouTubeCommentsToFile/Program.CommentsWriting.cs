@@ -102,7 +102,7 @@ internal partial class Program
     private void OnStartDownloadComments(object sender, StartDownloadCommentsEventArgs e)
     {
         WriteVerboseProperty("URL", e.URL);
-        WriteVerboseProperty("yt-dlp", e.YtDlpCommandLine);
+        WriteVerboseProperty("Comments yt-dlp", e.YtDlpCommandLine);
         if (operationOptions.YtDlpQuiet)
             Write("Downloading comments...");
         else
