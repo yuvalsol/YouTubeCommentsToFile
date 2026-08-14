@@ -1299,15 +1299,9 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<meta name='title' content='{HttpUtility.HtmlAttributeEncode(videoInfo.Title)}'>");
-            if (string.IsNullOrEmpty(videoInfo.Description) == false)
-            {
-                string metaDescription = string.Join(' ',
-                    videoInfo.Description.CleanTextForTextFile()
-                    .Split([Environment.NewLine, "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
-                if (metaDescription.Length > 160)
-                    metaDescription = $"{metaDescription[..157]}...";
+            string metaDescription = GetMetaDescription();
+            if (string.IsNullOrEmpty(metaDescription) == false)
                 writer.WriteLine($"{s4}<meta name='description' content='{HttpUtility.HtmlAttributeEncode(metaDescription)}'>");
-            }
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}* {{ font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; }}");
             writer.WriteLine($"{s8}html, body {{ color: rgb({textColor.ToRgb()}); background-color: rgb({backgroundColor.ToRgb()}); line-height: 1; }}");
@@ -1533,6 +1527,22 @@ public partial class CommentsWriter(Settings settings)
             foreach (var widthCh in GetHighlightWidthCh(reply, indentSize, textLineLength, indentCount, writeToHTML))
                 yield return widthCh;
         }
+    }
+
+    private string GetMetaDescription()
+    {
+        if (string.IsNullOrEmpty(videoInfo.Description))
+            return null;
+
+        string metaDescription = string.Join(' ',
+            videoInfo.Description.CleanTextForTextFile()
+            .Split([Environment.NewLine, "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        );
+
+        if (metaDescription.Length > 160)
+            metaDescription = $"{metaDescription[..157]}...";
+
+        return metaDescription;
     }
 
     private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
