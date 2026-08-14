@@ -1299,6 +1299,10 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>");
             writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
             writer.WriteLine($"{s4}<meta name='title' content='{HttpUtility.HtmlAttributeEncode(videoInfo.Title)}'>");
+            if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
+                writer.WriteLine($"{s4}<meta name='author' content='{HttpUtility.HtmlAttributeEncode(videoInfo.Uploader)}'>");
+            else if (string.IsNullOrEmpty(videoInfo.UploaderID) == false)
+                writer.WriteLine($"{s4}<meta name='author' content='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderID)}'>");
             string metaDescription = GetMetaDescription();
             if (string.IsNullOrEmpty(metaDescription) == false)
                 writer.WriteLine($"{s4}<meta name='description' content='{HttpUtility.HtmlAttributeEncode(metaDescription)}'>");
