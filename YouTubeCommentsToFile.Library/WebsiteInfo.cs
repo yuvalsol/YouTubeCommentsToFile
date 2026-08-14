@@ -132,14 +132,6 @@ internal class BiliBili : WebsiteInfo
         ChannelPath = "/space";
         HashtagPath = "/search-result?q=";
         IsSupportHashtagWithSpace = true;
-        EncodingCodePage = GetEncodingCodePage(nameof(Settings.ChineseSimplified));
-    }
-
-    protected override void SetHost(UriBuilder uriBuilder)
-    {
-        base.SetHost(uriBuilder);
-        if (Host.EndsWith(".bilibili.tv"))
-            EncodingCodePage = null;
     }
 
     public override string ChannelURL
@@ -181,15 +173,15 @@ internal class BiliBili : WebsiteInfo
         return
             MatchPath(uriBuilder, "/video/id", partNumber, out cleanURL) ||
             MatchPath(uriBuilder, "/play/id", partNumber, out cleanURL) ||
-            MatchPath(uriBuilder, "/en/video/id", partNumber, out cleanURL, resetEncoding: true) ||
-            MatchPath(uriBuilder, "/en/play/id", partNumber, out cleanURL, resetEncoding: true) ||
-            MatchPath(uriBuilder, "/ch/video/id", partNumber, out cleanURL, encodingCodePage: chineseSimplified) ||
-            MatchPath(uriBuilder, "/ch/play/id", partNumber, out cleanURL, encodingCodePage: chineseSimplified) ||
-            MatchPath(uriBuilder, "/bangumi/video/id", partNumber, out cleanURL, encodingCodePage: japanese) ||
-            MatchPath(uriBuilder, "/bangumi/play/id", partNumber, out cleanURL, encodingCodePage: japanese);
+            MatchPath(uriBuilder, "/en/video/id", partNumber, out cleanURL) ||
+            MatchPath(uriBuilder, "/en/play/id", partNumber, out cleanURL) ||
+            MatchPath(uriBuilder, "/ch/video/id", partNumber, out cleanURL) ||
+            MatchPath(uriBuilder, "/ch/play/id", partNumber, out cleanURL) ||
+            MatchPath(uriBuilder, "/bangumi/video/id", partNumber, out cleanURL) ||
+            MatchPath(uriBuilder, "/bangumi/play/id", partNumber, out cleanURL);
     }
 
-    private bool MatchPath(UriBuilder uriBuilder, string template, string partNumber, out string cleanURL, bool resetEncoding = false, int? encodingCodePage = null)
+    private bool MatchPath(UriBuilder uriBuilder, string template, string partNumber, out string cleanURL)
     {
         // /?p=partNumber
         bool hasPartNumber = string.IsNullOrEmpty(partNumber) == false;
@@ -217,11 +209,6 @@ internal class BiliBili : WebsiteInfo
 
         SetHost(uriBuilder);
         cleanURL = GetHttpsURL($"{Host}{uriBuilder.Path}{(hasPartNumber ? $"?p={partNumber}" : null)}");
-
-        if (resetEncoding)
-            EncodingCodePage = null;
-        else if (encodingCodePage != null)
-            EncodingCodePage = encodingCodePage;
 
         return true;
     }

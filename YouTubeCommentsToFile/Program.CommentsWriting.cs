@@ -54,7 +54,7 @@ internal partial class Program
     private void OnEncodings(object sender, EncodingsEventArgs e)
     {
         if (e.Encoding != null)
-            WriteVerboseProperty("Encoding", $"{e.Encoding.EncodingName} {e.Encoding.WebName} ({e.Encoding.CodePage})");
+            WriteVerboseProperty("Encoding", $"{e.Encoding.EncodingName}, {e.Encoding.WebName}, code page {e.Encoding.CodePage}".Trim(' ', ','));
     }
 
     private void OnStartConvert(object sender, StartConvertEventArgs e)

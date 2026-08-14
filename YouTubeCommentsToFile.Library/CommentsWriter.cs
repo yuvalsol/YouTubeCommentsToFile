@@ -8,7 +8,7 @@ public partial class CommentsWriter(Settings settings)
 
     private readonly Settings settings = settings ?? new();
     private WebsiteInfo websiteInfo;
-    private Encoding encoding;
+    private Encoding encoding = Encoding.UTF8;
     private VideoInfo videoInfo;
     private string jsonFile;
     private List<Comment> comments;
@@ -377,7 +377,7 @@ public partial class CommentsWriter(Settings settings)
     private const string DENO_PROGRAM = "deno.exe";
 #endif
 
-    private static Process GetProcess(string program, string arguments, Encoding encoding = null)
+    private static Process GetProcess(string program, string arguments, Encoding encoding)
     {
         var process = new Process();
         process.StartInfo.FileName = program;
@@ -415,7 +415,7 @@ public partial class CommentsWriter(Settings settings)
             int exitCode = -1;
 
             {
-                using var process = GetProcess(program, versionArgument);
+                using var process = GetProcess(program, versionArgument, Encoding.UTF8);
                 process.Start();
                 process.WaitForExit(VIDEO_INFO_TIMEOUT);
                 version = process.StandardOutput.ReadToEnd().Trim();

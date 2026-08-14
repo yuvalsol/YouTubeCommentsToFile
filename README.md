@@ -458,7 +458,7 @@ YouTubeCommentsToFile download --tf "Alice and Bob" "are entangled"
 
 ## Encoding
 
-If the video page is not in English (the title, the description, majority of the comments) and downloading comments fails or comes out garbled, use this option to change the encoding. You need to find beforehand what is the code page of the non-English language.
+The program works with UTF-8 as its default encoding and that should cover almost all languages. However, if the video page is not in English (the title, the description, majority of the comments) and downloading comments fails or comes out garbled, use the `--encoding-code-page` option to change the encoding. You need to find beforehand what is the code page of the non-English language.
 
 ```console
 --encoding-code-page          The code page of the video page encoding.
