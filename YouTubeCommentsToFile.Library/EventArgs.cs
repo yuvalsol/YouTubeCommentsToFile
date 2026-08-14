@@ -24,12 +24,14 @@ public sealed class StartDownloadEventArgs(string url, int count, int total) : E
     public int Total => total;
 }
 
-public sealed class StartDownloadVideoInfoEventArgs : EventArgs
+public sealed class StartDownloadVideoInfoEventArgs(string ytDlpCommandLine) : EventArgs
 {
+    public string YtDlpCommandLine => ytDlpCommandLine;
 }
 
-public sealed class FinishDownloadVideoInfoEventArgs(VideoInfo videoInfo, Exception error = null) : EventArgs
+public sealed class FinishDownloadVideoInfoEventArgs(string ytDlpCommandLine, VideoInfo videoInfo, Exception error = null) : EventArgs
 {
+    public string YtDlpCommandLine => ytDlpCommandLine;
     public VideoInfo VideoInfo => videoInfo;
     public Exception Error => error;
 }

@@ -473,13 +473,15 @@ public partial class CommentsWriter(Settings settings)
             string.IsNullOrEmpty(settings.YtDlp) == false &&
             settings.HideHeader == false)
         {
-            StartDownloadVideoInfo?.Raise(this, () => new StartDownloadVideoInfoEventArgs());
+            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, encoding, settings.UpdateYtDlp);
+
+            StartDownloadVideoInfo?.Raise(this, () => new StartDownloadVideoInfoEventArgs(ytDlpCommandLine));
 
             Exception downloadVideoInfoError = null;
 
             try
             {
-                videoInfo = GetVideoInfo();
+                videoInfo = GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
             }
             catch (Exception ex)
             {
@@ -488,7 +490,7 @@ public partial class CommentsWriter(Settings settings)
 
             GetAdHocVideoInfo();
 
-            FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(videoInfo, downloadVideoInfoError));
+            FinishDownloadVideoInfo?.Raise(this, () => new FinishDownloadVideoInfoEventArgs(ytDlpCommandLine, videoInfo, downloadVideoInfoError));
         }
         else
         {
@@ -621,12 +623,6 @@ public partial class CommentsWriter(Settings settings)
     #region Download Video Info
 
     private const int VIDEO_INFO_TIMEOUT = 2 * 60 * 1000;
-
-    private VideoInfo GetVideoInfo()
-    {
-        string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, encoding, settings.UpdateYtDlp);
-        return GetVideoInfo(settings.YtDlp, ytDlpCommandLine, encoding);
-    }
 
     private static VideoInfo GetVideoInfo(string ytDlp, string ytDlpCommandLine, Encoding encoding)
     {

@@ -73,6 +73,7 @@ internal partial class Program
 
     private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)
     {
+        WriteVerboseProperty("Video Info yt-dlp", e.YtDlpCommandLine);
         Write("Downloading video information...");
     }
 
