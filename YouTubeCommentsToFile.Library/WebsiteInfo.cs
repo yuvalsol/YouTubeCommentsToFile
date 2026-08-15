@@ -167,9 +167,6 @@ internal class BiliBili : WebsiteInfo
         if (string.IsNullOrEmpty(uriBuilder.Query) == false)
             partNumber = HttpUtility.ParseQueryString(uriBuilder.Query)["p"];
 
-        var chineseSimplified = GetEncodingCodePage(nameof(Settings.ChineseSimplified));
-        var japanese = GetEncodingCodePage(nameof(Settings.Japanese));
-
         return
             MatchPath(uriBuilder, "/video/id", partNumber, out cleanURL) ||
             MatchPath(uriBuilder, "/play/id", partNumber, out cleanURL) ||
