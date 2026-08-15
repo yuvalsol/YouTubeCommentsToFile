@@ -737,7 +737,8 @@ internal static partial class CommentTextExtensions
             for (int i = endIndex; i >= startIndex; i--)
             {
                 // break long url
-                if (body[i] == '/' || body[i] == '?' || body[i] == '&')
+                if (body[i] == '/' || body[i] == '?' || body[i] == '&' || body[i] == ')' ||
+                    body[i] == '。' || body[i] == '，' || body[i] == '、' || body[i] == '）')
                 {
                     body.Insert(i + 1, '\n');
                     startIndex = i + 2;
