@@ -667,23 +667,6 @@ internal static partial class CommentTextExtensions
                     RegexEmojiModifierFitzpatrickType1To6().Replace(text, string.Empty), string.Empty), string.Empty);
     }
 
-    [GeneratedRegex(@"[❤❣♾❄☕✅⚠✊☮✝⚖]")]
-    private static partial Regex RegexEmojiPlusSpace();
-
-    [GeneratedRegex(@"[\u20E3]")]
-    private static partial Regex RegexEmojiMinusSpace();
-
-    [GeneratedRegex("\uD83C[\uDDE6-\uDDFF]")]
-    private static partial Regex RegexRegionalIndicatorSymbol();
-
-    public static int GetTextLengthForTextFile(this string text)
-    {
-        return text.Length
-            + RegexEmojiPlusSpace().Count(text)
-            - RegexEmojiMinusSpace().Count(text)
-            - RegexRegionalIndicatorSymbol().Count(text);
-    }
-
     #endregion
 
     #region Split To Lines
@@ -693,7 +676,13 @@ internal static partial class CommentTextExtensions
         return text.SplitTextToLines(lineCh).ToString().Split('\n');
     }
 
-    private static StringBuilder SplitTextToLines(this string text, int lineCh, List<Placeholder> placeholders = null)
+    [GeneratedRegex(@"[/?!&)。，、）？！]")]
+    private static partial Regex RegexLineSplitChars();
+
+    [GeneratedRegex(@"\n")]
+    private static partial Regex RegexNewLine();
+
+    private static StringBuilder SplitTextToLines(this string text, int lineCh, List<Placeholder> placeholders = null, bool skipLastMeasurements = false)
     {
         var body = new StringBuilder(text);
 
@@ -703,6 +692,62 @@ internal static partial class CommentTextExtensions
             int endIndex = startIndex + lineCh - 1;
 
             if (endIndex >= body.Length)
+            {
+                if (skipLastMeasurements == false)
+                {
+                    string line = body.ToString(startIndex, body.Length - startIndex);
+                    int lineLength = line.MeasureText();
+
+                    if (lineLength > line.Length)
+                    {
+                        int stepCh = 10;
+                        int lineChRecalculte = lineCh - stepCh;
+                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte > lineLength; lineChRecalculte -= stepCh) ;
+
+                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte <= lineLength; lineChRecalculte -= stepCh)
+                        {
+                            StringBuilder sb = line.SplitTextToLines(lineChRecalculte, skipLastMeasurements: true);
+                            string lineRecalculte = sb.ToString();
+                            if (lineRecalculte.Contains('\n') && lineRecalculte.Split('\n').All(l => l.MeasureText() <= lineCh))
+                            {
+                                foreach (var newLineIndex in RegexNewLine().Matches(lineRecalculte).Select(m => startIndex + m.Index).OrderDescending())
+                                {
+                                    body.Insert(newLineIndex, '\n');
+
+                                    if (placeholders.HasAny())
+                                    {
+                                        // placeholders are sort by FromIndex desc
+                                        // nlIndex < FromIndex < ToIndex
+                                        // nlIndex = FromIndex < ToIndex - intersects
+                                        // FromIndex < nlIndex < ToIndex - intersects
+                                        // FromIndex < ToIndex <= nlIndex
+                                        int nlIndex = newLineIndex;
+                                        foreach (var ph in placeholders.TakeWhile(ph => nlIndex <= ph.FromIndex || nlIndex < ph.ToIndex))
+                                        {
+                                            if (nlIndex <= ph.FromIndex)
+                                            {
+                                                ph.FromIndex += 1;
+                                                ph.ToIndex += 1;
+                                            }
+                                            else if (nlIndex < ph.ToIndex)
+                                            {
+                                                ph.ToIndex += 1;
+                                                ph.Value = body.ToString(ph.FromIndex, ph.ToIndex - ph.FromIndex);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                break;
+            }
+
+            if (endIndex >= body.Length)
                 break;
 
             bool found = false;
@@ -710,23 +755,26 @@ internal static partial class CommentTextExtensions
             {
                 if (body[i] == ' ')
                 {
-                    body[i] = '\n';
-                    startIndex = i + 1;
-                    found = true;
-
-                    if (placeholders.HasAny())
+                    if (body.ToString(startIndex, i - startIndex).MeasureText() <= lineCh)
                     {
-                        // placeholders are sort by FromIndex desc
-                        // nlIndex < FromIndex < ToIndex
-                        // nlIndex = FromIndex < ToIndex - intersects
-                        // FromIndex < nlIndex < ToIndex - intersects
-                        // FromIndex < ToIndex <= nlIndex
-                        int nlIndex = i;
-                        foreach (var ph in placeholders.Where(ph => ph.FromIndex <= nlIndex && nlIndex < ph.ToIndex))
-                            ph.Value = body.ToString(ph.FromIndex, ph.ToIndex - ph.FromIndex);
-                    }
+                        body[i] = '\n';
+                        startIndex = i + 1;
+                        found = true;
 
-                    break;
+                        if (placeholders.HasAny())
+                        {
+                            // placeholders are sort by FromIndex desc
+                            // nlIndex < FromIndex < ToIndex
+                            // nlIndex = FromIndex < ToIndex - intersects
+                            // FromIndex < nlIndex < ToIndex - intersects
+                            // FromIndex < ToIndex <= nlIndex
+                            int nlIndex = i;
+                            foreach (var ph in placeholders.Where(ph => ph.FromIndex <= nlIndex && nlIndex < ph.ToIndex))
+                                ph.Value = body.ToString(ph.FromIndex, ph.ToIndex - ph.FromIndex);
+                        }
+
+                        break;
+                    }
                 }
             }
 
@@ -737,37 +785,39 @@ internal static partial class CommentTextExtensions
             for (int i = endIndex; i >= startIndex; i--)
             {
                 // break long url
-                if (body[i] == '/' || body[i] == '?' || body[i] == '&' || body[i] == ')' ||
-                    body[i] == '。' || body[i] == '，' || body[i] == '、' || body[i] == '）')
+                if (RegexLineSplitChars().IsMatch(body[i].ToString()))
                 {
-                    body.Insert(i + 1, '\n');
-                    startIndex = i + 2;
-                    found = true;
-
-                    if (placeholders.HasAny())
+                    if (body.ToString(startIndex, i - startIndex + 1).MeasureText() <= lineCh)
                     {
-                        // placeholders are sort by FromIndex desc
-                        // nlIndex < FromIndex < ToIndex
-                        // nlIndex = FromIndex < ToIndex - intersects
-                        // FromIndex < nlIndex < ToIndex - intersects
-                        // FromIndex < ToIndex <= nlIndex
-                        int nlIndex = i + 1;
-                        foreach (var ph in placeholders.TakeWhile(ph => nlIndex <= ph.FromIndex || nlIndex < ph.ToIndex))
+                        body.Insert(i + 1, '\n');
+                        startIndex = i + 2;
+                        found = true;
+
+                        if (placeholders.HasAny())
                         {
-                            if (nlIndex <= ph.FromIndex)
+                            // placeholders are sort by FromIndex desc
+                            // nlIndex < FromIndex < ToIndex
+                            // nlIndex = FromIndex < ToIndex - intersects
+                            // FromIndex < nlIndex < ToIndex - intersects
+                            // FromIndex < ToIndex <= nlIndex
+                            int nlIndex = i + 1;
+                            foreach (var ph in placeholders.TakeWhile(ph => nlIndex <= ph.FromIndex || nlIndex < ph.ToIndex))
                             {
-                                ph.FromIndex += 1;
-                                ph.ToIndex += 1;
-                            }
-                            else if (nlIndex < ph.ToIndex)
-                            {
-                                ph.ToIndex += 1;
-                                ph.Value = body.ToString(ph.FromIndex, ph.ToIndex - ph.FromIndex);
+                                if (nlIndex <= ph.FromIndex)
+                                {
+                                    ph.FromIndex += 1;
+                                    ph.ToIndex += 1;
+                                }
+                                else if (nlIndex < ph.ToIndex)
+                                {
+                                    ph.ToIndex += 1;
+                                    ph.Value = body.ToString(ph.FromIndex, ph.ToIndex - ph.FromIndex);
+                                }
                             }
                         }
-                    }
 
-                    break;
+                        break;
+                    }
                 }
             }
 
@@ -833,6 +883,21 @@ internal static partial class CommentTextExtensions
         }
 
         return body;
+    }
+
+    [GeneratedRegex(@"\p{IsHangulJamo}|\p{IsCJKRadicalsSupplement}|\p{IsCJKSymbolsandPunctuation}|\p{IsHiragana}|\p{IsKatakana}|\p{IsEnclosedCJKLettersandMonths}|\p{IsCJKCompatibility}|\p{IsCJKUnifiedIdeographsExtensionA}|\p{IsCJKUnifiedIdeographs}|\p{IsHangulSyllables}|\p{IsCJKCompatibilityIdeographs}|\p{IsCJKCompatibilityForms}")]
+    private static partial Regex RegexJapaneseChineseKorean();
+
+    // full-width chars are counted twice
+    public static int MeasureText(this string text)
+    {
+        if (string.IsNullOrEmpty(text))
+            return 0;
+
+        return
+            text.Length +
+            RegexJapaneseChineseKorean().Count(text) +
+            RegexEmoji().Count(text);
     }
 
     #endregion

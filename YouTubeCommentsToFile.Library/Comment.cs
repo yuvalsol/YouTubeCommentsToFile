@@ -261,7 +261,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
             if (isTextHighlight)
             {
-                int diff = lineCh - line.GetTextLengthForTextFile();
+                int diff = lineCh - line.MeasureText();
                 yield return $"{(IsReply ? '┤' : '│')} {line}{(diff > 0 ? new string(' ', diff) : null)} │";
             }
             else
@@ -275,7 +275,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
                 if (isTextHighlight)
                 {
-                    int diff = lineCh - line.GetTextLengthForTextFile();
+                    int diff = lineCh - line.MeasureText();
                     yield return $"│ {line}{(diff > 0 ? new string(' ', diff) : null)} │";
                 }
                 else
@@ -292,8 +292,8 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i];
+            int lineLength = line.MeasureText();
             bool isLineRTL = writeToHTML && rtlBlocks.Any(b => b.start <= i && i <= b.end);
-            int lineLength = (writeToHTML ? line.Length : line.GetTextLengthForTextFile());
 
             if (lineLength <= lineCh)
             {
@@ -340,7 +340,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                         string innerLine = (innerLines[k] ?? string.Empty).Trim();
                         if (isTextHighlight)
                         {
-                            int diff = lineCh - innerLine.GetTextLengthForTextFile();
+                            int diff = lineCh - innerLine.MeasureText();
                             yield return $"│ {innerLine}{(diff > 0 ? new string(' ', diff) : null)} │";
                         }
                         else
@@ -364,7 +364,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             {
                 if (isTextHighlight)
                 {
-                    int diff = lineCh - line.GetTextLengthForTextFile();
+                    int diff = lineCh - line.MeasureText();
                     yield return $"│ {line}{(diff > 0 ? new string(' ', diff) : null)} │";
                 }
                 else

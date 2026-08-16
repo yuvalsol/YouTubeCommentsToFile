@@ -1561,8 +1561,8 @@ public partial class CommentsWriter(Settings settings)
         for (int i = 0; i < lines.Length; i++)
         {
             string line = lines[i];
+            int lineLength = line.MeasureText();
             bool isLineRTL = writeToHTML && rtlBlocks.Any(b => b.start <= i && i <= b.end);
-            int lineLength = (writeToHTML ? line.Length : line.GetTextLengthForTextFile());
 
             if (lineLength <= textLineLength)
             {
