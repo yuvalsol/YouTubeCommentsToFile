@@ -429,16 +429,28 @@ internal interface IVerbosityOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(11)]
 internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("beep", HelpText = "Make a beep sound when finished. If used with '--quiet', make no sound.")]
+    [Option("sleep-interval", HelpText = "Number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
     [OptionPrecedence(1)]
+    uint? SleepInterval { get; set; }
+
+    [Option("min-sleep-interval", HelpText = "Minimum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
+    [OptionPrecedence(2)]
+    uint? MinSleepInterval { get; set; }
+
+    [Option("max-sleep-interval", HelpText = "Maximum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
+    [OptionPrecedence(3)]
+    uint? MaxSleepInterval { get; set; }
+
+    [Option("beep", HelpText = "Make a beep sound when finished. If used with '--quiet', make no sound.")]
+    [OptionPrecedence(4)]
     bool Beep { get; set; }
 
     [Option("beep-on-errors", HelpText = "Make a beep sound when finished with errors. If used with '--quiet', make no sound.")]
-    [OptionPrecedence(2)]
+    [OptionPrecedence(5)]
     bool BeepOnErrors { get; set; }
 
     [Option("pause-on-errors", HelpText = "Prevent the console from closing until a key is pressed when finished with errors. If used with '--quiet', this option is disabled.")]
-    [OptionPrecedence(3)]
+    [OptionPrecedence(6)]
     bool PauseOnErrors { get; set; }
 
     [Option('h', "help", HelpText = "Display help screen.")]
@@ -452,10 +464,19 @@ internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(12)]
 internal interface IDebugOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("comments-with-emoji", HelpText = "Filter and highlight comments with emoji.")]
-    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    [Option("eh", HelpText = "Highlight comments with emoji.")]
+    [OptionPrecedence(1)]
+    public bool HighlightCommentsWithEmoji { get; set; }
 
-    [Option("hac", HelpText = "Highlight all comments.")]
+    [Option("ef", HelpText = "Filter comments with emoji.")]
+    [OptionPrecedence(2)]
+    public bool FilterCommentsWithEmoji { get; set; }
+
+    [Option("ehf", HelpText = "Highlight and filter comments with emoji.")]
+    [OptionPrecedence(3)]
+    public bool HighlightAndFilterCommentsWithEmoji { get; set; }
+
+    [Option("ach", HelpText = "Highlight all comments.")]
     public bool HighlightAllComments { get; set; }
 }
 #endif
@@ -834,6 +855,9 @@ internal abstract class SharedOptions :
     public bool NoWriteComments { get; set; }
 
     // General
+    public uint? SleepInterval { get; set; }
+    public uint? MinSleepInterval { get; set; }
+    public uint? MaxSleepInterval { get; set; }
     public bool Beep { get; set; }
     public bool BeepOnErrors { get; set; }
     public bool PauseOnErrors { get; set; }
@@ -842,7 +866,9 @@ internal abstract class SharedOptions :
 
 #if DEBUG
     // Debug
-    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightCommentsWithEmoji { get; set; }
+    public bool FilterCommentsWithEmoji { get; set; }
+    public bool HighlightAndFilterCommentsWithEmoji { get; set; }
     public bool HighlightAllComments { get; set; }
 #endif
 
@@ -919,9 +945,16 @@ internal abstract class SharedOptions :
             CopyTextSuccessColor = ColorHelper.StringToColor(CopyTextSuccessColor),
             CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor),
 
+            // General
+            SleepInterval = SleepInterval,
+            MinSleepInterval = MinSleepInterval,
+            MaxSleepInterval = MaxSleepInterval,
+
 #if DEBUG
             // Debug
-            FilterAndHighlightCommentsWithEmoji = FilterAndHighlightCommentsWithEmoji,
+            HighlightCommentsWithEmoji = HighlightCommentsWithEmoji,
+            FilterCommentsWithEmoji = FilterCommentsWithEmoji,
+            HighlightAndFilterCommentsWithEmoji = HighlightAndFilterCommentsWithEmoji,
             HighlightAllComments = HighlightAllComments
 #endif
         };
@@ -1112,6 +1145,9 @@ internal abstract class SharedOptions :
         YtDlpQuiet |= options.YtDlpQuiet;
 
         // General
+        SleepInterval |= options.SleepInterval;
+        MinSleepInterval |= options.MinSleepInterval;
+        MaxSleepInterval |= options.MaxSleepInterval;
         Beep |= options.Beep;
         BeepOnErrors |= options.BeepOnErrors;
         PauseOnErrors |= options.PauseOnErrors;
@@ -1274,6 +1310,9 @@ internal class VerbosityHelpOptions : IVerbosityOptions
 
 internal class GeneralHelpOptions : IGeneralOptions
 {
+    public uint? SleepInterval { get; set; }
+    public uint? MinSleepInterval { get; set; }
+    public uint? MaxSleepInterval { get; set; }
     public bool Beep { get; set; }
     public bool BeepOnErrors { get; set; }
     public bool PauseOnErrors { get; set; }
@@ -1284,7 +1323,9 @@ internal class GeneralHelpOptions : IGeneralOptions
 #if DEBUG
 internal class DebugHelpOptions : IDebugOptions
 {
-    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightCommentsWithEmoji { get; set; }
+    public bool FilterCommentsWithEmoji { get; set; }
+    public bool HighlightAndFilterCommentsWithEmoji { get; set; }
     public bool HighlightAllComments { get; set; }
 }
 #endif

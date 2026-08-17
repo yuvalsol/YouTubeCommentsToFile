@@ -97,9 +97,16 @@ public class Settings
     public Color? CopyTextSuccessColor { get; set; }
     public Color? CopyTextFailureColor { get; set; }
 
+    // General
+    public uint? SleepInterval { get; set; }
+    public uint? MinSleepInterval { get; set; }
+    public uint? MaxSleepInterval { get; set; }
+
 #if DEBUG
     // Debug
-    public bool FilterAndHighlightCommentsWithEmoji { get; set; }
+    public bool HighlightCommentsWithEmoji { get; set; }
+    public bool FilterCommentsWithEmoji { get; set; }
+    public bool HighlightAndFilterCommentsWithEmoji { get; set; }
     public bool HighlightAllComments { get; set; }
 #endif
 }

@@ -42,6 +42,7 @@ internal partial class Program
         writer.FinishDeleteJsonFile += OnFinishDeleteJsonFile;
         writer.FinishConvert += OnFinishConvert;
         writer.FinishDownload += OnFinishDownload;
+        writer.Sleeping += OnSleeping;
         writer.Finish += OnFinish;
 
         writer.WriteCommentsToFile();
@@ -294,7 +295,7 @@ internal partial class Program
 
         if (total > 1)
         {
-            Console.WriteLine();
+            WriteLine();
             ResetCommentsWritingFields();
         }
     }
@@ -305,6 +306,19 @@ internal partial class Program
         isPrintedVideoTitle = false;
         warningMessages.Clear();
         lostComments = 0;
+    }
+
+    private void OnSleeping(object sender, SleepingEventArgs e)
+    {
+        if (e.Timeout.Days > 0)
+            WriteLine($"Sleeping for {e.Timeout:d':'hh':'mm':'ss} days.");
+        else if (e.Timeout.Hours > 0)
+            WriteLine($"Sleeping for {e.Timeout:h':'mm':'ss} hours.");
+        else if (e.Timeout.Minutes > 0)
+            WriteLine($"Sleeping for {e.Timeout:m':'ss} minutes.");
+        else
+            WriteLine($"Sleeping for {(int)e.Timeout.TotalSeconds} seconds.");
+        WriteLine();
     }
 
     private void OnFinish(object sender, FinishEventArgs e)

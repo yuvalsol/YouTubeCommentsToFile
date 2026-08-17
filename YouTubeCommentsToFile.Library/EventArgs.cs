@@ -133,6 +133,11 @@ public sealed class FinishDownloadEventArgs(TimeSpan processTime, int count, int
     public Exception Error => error;
 }
 
+public sealed class SleepingEventArgs(TimeSpan timeout) : EventArgs
+{
+    public TimeSpan Timeout => timeout;
+}
+
 public sealed class FinishEventArgs(TimeSpan processTime) : EventArgs
 {
     public TimeSpan ProcessTime => processTime;

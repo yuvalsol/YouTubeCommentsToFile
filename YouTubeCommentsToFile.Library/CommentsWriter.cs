@@ -41,6 +41,7 @@ public partial class CommentsWriter(Settings settings)
     public EventHandler<FinishDeleteJsonFileEventArgs> FinishDeleteJsonFile;
     public EventHandler<FinishConvertEventArgs> FinishConvert;
     public EventHandler<FinishDownloadEventArgs> FinishDownload;
+    public EventHandler<SleepingEventArgs> Sleeping;
     public EventHandler<FinishEventArgs> Finish;
 
     #endregion
@@ -251,6 +252,9 @@ public partial class CommentsWriter(Settings settings)
 
                 TimeSpan ptOperation = Stopwatch.GetElapsedTime(startTimeOperation);
                 FinishDownload?.Raise(this, () => new FinishDownloadEventArgs(ptOperation, count, settings.URLs.Length, operationError));
+
+                if (count < settings.URLs.Length)
+                    Sleep();
             }
         }
         else
@@ -271,6 +275,9 @@ public partial class CommentsWriter(Settings settings)
 
                 TimeSpan ptOperation = Stopwatch.GetElapsedTime(startTimeOperation);
                 FinishConvert?.Raise(this, () => new FinishConvertEventArgs(ptOperation, count, settings.JsonFiles.Length, operationError));
+
+                if (count < settings.JsonFiles.Length)
+                    Sleep();
             }
         }
 
@@ -1018,7 +1025,7 @@ public partial class CommentsWriter(Settings settings)
         ];
 
 #if DEBUG
-        if (settings.FilterAndHighlightCommentsWithEmoji)
+        if (settings.FilterCommentsWithEmoji || settings.HighlightAndFilterCommentsWithEmoji)
             comments.RemoveAll(c => c.Text.HasEmoji() == false);
 #endif
 
@@ -1195,7 +1202,7 @@ public partial class CommentsWriter(Settings settings)
 #if DEBUG
         if (settings.HighlightAllComments)
             comment.IsHighlightText = true;
-        else if (settings.FilterAndHighlightCommentsWithEmoji)
+        else if (settings.HighlightCommentsWithEmoji || settings.HighlightAndFilterCommentsWithEmoji)
             comment.IsHighlightText = comment.Text.HasEmoji();
 #endif
 
@@ -1875,6 +1882,36 @@ public partial class CommentsWriter(Settings settings)
 #endif
 
         File.Delete(jsonFile);
+    }
+
+    #endregion
+
+    #region Sleep
+
+    private void Sleep()
+    {
+        if ((settings.SleepInterval ?? 0) > 0)
+        {
+            var timeout = TimeSpan.FromSeconds(settings.SleepInterval.Value);
+            Sleeping?.Raise(this, () => new SleepingEventArgs(timeout));
+            Thread.Sleep(timeout);
+        }
+        else if ((settings.MinSleepInterval ?? 0) > 0 || (settings.MaxSleepInterval ?? 0) > 0)
+        {
+            var minSeconds = settings.MinSleepInterval ?? 0;
+            var maxSeconds = settings.MaxSleepInterval ?? 3 * settings.MinSleepInterval.Value;
+            if (minSeconds > maxSeconds)
+                return;
+
+            var random = new Random(Guid.NewGuid().GetHashCode());
+            var seconds = (random.NextDouble() * (maxSeconds - minSeconds) + minSeconds);
+            if (seconds <= 0)
+                return;
+
+            var timeout = TimeSpan.FromSeconds(seconds);
+            Sleeping?.Raise(this, () => new SleepingEventArgs(timeout));
+            Thread.Sleep(timeout);
+        }
     }
 
     #endregion
