@@ -1524,8 +1524,22 @@ public partial class CommentsWriter(Settings settings)
 
     private static IEnumerable<int> GetHighlightWidthCh(Comment comment, int indentSize, int textLineLength, int indentCount, bool writeToHTML)
     {
-        if (comment.IsHighlight || comment.HasRTLLine(writeToHTML))
+        if (comment.IsHighlight)
+        {
             yield return textLineLength - indentCount;
+        }
+        else
+        {
+            bool hasRTLLine = false;
+            try
+            {
+                hasRTLLine = comment.HasRTLLine(writeToHTML);
+            }
+            catch { }
+
+            if (hasRTLLine)
+                yield return textLineLength - indentCount;
+        }
 
         if (comment.Count == 0)
             yield break;

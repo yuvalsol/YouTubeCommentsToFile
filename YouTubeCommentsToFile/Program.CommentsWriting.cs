@@ -9,7 +9,7 @@ internal partial class Program
     private bool isPrintedJsonFile;
     private bool isPrintedVideoTitle;
     private readonly List<StringBuilder> warningMessages = [];
-    private int lostComments;
+    private int totalLostComments;
     private readonly bool withoutDebuggingInfo =
 #if RELEASE
             true;
@@ -216,37 +216,62 @@ internal partial class Program
 
     private void OnWriteCommentError(object sender, WriteCommentErrorEventArgs e)
     {
-        warningMessages.Add(e.Error.GetExceptionErrorMessage($"{(string.IsNullOrEmpty(e.Id) ? null : $"COMMENT ID: {e.Id}{Environment.NewLine}")}{(string.IsNullOrEmpty(e.Parent) ? null : $"PARENT ID: {e.Parent}{Environment.NewLine}")}COMMENT:{Environment.NewLine}{e.Comment}", withoutDebuggingInfo));
-        lostComments += e.LostComments;
+        var errorMessage = new StringBuilder();
+        errorMessage.AppendLine($"LOST COMMENTS: {e.LostComments}");
+        errorMessage.AppendLine($"COMMENT: {e.Comment}");
+        if (string.IsNullOrEmpty(e.Id) == false)
+            errorMessage.AppendLine($"COMMENT ID: {e.Id}");
+        if (string.IsNullOrEmpty(e.Parent) == false)
+            errorMessage.AppendLine($"PARENT ID: {e.Parent}");
+        warningMessages.Add(e.Error.GetExceptionErrorMessage(errorMessage, withoutDebuggingInfo));
+        totalLostComments += e.LostComments;
         finishedWithErrors = true;
     }
 
     private void OnFinishWriteComments(object sender, FinishWriteCommentsEventArgs e)
     {
-        if (e.Error == null && lostComments == 0)
+        if (e.Error == null)
         {
-            WriteLine(" Done.");
-            WriteVerboseProperty($"{(e.WriteToHTML ? "HTML" : "Text")} File", e.CommentsFile);
+            if (totalLostComments == 0)
+            {
+                WriteLine(" Done.");
+                WriteVerboseProperty($"{(e.WriteToHTML ? "HTML" : "Text")} File", e.CommentsFile);
+            }
+            else
+            {
+                WriteWarningLine(" Done.");
+                WriteVerboseProperty($"{(e.WriteToHTML ? "HTML" : "Text")} File", e.CommentsFile);
+                WriteWarningMessages();
+                finishedWithErrors = true;
+            }
         }
         else
         {
             WriteLine();
+            WriteErrorLine($"Failed to write {(e.WriteToHTML ? "HTML" : "text")} file.");
+            WriteErrorLine($"{(e.WriteToHTML ? "HTML" : "Text")} File: {e.CommentsFile}");
 
-            if (e.Error != null)
-            {
-                WriteErrorLine($"Failed to write {(e.WriteToHTML ? "HTML" : "text")} file.");
-                WriteErrorLine($"{(e.WriteToHTML ? "HTML" : "Text")} File: {e.CommentsFile}");
-            }
-
-            if (lostComments > 0)
-            {
-                var seperator = new string('-', 17);
-                WriteWarningLine($"Lost Comments: {lostComments}");
-                WriteWarningLine(seperator);
-                WriteWarningLine(string.Join($"{Environment.NewLine}{seperator}{Environment.NewLine}", warningMessages));
-            }
+            if (totalLostComments > 0)
+                WriteWarningMessages();
 
             finishedWithErrors = true;
+        }
+    }
+
+    private void WriteWarningMessages()
+    {
+        string lostCommentsWarningMessage = $"Total Lost Comments: {totalLostComments}";
+
+        if (operationOptions.Verbose)
+        {
+            WriteWarningLine(string.Join(
+                $"{Environment.NewLine}{new string('-', lostCommentsWarningMessage.Length)}{Environment.NewLine}",
+                warningMessages.Prepend(new StringBuilder(lostCommentsWarningMessage))
+            ));
+        }
+        else
+        {
+            WriteWarningLine(lostCommentsWarningMessage);
         }
     }
 
@@ -282,7 +307,7 @@ internal partial class Program
     {
         if (error == null)
         {
-            if (lostComments > 0)
+            if (totalLostComments > 0)
                 WriteLine($"Finished {operation}ing comments with warnings.");
         }
         else
@@ -305,7 +330,7 @@ internal partial class Program
         isPrintedJsonFile = false;
         isPrintedVideoTitle = false;
         warningMessages.Clear();
-        lostComments = 0;
+        totalLostComments = 0;
     }
 
     private void OnSleeping(object sender, SleepingEventArgs e)
