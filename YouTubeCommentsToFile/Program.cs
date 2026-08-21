@@ -9,7 +9,8 @@ internal partial class Program
 #if RELEASE
         return new Program(args).Run();
 #elif DEBUG
-        return Program.Debug();
+        Console.Clear();
+        return Debug();
 #endif
     }
 }
