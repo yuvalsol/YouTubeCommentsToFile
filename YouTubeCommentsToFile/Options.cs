@@ -13,22 +13,22 @@ internal interface IYouTubeCommentsToFileOptions { }
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("json-file", HelpText = "Paths to comments JSON files or directories.")]
+    [Option("json-file", MetaValue = "PATH...", HelpText = "Paths to comments JSON files or directories.")]
     [OptionPrecedence(1)]
     IEnumerable<string> JsonFilesOption { get; set; }
 
-    [Value(0, MetaName = "[JSON file...]", HelpText = "Paths to comments JSON files or directories.")]
+    [Value(0, MetaName = "Json Files", MetaValue = "PATH...", HelpText = "Paths to comments JSON files or directories.")]
     IEnumerable<string> JsonFilesValue { get; set; }
 
-    [Option("url", HelpText = "Video URL. Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.")]
+    [Option("url", MetaValue = "URL", HelpText = "Video URL. Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.")]
     [OptionPrecedence(2)]
     string URL { get; set; }
 
-    [Option("yt-dlp", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.")]
+    [Option("yt-dlp", MetaValue = "PATH", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.")]
     [OptionPrecedence(3)]
     string YtDlp { get; set; }
 
-    [Option("deno", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
+    [Option("deno", MetaValue = "PATH", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
     [OptionPrecedence(4)]
     string Deno { get; set; }
 }
@@ -38,38 +38,38 @@ internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(2)]
 internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("url", HelpText = "Video URLs to download their comments.")]
+    [Option("url", MetaValue = "URL...", HelpText = "Video URLs to download their comments.")]
     [OptionPrecedence(1)]
     IEnumerable<string> URLsOption { get; set; }
 
-    [Value(0, MetaName = "[URL...]", HelpText = "Video URLs to download their comments.")]
+    [Value(0, MetaName = "URLs", MetaValue = "URL...", HelpText = "Video URLs to download their comments.")]
     IEnumerable<string> URLsValue { get; set; }
 
-    [Option("yt-dlp", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment.")]
+    [Option("yt-dlp", MetaValue = "PATH", HelpText = $"Path to yt-dlp. If not set, search for yt-dlp in {nameof(YouTubeCommentsToFile)} directory. If not found, check if yt-dlp is accessible in the current environment.")]
     [OptionPrecedence(2)]
     string YtDlp { get; set; }
 
-    [Option("deno", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
+    [Option("deno", MetaValue = "PATH", HelpText = $"Path to Deno. If not set, search for Deno in {nameof(YouTubeCommentsToFile)} directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno.")]
     [OptionPrecedence(3)]
     string Deno { get; set; }
 
-    [Option("download-path", HelpText = $"Path to download and to convert comments. If not set, download path is set to {nameof(YouTubeCommentsToFile)} directory.")]
+    [Option("download-path", MetaValue = "PATH", HelpText = $"Path to download and to convert comments. If not set, download path is set to {nameof(YouTubeCommentsToFile)} directory.")]
     [OptionPrecedence(4)]
     string DownloadPath { get; set; }
 
-    [Option("max-comments", HelpText = "Maximum number of top-level comments and replies to extract. If not set, extracts all.")]
+    [Option("max-comments", MetaValue = "NUMBER", HelpText = "Maximum number of top-level comments and replies to extract. If not set, extracts all.")]
     [OptionPrecedence(5)]
     uint? MaxComments { get; set; }
 
-    [Option("max-parents", HelpText = "Maximum number of top-level comments to extract. If not set, extracts all.")]
+    [Option("max-parents", MetaValue = "NUMBER", HelpText = "Maximum number of top-level comments to extract. If not set, extracts all.")]
     [OptionPrecedence(6)]
     uint? MaxParents { get; set; }
 
-    [Option("max-replies", HelpText = "Maximum number of replies to extract. If not set, extracts all.")]
+    [Option("max-replies", MetaValue = "NUMBER", HelpText = "Maximum number of replies to extract. If not set, extracts all.")]
     [OptionPrecedence(7)]
     uint? MaxReplies { get; set; }
 
-    [Option("max-replies-per-thread", HelpText = "Maximum number of replies per top-level comment to extract. If not set, extracts all.")]
+    [Option("max-replies-per-thread", MetaValue = "NUMBER", HelpText = "Maximum number of replies per top-level comment to extract. If not set, extracts all.")]
     [OptionPrecedence(8)]
     uint? MaxRepliesPerThread { get; set; }
 
@@ -90,7 +90,7 @@ internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
     [Option("restrict-filenames", HelpText = "Restrict filenames to only ASCII characters, and avoid '&' and spaces in filenames.")]
     bool RestrictFilenames { get; set; }
 
-    [Option("trim-title", HelpText = "Limit the length of the video title in the filename to the specified number of characters. Doesn't limit the length of the video uploader.")]
+    [Option("trim-title", MetaValue = "LENGTH", HelpText = "Limit the length of the video title in the filename to the specified number of characters. Doesn't limit the length of the video uploader.")]
     uint? TrimTitle { get; set; }
 
     [Option("update-yt-dlp", HelpText = "Whether to update yt-dlp to the latest version. Updates to 'nightly' release channel.")]
@@ -99,7 +99,7 @@ internal interface IDownloadOptions : IYouTubeCommentsToFileOptions
     [Option("windows-filenames", HelpText = "Force filenames to be Windows-compatible by replacing Windows reserved characters with lookalike Unicode characters.")]
     bool WindowsFilenames { get; set; }
 
-    [Option("yt-dlp-options", HelpText = "Options added to yt-dlp command line.")]
+    [Option("yt-dlp-options", MetaValue = "OPTIONS", HelpText = "Options added to yt-dlp command line.")]
     string YtDlpOptions { get; set; }
 }
 
@@ -142,7 +142,7 @@ internal interface ISharedOptions : IYouTubeCommentsToFileOptions
     [Option("hide-video-description", HelpText = "Whether to hide the video description from the video information header.")]
     bool HideVideoDescription { get; set; }
 
-    [Option("indent-size", HelpText = "The indentation size, in number of characters, between comment and reply. Indentation size is between 2 and 10 characters.")]
+    [Option("indent-size", MetaValue = "SIZE", HelpText = "The indentation size, in number of characters, between comment and reply. Indentation size is between 2 and 10 characters.")]
     int? IndentSize { get; set; }
 
     [Option("show-comment-link", HelpText = "Whether to show direct links comments and replies.")]
@@ -154,7 +154,7 @@ internal interface ISharedOptions : IYouTubeCommentsToFileOptions
     [Option("show-copy-links", HelpText = "Whether to show copy text links for comments and replies in HTML file.")]
     bool ShowCopyLinks { get; set; }
 
-    [Option("text-line-length", HelpText = "The maximum length of a line of text, in number of characters. A comment's line of text, longer than that, is split into several lines. Line length is between 80 and 320 characters.")]
+    [Option("text-line-length", MetaValue = "LENGTH", HelpText = "The maximum length of a line of text, in number of characters. A comment's line of text, longer than that, is split into several lines. Line length is between 80 and 320 characters.")]
     int? TextLineLength { get; set; }
 }
 
@@ -177,55 +177,55 @@ internal interface IUploaderOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(5)]
 internal interface IAuthorsOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("ah", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
+    [Option("ah", MetaValue = "NAME...", HelpText = "Highlight authors. Search for comments and replies written by any of the specified authors. If found, highlight the comment or reply.")]
     [OptionPrecedence(1)]
     IEnumerable<string> HighlightAuthors { get; set; }
 
-    [Option("af", HelpText = "Filter authors. Search for comments and replies written by any of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
+    [Option("af", MetaValue = "NAME...", HelpText = "Filter authors. Search for comments and replies written by any of the specified authors. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
     [OptionPrecedence(2)]
     IEnumerable<string> FilterAuthors { get; set; }
 
-    [Option("ahf", HelpText = "Highlight and filter authors.")]
+    [Option("ahf", MetaValue = "NAME...", HelpText = "Highlight and filter authors.")]
     IEnumerable<string> HighlightAndFilterAuthors { get; set; }
 
-    [Option('a', "ahi", HelpText = "Highlight authors. Author search is case-insensitive.")]
+    [Option('a', "ahi", MetaValue = "NAME...", HelpText = "Highlight authors. Author search is case-insensitive.")]
     IEnumerable<string> HighlightAuthorsIgnoreCase { get; set; }
 
-    [Option("afi", HelpText = "Filter authors. Author search is case-insensitive.")]
+    [Option("afi", MetaValue = "NAME...", HelpText = "Filter authors. Author search is case-insensitive.")]
     IEnumerable<string> FilterAuthorsIgnoreCase { get; set; }
 
-    [Option("ahfi", HelpText = "Highlight and filter authors. Author search is case-insensitive.")]
+    [Option("ahfi", MetaValue = "NAME...", HelpText = "Highlight and filter authors. Author search is case-insensitive.")]
     IEnumerable<string> HighlightAndFilterAuthorsIgnoreCase { get; set; }
 }
 
 [OptionPrecedence(6)]
 internal interface ITextsOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("th", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
+    [Option("th", MetaValue = "TEXT...", HelpText = "Highlight texts. Search for any of the specified texts in the comment or reply. If found, highlight the comment or reply.")]
     [OptionPrecedence(1)]
     IEnumerable<string> HighlightTexts { get; set; }
 
-    [Option("tf", HelpText = "Filter texts. Search for any of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
+    [Option("tf", MetaValue = "TEXT...", HelpText = "Filter texts. Search for any of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.")]
     [OptionPrecedence(2)]
     IEnumerable<string> FilterTexts { get; set; }
 
-    [Option("thf", HelpText = "Highlight and filter texts.")]
+    [Option("thf", MetaValue = "TEXT...", HelpText = "Highlight and filter texts.")]
     IEnumerable<string> HighlightAndFilterTexts { get; set; }
 
-    [Option('t', "thi", HelpText = "Highlight texts. Text search is case-insensitive.")]
+    [Option('t', "thi", MetaValue = "TEXT...", HelpText = "Highlight texts. Text search is case-insensitive.")]
     IEnumerable<string> HighlightTextsIgnoreCase { get; set; }
 
-    [Option("tfi", HelpText = "Filter texts. Text search is case-insensitive.")]
+    [Option("tfi", MetaValue = "TEXT...", HelpText = "Filter texts. Text search is case-insensitive.")]
     IEnumerable<string> FilterTextsIgnoreCase { get; set; }
 
-    [Option("thfi", HelpText = "Highlight and filter texts. Text search is case-insensitive.")]
+    [Option("thfi", MetaValue = "TEXT...", HelpText = "Highlight and filter texts. Text search is case-insensitive.")]
     IEnumerable<string> HighlightAndFilterTextsIgnoreCase { get; set; }
 }
 
 [OptionPrecedence(7)]
 internal interface IEncodingOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("encoding-code-page", HelpText = "The code page of the video page encoding.")]
+    [Option("encoding-code-page", MetaValue = "CODEPAGE", HelpText = "The code page of the video page encoding.")]
     [OptionPrecedence(1)]
     int? EncodingCodePage { get; set; }
 
@@ -313,83 +313,83 @@ internal interface IEncodingOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(8)]
 internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("text-color", HelpText = "The text color of comments.")]
+    [Option("text-color", MetaValue = "COLOR", HelpText = "The text color of comments.")]
     [OptionPrecedence(1)]
     string TextColor { get; set; }
 
-    [Option("background-color", HelpText = "The background color of comments.")]
+    [Option("background-color", MetaValue = "COLOR", HelpText = "The background color of comments.")]
     [OptionPrecedence(2)]
     string BackgroundColor { get; set; }
 
-    [Option("author-color", HelpText = "The text color of the author of the comment.")]
+    [Option("author-color", MetaValue = "COLOR", HelpText = "The text color of the author of the comment.")]
     [OptionPrecedence(3)]
     string AuthorColor { get; set; }
 
-    [Option("replied-author-color", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
+    [Option("replied-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
     [OptionPrecedence(4)]
     string RepliedAuthorColor { get; set; }
 
-    [Option("other-author-color", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
+    [Option("other-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
     [OptionPrecedence(5)]
     string OtherAuthorColor { get; set; }
 
-    [Option("small-elements-color", HelpText = "The text color of small elements, such as pinned comment, comment time, likes.")]
+    [Option("small-elements-color", MetaValue = "COLOR", HelpText = "The text color of small elements, such as pinned comment, comment time, likes.")]
     [OptionPrecedence(6)]
     string SmallElementsColor { get; set; }
 
-    [Option("favorited-background-color", HelpText = "The background color of favorited by the uploader of the video.")]
+    [Option("favorited-background-color", MetaValue = "COLOR", HelpText = "The background color of favorited by the uploader of the video.")]
     [OptionPrecedence(7)]
     string FavoritedBackgroundColor { get; set; }
 
-    [Option("header-background-color", HelpText = "The background color of the header.")]
+    [Option("header-background-color", MetaValue = "COLOR", HelpText = "The background color of the header.")]
     [OptionPrecedence(8)]
     string HeaderBackgroundColor { get; set; }
 
-    [Option("highlight-uploader-text-color", HelpText = "The text color of highlighted comments written by the uploader of the video.")]
+    [Option("highlight-uploader-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments written by the uploader of the video.")]
     [OptionPrecedence(9)]
     string HighlightUploaderTextColor { get; set; }
 
-    [Option("highlight-uploader-background-color", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
+    [Option("highlight-uploader-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
     [OptionPrecedence(10)]
     string HighlightUploaderBackgroundColor { get; set; }
 
-    [Option("highlight-uploader-border-color", HelpText = "The color of the border around highlighted comments written by the uploader of the video.")]
+    [Option("highlight-uploader-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments written by the uploader of the video.")]
     [OptionPrecedence(11)]
     string HighlightUploaderBorderColor { get; set; }
 
-    [Option("highlight-author-text-color", HelpText = "The text color of highlighted comments written by any of the searched authors.")]
+    [Option("highlight-author-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments written by any of the searched authors.")]
     [OptionPrecedence(12)]
     string HighlightAuthorTextColor { get; set; }
 
-    [Option("highlight-author-background-color", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
+    [Option("highlight-author-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
     [OptionPrecedence(13)]
     string HighlightAuthorBackgroundColor { get; set; }
 
-    [Option("highlight-author-border-color", HelpText = "The color of the border around highlighted comments written by any of the searched authors.")]
+    [Option("highlight-author-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments written by any of the searched authors.")]
     [OptionPrecedence(14)]
     string HighlightAuthorBorderColor { get; set; }
 
-    [Option("highlight-text-text-color", HelpText = "The text color of highlighted comments containing any of the searched texts.")]
+    [Option("highlight-text-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments containing any of the searched texts.")]
     [OptionPrecedence(15)]
     string HighlightTextTextColor { get; set; }
 
-    [Option("highlight-text-background-color", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
+    [Option("highlight-text-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
     [OptionPrecedence(16)]
     string HighlightTextBackgroundColor { get; set; }
 
-    [Option("highlight-text-border-color", HelpText = "The color of the border around highlighted comments containing any of the searched texts.")]
+    [Option("highlight-text-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments containing any of the searched texts.")]
     [OptionPrecedence(17)]
     string HighlightTextBorderColor { get; set; }
 
-    [Option("link-color", HelpText = "The text color of HTML links.")]
+    [Option("link-color", MetaValue = "COLOR", HelpText = "The text color of HTML links.")]
     [OptionPrecedence(18)]
     string LinkColor { get; set; }
 
-    [Option("copy-text-success-color", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
+    [Option("copy-text-success-color", MetaValue = "COLOR", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
     [OptionPrecedence(19)]
     string CopyTextSuccessColor { get; set; }
 
-    [Option("copy-text-failure-color", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
+    [Option("copy-text-failure-color", MetaValue = "COLOR", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
     [OptionPrecedence(20)]
     string CopyTextFailureColor { get; set; }
 }
@@ -397,7 +397,7 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(9)]
 internal interface IConfigurationOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("config-locations", HelpText = "Paths to configuration files or to directories containing configuration files. Can be used multiple times and inside other configuration files.")]
+    [Option("config-locations", MetaValue = "PATH...", HelpText = "Paths to configuration files or to directories containing configuration files. Can be used multiple times and inside other configuration files.")]
     [OptionPrecedence(1)]
     IEnumerable<string> ConfigLocations { get; set; }
 
@@ -423,21 +423,21 @@ internal interface IVerbosityOptions : IYouTubeCommentsToFileOptions
     bool YtDlpQuiet { get; set; }
 
     [Option("no-write-comments", HelpText = "Don't download or write comments.")]
-    public bool NoWriteComments { get; set; }
+    bool NoWriteComments { get; set; }
 }
 
 [OptionPrecedence(11)]
 internal interface IGeneralOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("sleep-interval", HelpText = "Number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
+    [Option("sleep-interval", MetaValue = "SECONDS", HelpText = "Number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
     [OptionPrecedence(1)]
     uint? SleepInterval { get; set; }
 
-    [Option("min-sleep-interval", HelpText = "Minimum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
+    [Option("min-sleep-interval", MetaValue = "SECONDS", HelpText = "Minimum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
     [OptionPrecedence(2)]
     uint? MinSleepInterval { get; set; }
 
-    [Option("max-sleep-interval", HelpText = "Maximum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
+    [Option("max-sleep-interval", MetaValue = "SECONDS", HelpText = "Maximum number of seconds to sleep between converting multiple JSON files or downloading from multiple URLs.")]
     [OptionPrecedence(3)]
     uint? MaxSleepInterval { get; set; }
 
@@ -466,18 +466,18 @@ internal interface IDebugOptions : IYouTubeCommentsToFileOptions
 {
     [Option("eh", HelpText = "Highlight comments with emoji.")]
     [OptionPrecedence(1)]
-    public bool HighlightCommentsWithEmoji { get; set; }
+    bool HighlightCommentsWithEmoji { get; set; }
 
     [Option("ef", HelpText = "Filter comments with emoji.")]
     [OptionPrecedence(2)]
-    public bool FilterCommentsWithEmoji { get; set; }
+    bool FilterCommentsWithEmoji { get; set; }
 
     [Option("ehf", HelpText = "Highlight and filter comments with emoji.")]
     [OptionPrecedence(3)]
-    public bool HighlightAndFilterCommentsWithEmoji { get; set; }
+    bool HighlightAndFilterCommentsWithEmoji { get; set; }
 
     [Option("ach", HelpText = "Highlight all comments.")]
-    public bool HighlightAllComments { get; set; }
+    bool HighlightAllComments { get; set; }
 }
 #endif
 

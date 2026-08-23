@@ -24,31 +24,31 @@ Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb
 
 ```console
 YouTubeCommentsToFile convert
-    [--json-file <path>...]
-    [--url <url>]
-    [--yt-dlp <path>]
-    [--deno <path>]
-    [JSON file...]
+    [--json-file PATH...]
+    [--url URL]
+    [--yt-dlp PATH]
+    [--deno PATH]
+    [PATH...]
 ```
 
 ### Convert Command Line Options
 
-List of paths to comments JSON files or directories. If the specified path is a directory, the program will look for JSON files in that directory. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option is the same as placing the paths at the end of the command line (`[JSON file...]`) and they can be used together interchangeably. The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
+List of paths to comments JSON files or directories. If the specified path is a directory, the program will look for JSON files in that directory. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option can be used interchangeably with JSON file paths placed at the end of the command line (`[PATH...]`). The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
 
 ```console
---json-file               Paths to comments JSON files or directories.
+--json-file PATH...       Paths to comments JSON files or directories.
 ```
 
 Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.
 
 ```console
---url                     Video URL.
+--url URL                 Video URL.
 ```
 
 Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile directory. If not found, check if yt-dlp is accessible in the current environment. It is not necessary to set `--yt-dlp` if yt-dlp is accessible, for example, yt-dlp directory is set in Windows `PATH` environment variable. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.
 
 ```console
---yt-dlp                  Path to yt-dlp.
+--yt-dlp PATH             Path to yt-dlp.
 ```
 
 Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default.
@@ -56,7 +56,7 @@ Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile direc
 - [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
 
 ```console
---deno                    Path to Deno.
+--deno PATH               Path to Deno.
 ```
 
 ### Convert Examples
@@ -97,23 +97,23 @@ Downloads comments to text file or HTML file. Uses verb `download`. Verb is opti
 
 ```console
 YouTubeCommentsToFile [download]
-    [--url <url>...]
-    [--yt-dlp <path>]
-    [--deno <path>]
-    [--download-path <path>]
-    [--max-comments <value>]
-    [--max-parents <value>]
-    [--max-replies <value>]
-    [--max-replies-per-thread <value>]
+    [--url URL...]
+    [--yt-dlp PATH]
+    [--deno PATH]
+    [--download-path PATH]
+    [--max-comments NUMBER]
+    [--max-parents NUMBER]
+    [--max-replies NUMBER]
+    [--max-replies-per-thread NUMBER]
     [--sort-new]
     [--sort-top]
     [--filename-sanitization]
     [--restrict-filenames]
     [--windows-filenames]
-    [--trim-title]
+    [--trim-title LENGTH]
     [--only-download-comments]
     [--update-yt-dlp]
-    [--yt-dlp-options <options>]
+    [--yt-dlp-options OPTIONS]
     [URL...]
 ```
 
@@ -137,37 +137,39 @@ yt-dlp --write-comments
 
 ### Download Command Line Options
 
-List of video URLs to download their comments. This option can be used multiple times. This option can have space-separated URLs as its value. This option is the same as placing the URLs at the end of the command line (`[URL...]`) and they can be used together interchangeably. The `--url` option is useful when specifying URLs in [configuration files](#configuration "Configuration").
+List of video URLs to download their comments. This option can be used multiple times. This option can have space-separated URLs as its value. This option can be used interchangeably with URLs placed at the end of the command line (`[URL...]`). The `--url` option is useful when specifying URLs in [configuration files](#configuration "Configuration").
 
 ```console
---url                     Video URLs to download their comments.
+--url URL...                Video URLs to download their comments.
 ```
 
 Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile directory. If not found, check if yt-dlp is accessible in the current environment. It is not necessary to set `--yt-dlp` if yt-dlp is accessible, for example, yt-dlp directory is set in Windows `PATH` environment variable.
 
 ```console
---yt-dlp                  Path to yt-dlp.
+--yt-dlp PATH               Path to yt-dlp.
 ```
 
 Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default. [Read more here](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
 
 ```console
---deno                    Path to Deno.
+--deno PATH                 Path to Deno.
 ```
 
 Path to where to download comments JSON file and convert it to text file or HTML file. If not set, download path is set to YouTubeCommentsToFile directory.
 
 ```console
---download-path           Path to download and to convert comments.
+--download-path PATH        Path to download and to convert comments.
 ```
 
 These options limit the number of comments and replies. If an option is not set, it is unlimited (`all` in yt-dlp). If all options are not set, downloads everything.
 
 ```console
---max-comments            Maximum number of top-level comments and replies to extract.
---max-parents             Maximum number of top-level comments to extract.
---max-replies             Maximum number of replies to extract.
---max-replies-per-thread  Maximum number of replies per top-level comment to extract.
+--max-comments NUMBER              Maximum number of top-level comments
+                                   and replies to extract.
+--max-parents NUMBER               Maximum number of top-level comments to extract.
+--max-replies NUMBER               Maximum number of replies to extract.
+--max-replies-per-thread NUMBER    Maximum number of replies per top-level comment
+                                   to extract.
 ```
 
 Example 1: Download up to 10,000 top-level comments and replies, at most 100 replies for each top-level comment.
@@ -194,41 +196,41 @@ Example 3: Download up to 1000 top-level comments, no replies.
 Sort comments by new comments first or by top comments first. If no sort option is enabled, yt-dlp default sorting is to order comments by new comments first.
 
 ```console
---sort-new                Sort comments by new comments first.
---sort-top                Sort comments by top comments first.
+--sort-new                  Sort comments by new comments first.
+--sort-top                  Sort comments by top comments first.
 ```
 
 These options determine how the file name is processed.
 
 ```console
---filename-sanitization   Sanitize Windows reserved characters by removing them or
-                          by replacing with comparable character or by replacing
-                          with underscore. Doesn't replace with Unicode characters.
---restrict-filenames      Restrict filenames to only ASCII characters,
-                          and avoid '&' and spaces in filenames.
---windows-filenames       Force filenames to be Windows-compatible by replacing
-                          Windows reserved characters with lookalike Unicode characters.
---trim-title              Limit the length of the video title in the filename
-                          to the specified number of characters. Doesn't limit
-                          the length of the video uploader.
+--filename-sanitization     Sanitize Windows reserved characters by removing them or
+                            by replacing with comparable character or by replacing
+                            with underscore. Doesn't replace with Unicode characters.
+--restrict-filenames        Restrict filenames to only ASCII characters,
+                            and avoid '&' and spaces in filenames.
+--windows-filenames         Force filenames to be Windows-compatible by replacing
+                            Windows reserved characters with lookalike Unicode characters.
+--trim-title LENGTH         Limit the length of the video title in the filename
+                            to the specified number of characters. Doesn't limit
+                            the length of the video uploader.
 ```
 
 Download the comments JSON file and don't write text and HTML files. This option can be useful if you want to experiment with the options that write to output file but don't want to repeatedly download the video comments. Download the comments once, `YouTubeCommentsToFile download --only-download-comments`, and convert them multiple times, `YouTubeCommentsToFile convert --json-file`.
 
 ```console
---only-download-comments  Whether to download comments JSON file and stop.
+--only-download-comments    Whether to download comments JSON file and stop.
 ```
 
 Update yt-dlp before downloading comments. Updates to `nightly` release channel. YouTube and yt-dlp developers are engaged in a cat and mouse chase, YouTube being the mouse and yt-dlp being the cat. YouTube is making frequent changes to the site in order to curve, limit and stop scraping tools such as yt-dlp. The developers of yt-dlp are quick to respond with changes to the program, but as a result of that, the users can no longer update yt-dlp once in a-very-long-time. If yt-dlp is not frequently updated (daily, weekly) to the newest version, it's more than likely it will stop working properly. Hence the update option. This option automates the updating process and takes the burden of remembering to update the program off the user's shoulders.
 
 ```console
---update-yt-dlp           Whether to update yt-dlp to the latest version.
+--update-yt-dlp             Whether to update yt-dlp to the latest version.
 ```
 
 Options for yt-dlp which are added to yt-dlp command line. This is for advanced yt-dlp features such as `--config-locations`, `--cookies`, `--cookies-from-browser`.
 
 ```console
---yt-dlp-options          Options added to yt-dlp command line.
+--yt-dlp-options OPTIONS    Options added to yt-dlp command line.
 ```
 
 Quick reminder, double quotes in double quotes need to be escaped with a backslash.
@@ -341,13 +343,13 @@ These options determine the structure of the HTML output file.
 This option determines how much characters of indentation are between a comment and a reply or between a reply to another reply. Indentation size is between 2 and 10 characters. If this option is not set, indentation for text file and HTML file is 4 characters.
 
 ```console
---indent-size                    The indentation size, in number of characters.
+--indent-size SIZE               The indentation size, in number of characters.
 ```
 
 This option determines how many characters a single line of text is allowed. If a comment has a line of text that is longer than that, the line is split into several lines which adhere to that length limitation. Line length is between 80 and 320 characters. If this option is not set, line length for text file is 120 characters and line length for HTML file is 150 characters.
 
 ```console
---text-line-length               The maximum length of a line of text,
+--text-line-length LENGTH        The maximum length of a line of text,
                                  in number of characters.
 ```
 
@@ -365,9 +367,9 @@ Highlight uploader: Search for comments and replies written by the uploader of t
 Filter uploader: Search for comments and replies written by the uploader of the video. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
 
 ```console
--u, --uh     Highlight uploader.
---uf         Filter uploader.
---uhf        Highlight and filter uploader.
+-u, --uh             Highlight uploader.
+--uf                 Filter uploader.
+--uhf                Highlight and filter uploader.
 ```
 
 ### Uploader Examples
@@ -393,12 +395,12 @@ Filter authors: Search for comments and replies written by **any** of the specif
 Author name can be written with or without a leading @.
 
 ```console
---ah         Highlight authors.
---af         Filter authors.
---afi        Filter authors. Author search is case-insensitive.
---ahf        Highlight and filter authors.
---ahfi       Highlight and filter authors. Author search is case-insensitive.
--a, --ahi    Highlight authors. Author search is case-insensitive.
+--ah NAME...         Highlight authors.
+--af NAME...         Filter authors.
+--afi NAME...        Filter authors. Author search is case-insensitive.
+--ahf NAME...        Highlight and filter authors.
+--ahfi NAME...       Highlight and filter authors. Author search is case-insensitive.
+-a, --ahi NAME...    Highlight authors. Author search is case-insensitive.
 ```
 
 ### Authors Examples
@@ -428,12 +430,12 @@ Highlight texts: Search for **any** of the specified texts in the comment or rep
 Filter texts: Search for **any** of the specified texts in the comment or reply. If found, keep the conversation (comment and its replies). Otherwise, remove the conversation, if it didn't match any other filter items.
 
 ```console
---th         Highlight texts.
---tf         Filter texts.
---tfi        Filter texts. Text search is case-insensitive.
---thf        Highlight and filter texts.
---thfi       Highlight and filter texts. Text search is case-insensitive.
--t, --thi    Highlight texts. Text search is case-insensitive.
+--th TEXT...         Highlight texts.
+--tf TEXT...         Filter texts.
+--tfi TEXT...        Filter texts. Text search is case-insensitive.
+--thf TEXT...        Highlight and filter texts.
+--thfi TEXT...       Highlight and filter texts. Text search is case-insensitive.
+-t, --thi TEXT...    Highlight texts. Text search is case-insensitive.
 ```
 
 ### Texts Examples
@@ -461,49 +463,49 @@ YouTubeCommentsToFile download --tf "Alice and Bob" "are entangled"
 The program works with UTF-8 as its default encoding and that should cover almost all languages. However, if the video page is not in English (the title, the description, majority of the comments) and downloading comments fails or comes out garbled, use the `--encoding-code-page` option to change the encoding. You need to find beforehand what is the code page of the non-English language.
 
 ```console
---encoding-code-page          The code page of the video page encoding.
+--encoding-code-page CODEPAGE    The code page of the video page encoding.
 ```
 
 Or, use one of these predefined encodings.
 
 ```console
---utf8                        UTF-8. Code page 65001.
---arabic-iso                  Arabic (ISO-8859-6). Code page 28596.
-                              Arabic, Persian, Urdu.
---arabic-windows              Arabic (Windows-1256). Code page 1256.
---baltic-iso-13               Baltic (ISO-8859-13). Code page 28603.
-                              Lithuanian, Latvian, Estonian.
---baltic-iso-4                Baltic (ISO-8859-4). Code page 28594.
-                              Estonian, Latvian, Lithuanian, Greenlandic, Sami.
---baltic-windows              Baltic (Windows-1257). Code page 1257.
---central-european            Central European (Windows-1250). Code page 1250.
---chinese-simplified          Chinese Simplified (GB2312). Code page 936.
---chinese-traditional         Chinese Traditional (Big5). Code page 950.
---cyrillic-iso                Cyrillic (ISO-8859-5). Code page 28595.
-                              Russian, Ukrainian, Bulgarian, Belarusian,
-                              Macedonian, Serbian.
---cyrillic-windows            Cyrillic (Windows-1251). Code page 1251.
---eastern-european            Eastern European (ISO-8859-2). Code page 28592.
-                              Czech, Hungarian, Polish, Romanian, Croatian,
-                              Slovak, Slovenian.
---greek-iso                   Greek (ISO-8859-7). Code page 28597.
---greek-windows               Greek (Windows-1253). Code page 1253.
---hebrew-iso                  Hebrew (ISO-8859-8). Code page 28598.
---hebrew-windows              Hebrew (Windows-1255). Code page 1255.
---japanese                    Japanese (Shift-JIS). Code page 932.
---korean                      Korean (Windows-949). Code page 949.
---south-european              South European (ISO-8859-3). Code page 28593.
-                              Maltese, Esperanto, Turkish.
---thai                        Thai (TIS-620). Code page 874.
---turkish-iso                 Turkish (ISO-8859-9). Code page 28599.
---turkish-windows             Turkish (Windows-1254). Code page 1254.
---vietnamese                  Vietnamese (Windows-1258). Code page 1258.
---western-european-iso-1      Western European (ISO-8859-1). Code page 28591.
-                              English, French, Spanish, German, Italian, Portuguese.
---western-european-iso-15     Western European (ISO-8859-15). Code page 28605.
-                              English, French, German, Spanish, Finnish, Danish,
-                              Swedish, Italian, Dutch.
---western-european-windows    Western European (Windows-1252). Code page 1252.
+--utf8                           UTF-8. Code page 65001.
+--arabic-iso                     Arabic (ISO-8859-6). Code page 28596.
+                                 Arabic, Persian, Urdu.
+--arabic-windows                 Arabic (Windows-1256). Code page 1256.
+--baltic-iso-13                  Baltic (ISO-8859-13). Code page 28603.
+                                 Lithuanian, Latvian, Estonian.
+--baltic-iso-4                   Baltic (ISO-8859-4). Code page 28594.
+                                 Estonian, Latvian, Lithuanian, Greenlandic, Sami.
+--baltic-windows                 Baltic (Windows-1257). Code page 1257.
+--central-european               Central European (Windows-1250). Code page 1250.
+--chinese-simplified             Chinese Simplified (GB2312). Code page 936.
+--chinese-traditional            Chinese Traditional (Big5). Code page 950.
+--cyrillic-iso                   Cyrillic (ISO-8859-5). Code page 28595.
+                                 Russian, Ukrainian, Bulgarian, Belarusian,
+                                 Macedonian, Serbian.
+--cyrillic-windows               Cyrillic (Windows-1251). Code page 1251.
+--eastern-european               Eastern European (ISO-8859-2). Code page 28592.
+                                 Czech, Hungarian, Polish, Romanian, Croatian,
+                                 Slovak, Slovenian.
+--greek-iso                      Greek (ISO-8859-7). Code page 28597.
+--greek-windows                  Greek (Windows-1253). Code page 1253.
+--hebrew-iso                     Hebrew (ISO-8859-8). Code page 28598.
+--hebrew-windows                 Hebrew (Windows-1255). Code page 1255.
+--japanese                       Japanese (Shift-JIS). Code page 932.
+--korean                         Korean (Windows-949). Code page 949.
+--south-european                 South European (ISO-8859-3). Code page 28593.
+                                 Maltese, Esperanto, Turkish.
+--thai                           Thai (TIS-620). Code page 874.
+--turkish-iso                    Turkish (ISO-8859-9). Code page 28599.
+--turkish-windows                Turkish (Windows-1254). Code page 1254.
+--vietnamese                     Vietnamese (Windows-1258). Code page 1258.
+--western-european-iso-1         Western European (ISO-8859-1). Code page 28591.
+                                 English, French, Spanish, German, Italian, Portuguese.
+--western-european-iso-15        Western European (ISO-8859-15). Code page 28605.
+                                 English, French, German, Spanish, Finnish, Danish,
+                                 Swedish, Italian, Dutch.
+--western-european-windows       Western European (Windows-1252). Code page 1252.
 ```
 
 ## HTML Colors
@@ -511,41 +513,41 @@ Or, use one of these predefined encodings.
 These options set the colors of various HTML elements. A color value can be a known name (`Honeydew`), hex code (`#F0FFF0`; `F0FFF0`) or RGB (`240, 255, 240`; `240 255 240`).
 
 ```console
---text-color                            The text color of comments.
---background-color                      The background color of comments.
---author-color                          The text color of the author of the comment.
---replied-author-color                  The text color of an author, of other comment,
-                                        appearing at the start of the comment.
---other-author-color                    The text color of an author, of other comment,
-                                        appearing anywhere else but the start of the comment.
---small-elements-color                  The text color of small elements, such as
-                                        pinned comment, comment time, likes.
---favorited-background-color            The background color of favorited by the
-                                        uploader of the video.
---header-background-color               The background color of the header.
---highlight-uploader-text-color         The text color of highlighted comments
-                                        written by the uploader of the video.
---highlight-uploader-background-color   The background color of highlighted comments
-                                        written by the uploader of the video.
---highlight-uploader-border-color       The color of the border around highlighted comments
-                                        written by the uploader of the video.
---highlight-author-text-color           The text color of highlighted comments
-                                        written by any of the searched authors.
---highlight-author-background-color     The background color of highlighted comments
-                                        written by any of the searched authors.
---highlight-author-border-color         The color of the border around highlighted comments
-                                        written by any of the searched authors.
---highlight-text-text-color             The text color of highlighted comments
-                                        containing any of the searched texts.
---highlight-text-background-color       The background color of highlighted comments
-                                        containing any of the searched texts.
---highlight-text-border-color           The color of the border around highlighted comments
-                                        containing any of the searched texts.
---link-color                            The text color of HTML links.
---copy-text-success-color               The text color of a success message after copying
-                                        a comment to the clipboard.
---copy-text-failure-color               The text color of an error message after failing
-                                        to copy a comment to the clipboard.
+--text-color COLOR                             The text color of comments.
+--background-color COLOR                       The background color of comments.
+--author-color COLOR                           The text color of the author of the comment.
+--replied-author-color COLOR                   The text color of an author, of other comment,
+                                               appearing at the start of the comment.
+--other-author-color COLOR                     The text color of an author, of other comment,
+                                               appearing anywhere else but the start of the comment.
+--small-elements-color COLOR                   The text color of small elements, such as
+                                               pinned comment, comment time, likes.
+--favorited-background-color COLOR             The background color of favorited by the
+                                               uploader of the video.
+--header-background-color COLOR                The background color of the header.
+--highlight-uploader-text-color COLOR          The text color of highlighted comments
+                                               written by the uploader of the video.
+--highlight-uploader-background-color COLOR    The background color of highlighted comments
+                                               written by the uploader of the video.
+--highlight-uploader-border-color COLOR        The color of the border around highlighted comments
+                                               written by the uploader of the video.
+--highlight-author-text-color COLOR            The text color of highlighted comments
+                                               written by any of the searched authors.
+--highlight-author-background-color COLOR      The background color of highlighted comments
+                                               written by any of the searched authors.
+--highlight-author-border-color COLOR          The color of the border around highlighted comments
+                                               written by any of the searched authors.
+--highlight-text-text-color COLOR              The text color of highlighted comments
+                                               containing any of the searched texts.
+--highlight-text-background-color COLOR        The background color of highlighted comments
+                                               containing any of the searched texts.
+--highlight-text-border-color COLOR            The color of the border around highlighted comments
+                                               containing any of the searched texts.
+--link-color COLOR                             The text color of HTML links.
+--copy-text-success-color COLOR                The text color of a success message after copying
+                                               a comment to the clipboard.
+--copy-text-failure-color COLOR                The text color of an error message after failing
+                                               to copy a comment to the clipboard.
 ```
 
 The colors of the HTML elements are determined by light theme (default theme) or dark theme (`--dark-theme`).
@@ -715,9 +717,9 @@ The following are the colors of these themes.
 Configuration files allow to set options for the program without having to specify them at the command line every time. A configuration file is a text file with a list of command line options.
 
 ```console
---config-locations    Paths to configuration files or to directories containing
-                      configuration files. Can be used multiple times and inside
-                      other configuration files.
+--config-locations PATH...    Paths to configuration files or to directories containing
+                              configuration files. Can be used multiple times and inside
+                              other configuration files.
 ```
 
 - The option `--config-locations` can be used multiple times at the command line.
@@ -856,15 +858,15 @@ The program loads configuration files from multiple locations in the following o
 This options ignores the current config location but continues loading the rest of the configuration stack. If this option is specified in the command line, all the `--config-locations`, in the command line, are not loaded. If this option is specified in a configuration file, the file is not loaded.
 
 ```console
---ignore-config    Don't load the config location and continue loading the rest of the
-                   configuration stack.
+--ignore-config        Don't load the config location and continue loading
+                       the rest of the configuration stack.
 ```
 
 This option stops the loading of the configuration stack from the point it appears. If this option is specified in the command line, the whole configuration stack is not loaded, including all the `--config-locations` in the command line. If this option is specified in a configuration file, the file is not loaded and the loading of the rest of the configuration stack is stopped.
 
 ```console
---stop-config      Don't load the config location and stop loading the rest of the
-                   configuration stack.
+--stop-config          Don't load the config location and stop loading
+                       the rest of the configuration stack.
 ```
 
 ## Verbosity
@@ -882,21 +884,21 @@ These options determine what and how much is printed out.
 ## General
 
 ```console
---sleep-interval        Number of seconds to sleep between converting
-                        multiple JSON files or downloading from multiple URLs.
---min-sleep-interval    Minimum number of seconds to sleep between converting
-                        multiple JSON files or downloading from multiple URLs.
---max-sleep-interval    Maximum number of seconds to sleep between converting
-                        multiple JSON files or downloading from multiple URLs.
---beep                  Make a beep sound when finished.
-                        If used with '--quiet', make no sound.
---beep-on-errors        Make a beep sound when finished with errors.
-                        If used with '--quiet', make no sound.
---pause-on-errors       Prevent the console from closing until a key is pressed
-                        when finished with errors. If used with '--quiet',
-                        this option is disabled.
--h, --help              Display help screen.
---version               Display version information.
+--sleep-interval SECONDS        Number of seconds to sleep between converting
+                                multiple JSON files or downloading from multiple URLs.
+--min-sleep-interval SECONDS    Minimum number of seconds to sleep between converting
+                                multiple JSON files or downloading from multiple URLs.
+--max-sleep-interval SECONDS    Maximum number of seconds to sleep between converting
+                                multiple JSON files or downloading from multiple URLs.
+--beep                          Make a beep sound when finished.
+                                If used with '--quiet', make no sound.
+--beep-on-errors                Make a beep sound when finished with errors.
+                                If used with '--quiet', make no sound.
+--pause-on-errors               Prevent the console from closing until a key is pressed
+                                when finished with errors. If used with '--quiet',
+                                this option is disabled.
+-h, --help                      Display help screen.
+--version                       Display version information.
 ```
 
 ## Download Tutorials
