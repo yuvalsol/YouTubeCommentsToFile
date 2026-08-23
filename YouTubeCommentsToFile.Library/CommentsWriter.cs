@@ -1533,6 +1533,8 @@ public partial class CommentsWriter(Settings settings)
             bool hasRTLLine = false;
             try
             {
+                // this try-catch will turn this exception into a warning instead of a fatal error
+                // the comment will be lost but the comments file will still be written
                 hasRTLLine = comment.HasRTLLine(writeToHTML);
             }
             catch { }
