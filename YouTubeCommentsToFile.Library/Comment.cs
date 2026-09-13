@@ -180,9 +180,9 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             lineCh -= 4; // "│ " + line + " │"
 
         string highlightClass = (isHTMLHighlight ? (IsHighlightUploader ? "highlight-uploader" : (IsHighlightAuthor ? "highlight-author" : "highlight-text")) : null);
-        string openHighlightBorderTop = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-top width-{lineCh}'>" : null);
-        string openHighlightBorderMiddle = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-middle width-{lineCh}'>" : null);
-        string openHighlightBorderBottom = (isHTMLHighlight ? $"<span class='{highlightClass} highlight-border-bottom width-{lineCh}'>" : null);
+        string openHighlightBorderTop = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-top width-{lineCh}"">" : null);
+        string openHighlightBorderMiddle = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-middle width-{lineCh}"">" : null);
+        string openHighlightBorderBottom = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-bottom width-{lineCh}"">" : null);
         string closeHighlightBorder = (isHTMLHighlight ? "</span>" : null);
 
         string id = (writeToHTML ? $"c{CommentNumber}{(IsReply ? $"r{ReplyNumber}" : null)}" : null);
@@ -201,7 +201,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             string line = $"Pinned{(string.IsNullOrEmpty(uploaderId) ? null : $" by {uploaderId}")}";
 
             if (writeToHTML)
-                yield return $"<span class='pinned'>{HttpUtility.HtmlEncode(line)}</span>";
+                yield return $@"<span class=""pinned"">{HttpUtility.HtmlEncode(line)}</span>";
             else
                 yield return line;
         }
@@ -211,24 +211,24 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
         if (writeToHTML)
         {
-            string anchorReplyId = (IsReply ? $" id='c{CommentNumber}r{ReplyNumber}'" : null);
+            string anchorReplyId = (IsReply ? $@" id=""c{CommentNumber}r{ReplyNumber}""" : null);
 
             string author;
             if (string.IsNullOrEmpty(Author))
             {
                 if (string.IsNullOrEmpty(AuthorURL))
-                    author = $"<span{anchorReplyId} class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span>";
+                    author = $@"<span{anchorReplyId} class=""author"">{HttpUtility.HtmlEncode(MissingAuthor)}</span>";
                 else
-                    author = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='author'>{HttpUtility.HtmlEncode(MissingAuthor)}</span></a>";
+                    author = $@"<a{anchorReplyId} href=""{HttpUtility.HtmlAttributeEncode(AuthorURL)}""><span class=""author"">{HttpUtility.HtmlEncode(MissingAuthor)}</span></a>";
             }
             else
             {
                 string authorClass = SpecialAuthor.SpecialAuthors.FirstOrDefault(sa => sa.IsSpecialAuthor(this))?.Class ?? (AuthorIsUploader ? "uploader" : "author");
 
                 if (string.IsNullOrEmpty(AuthorURL))
-                    author = $"<span{anchorReplyId} class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span>";
+                    author = $@"<span{anchorReplyId} class=""{authorClass}"">{HttpUtility.HtmlEncode(Author)}</span>";
                 else
-                    author = $"<a{anchorReplyId} href='{HttpUtility.HtmlAttributeEncode(AuthorURL)}'><span class='{authorClass}'>{HttpUtility.HtmlEncode(Author)}</span></a>";
+                    author = $@"<a{anchorReplyId} href=""{HttpUtility.HtmlAttributeEncode(AuthorURL)}""><span class=""{authorClass}"">{HttpUtility.HtmlEncode(Author)}</span></a>";
             }
 
             string time = null;
@@ -251,7 +251,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
             string copyText = null;
             if (settings.ShowCopyLinks)
-                copyText = $" <span class='copy-text' data-id='{id}' title='Copy {(IsReply ? "Reply" : "Comment")} To Clipboard'>Copy</span>";
+                copyText = $@" <span class=""copy-text"" data-id=""{id}"" title=""Copy {(IsReply ? "Reply" : "Comment")} To Clipboard"">Copy</span>";
 
             yield return $"{openHighlightBorderTop}{author}{time}{commentLink}{copyText}{closeHighlightBorder}";
         }
@@ -329,7 +329,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                         if (isHTMLHighlight && innerLine.Length == 0)
                             innerLine = " ";
 
-                        yield return $"{(ShowLikes(settings) == false && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{innerLine}</span>{closeHighlightBorder}";
+                        yield return $@"{(ShowLikes(settings) == false && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class=""{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{innerLine}</span>{closeHighlightBorder}";
                     }
                 }
                 else
@@ -358,7 +358,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
             if (writeToHTML)
             {
-                yield return $"{openHighlightBorderBottom}<span class='likes'>{HttpUtility.HtmlEncode(line)}</span>{closeHighlightBorder}";
+                yield return $@"{openHighlightBorderBottom}<span class=""likes"">{HttpUtility.HtmlEncode(line)}</span>{closeHighlightBorder}";
             }
             else
             {
@@ -380,7 +380,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         if (ShowFavorited(uploaderId))
         {
             if (writeToHTML)
-                yield return $"<span class='favorited'><span class='heart'>{HttpUtility.HtmlEncode("❤")}</span>{HttpUtility.HtmlEncode($" by {uploaderId}")}</span>";
+                yield return $@"<span class=""favorited""><span class=""heart"">{HttpUtility.HtmlEncode("❤")}</span>{HttpUtility.HtmlEncode($" by {uploaderId}")}</span>";
             else
                 yield return $"♥ by {uploaderId}";
         }

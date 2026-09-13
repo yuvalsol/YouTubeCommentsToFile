@@ -18,79 +18,6 @@ Comment threading is the ability to reply to a reply. A good example is Reddit, 
 
 There is a convention on YouTube that if you want to reply to someone else's reply, you write their user name **first** in your reply. This program takes advantage of this convention to build threaded comments for all comments, regardless of YouTube limitation of three levels of replies. This is enabled by default. You can disable comment threading with option `--disable-threading`. If disabled, shows the comments the way they appear on YouTube.
 
-## Convert
-
-Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb is required to specify.
-
-```console
-YouTubeCommentsToFile convert
-    [--json-file PATH...]
-    [--url URL]
-    [--yt-dlp PATH]
-    [--deno PATH]
-    [PATH...]
-```
-
-### Convert Command Line Options
-
-List of paths to comments JSON files or directories. If the specified path is a directory, the program will look for JSON files in that directory. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option can be used interchangeably with JSON file paths placed at the end of the command line (`[PATH...]`). The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
-
-```console
---json-file PATH...       Paths to comments JSON files or directories.
-```
-
-Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.
-
-```console
---url URL                 Video URL.
-```
-
-Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile directory. If not found, check if yt-dlp is accessible in the current environment. It is not necessary to set `--yt-dlp` if yt-dlp is accessible, for example, yt-dlp directory is set in Windows `PATH` environment variable. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.
-
-```console
---yt-dlp PATH             Path to yt-dlp.
-```
-
-Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default.
-- [Setup Guide](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
-- [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
-
-```console
---deno PATH               Path to Deno.
-```
-
-### Convert Examples
-
-1. Convert to text file:
-
-```console
-YouTubeCommentsToFile convert "C:\Path\To\Comments File.json"
-```
-
-2. Convert to HTML file:
-
-```console
-YouTubeCommentsToFile convert --to-html "C:\Path\To\Comments File.json"
-```
-
-3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description:
-
-```console
-YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --to-html --show-comment-navigation-links --show-copy-links --uh
-```
-
-4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted:
-
-```console
-YouTubeCommentsToFile convert --uh --ah @Alice Bob --th "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
-```
-
-5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed:
-
-```console
-YouTubeCommentsToFile convert --uf --af @Alice Bob --tf "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
-```
-
 ## Download
 
 Downloads comments to text file or HTML file. Uses verb `download`. Verb is optional to specify.
@@ -215,7 +142,7 @@ These options determine how the file name is processed.
                             the length of the video uploader.
 ```
 
-Download the comments JSON file and don't write text and HTML files. This option can be useful if you want to experiment with the options that write to output file but don't want to repeatedly download the video comments. Download the comments once, `YouTubeCommentsToFile download --only-download-comments`, and convert them multiple times, `YouTubeCommentsToFile convert --json-file`.
+Download the comments JSON file and don't write text and HTML files. This option can be useful if you want to experiment with the options that write to output file but don't want to repeatedly download the video comments. Download the comments once, `YouTubeCommentsToFile download --only-download-comments`, and convert them multiple times, `YouTubeCommentsToFile convert --json-file PATH`.
 
 ```console
 --only-download-comments    Whether to download comments JSON file and stop.
@@ -293,6 +220,79 @@ YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\
 
 ```console
 YouTubeCommentsToFile download --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --download-path "C:\Path\To\Downloads Folder" --yt-dlp-options "--config-locations \"C:\Path\To\yt-dlp.conf\" --cookies cookies.txt" https://www.youtube.com/watch?v=dtCwxFTMMDg
+```
+
+## Convert
+
+Converts comments JSON file to text file or HTML file. Uses verb `convert`. Verb is required to specify.
+
+```console
+YouTubeCommentsToFile convert
+    [--json-file PATH...]
+    [--url URL]
+    [--yt-dlp PATH]
+    [--deno PATH]
+    [PATH...]
+```
+
+### Convert Command Line Options
+
+List of paths to comments JSON files or directories. If the specified path is a directory, the program will look for JSON files in that directory. The name of the output file is the same as the name of the JSON file. This option can be used multiple times. This option can have space-separated paths as its value. This option can be used interchangeably with JSON file paths placed at the end of the command line (`[PATH...]`). The `--json-file` option is useful when specifying paths in [configuration files](#configuration "Configuration").
+
+```console
+--json-file PATH...       Paths to comments JSON files or directories.
+```
+
+Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.
+
+```console
+--url URL                 Video URL.
+```
+
+Path to yt-dlp program. If not set, search for yt-dlp in YouTubeCommentsToFile directory. If not found, check if yt-dlp is accessible in the current environment. It is not necessary to set `--yt-dlp` if yt-dlp is accessible, for example, yt-dlp directory is set in Windows `PATH` environment variable. yt-dlp is used to retrieve information about the video, therefore is not required to write to output file.
+
+```console
+--yt-dlp PATH             Path to yt-dlp.
+```
+
+Path to Deno program. If not set, search for Deno in YouTubeCommentsToFile directory. If not found, check if Deno is accessible in the current environment. If Deno is at the same location as yt-dlp, there is no need to specify a path to Deno. To download from YouTube, yt-dlp needs to solve JavaScript challenges presented by YouTube using an external JavaScript runtime. [Deno](https://deno.com "Deno") is a JavaScript runtime best suited for this and yt-dlp enables it by default.
+- [Setup Guide](https://github.com/yt-dlp/yt-dlp/wiki/EJS "External JS Scripts Setup Guide").
+- [Download Deno](https://github.com/denoland/deno "Deno"). For Windows, download `deno-x86_64-pc-windows-msvc.zip` from [Releases](https://github.com/denoland/deno/releases "Deno Releases").
+
+```console
+--deno PATH               Path to Deno.
+```
+
+### Convert Examples
+
+1. Convert to text file:
+
+```console
+YouTubeCommentsToFile convert "C:\Path\To\Comments File.json"
+```
+
+2. Convert to HTML file:
+
+```console
+YouTubeCommentsToFile convert --to-html "C:\Path\To\Comments File.json"
+```
+
+3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description:
+
+```console
+YouTubeCommentsToFile convert --json-file "C:\Path\To\Comments File.json" --url https://www.youtube.com/watch?v=dtCwxFTMMDg --yt-dlp C:\Path\To\yt-dlp.exe --deno C:\Path\To\deno.exe --to-html --show-comment-navigation-links --show-copy-links --uh
+```
+
+4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted:
+
+```console
+YouTubeCommentsToFile convert --uh --ah @Alice Bob --th "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
+```
+
+5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed:
+
+```console
+YouTubeCommentsToFile convert --uf --af @Alice Bob --tf "Alice and Bob" "are entangled" "C:\Path\To\Comments File.json"
 ```
 
 ## Shared Options

@@ -42,26 +42,26 @@ public class VideoInfo
         }
     }
 
-    public string[] GetKeywords()
+    public string[] GetTags()
     {
         if (string.IsNullOrEmpty(Tags))
             return [];
 
-        string tags = Tags;
+        string infoTags = Tags;
 
-        if (tags.StartsWith('[') && tags.EndsWith(']'))
-            tags = tags[1..^1];
+        if (infoTags.StartsWith('[') && infoTags.EndsWith(']'))
+            infoTags = infoTags[1..^1];
 
-        string[] keywords = tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        string[] tags = infoTags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-        for (int i = 0; i < keywords.Length; i++)
+        for (int i = 0; i < tags.Length; i++)
         {
-            string keyword = keywords[i];
-            if (keyword.StartsWith('\'') && keyword.EndsWith('\''))
-                keywords[i] = keyword[1..^1];
+            string tag = tags[i];
+            if (tag.StartsWith('\'') && tag.EndsWith('\''))
+                tags[i] = tag[1..^1];
         }
 
-        return keywords;
+        return tags;
     }
 
     public override string ToString()
@@ -73,7 +73,7 @@ public class VideoInfo
         sb.AppendLine($"Uploader URL: {UploaderURL}");
         sb.AppendLine($"Upload Date:  {GetUploadDate()?.ToString("d") ?? UploadDate}");
         sb.AppendLine($"Description:{Environment.NewLine}{Description}");
-        sb.AppendLine($"Keywords: {string.Join(", ", GetKeywords())}");
+        sb.AppendLine($"Tags: {string.Join(", ", GetTags())}");
         return sb.ToString();
     }
 }

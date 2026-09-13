@@ -9,8 +9,8 @@ internal partial class Program
         return new StringBuilder()
             .AppendLine(GetVersion())
             .AppendLine()
-            .AppendLine(GetHelpText<ConvertHelpOptions>("Convert"))
             .AppendLine(GetHelpText<DownloadHelpOptions>("Download"))
+            .AppendLine(GetHelpText<ConvertHelpOptions>("Convert"))
             .AppendLine(GetHelpText<SharedHelpOptions>("Shared Options"))
             .AppendLine(GetHelpText<UploaderHelpOptions>("Uploader"))
             .AppendLine(GetHelpText<AuthorsHelpOptions>("Authors"))
@@ -23,19 +23,20 @@ internal partial class Program
 #if DEBUG
             .AppendLine(GetHelpText<DebugHelpOptions>("Debug"))
 #endif
-            .AppendLine(GetHelpText<ConvertExamples>("Convert Examples"))
-            .AppendLine()
             .AppendLine(GetHelpText<DownloadExamples>("Download Examples"))
+            .AppendLine()
+            .AppendLine(GetHelpText<ConvertExamples>("Convert Examples"))
             .AppendLine()
             .AppendLine(GetHelpText<UploaderExamples>("Uploader Examples"))
             .AppendLine()
             .AppendLine(GetHelpText<AuthorsExamples>("Authors Examples"))
             .AppendLine()
             .AppendLine(GetHelpText<TextsExamples>("Texts Examples"))
-            .AppendLine();
+            .AppendLine()
+            .Replace($"USAGE:{Environment.NewLine}", string.Empty);
     }
 
-    private string GetHelpText<T>(string heading = null)
+    private HelpText GetHelpText<T>(string heading = null)
     {
         return HelpText.AutoBuild(
             parser.ParseArguments<T>(["--help"]),
@@ -45,11 +46,10 @@ internal partial class Program
                 if (optionDescriptions.HasAny())
                     h.AddPreOptionsLines(optionDescriptions);
 
-                h.Heading = (
+                h.Heading =
                     string.IsNullOrEmpty(heading) ?
                     string.Empty :
-                    $"{heading}{Environment.NewLine}{new string('-', heading.Length)}"
-                );
+                    $"{heading}{Environment.NewLine}{new string('-', heading.Length)}";
 
                 h.Copyright = string.Empty;
                 h.AdditionalNewLineAfterOption = false;
@@ -66,8 +66,7 @@ internal partial class Program
                 };
 
                 return h;
-            },
-            e => e
+            }
         );
     }
 }

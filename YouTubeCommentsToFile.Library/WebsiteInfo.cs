@@ -10,7 +10,6 @@ internal class WebsiteInfo(params string[] hosts)
     public bool IsCommentURLQueryString { get; init; }
     public string CommentURLParameter { get; init; }
     public bool IsCommentURLPath { get; init; }
-    public int? EncodingCodePage { get; set; }
 
     public virtual string ChannelURL => $"{ToString()}{ChannelPath}/";
     public virtual string HashtagURL => $"{ToString()}{HashtagPath}/";
@@ -208,16 +207,5 @@ internal class BiliBili : WebsiteInfo
         cleanURL = GetHttpsURL($"{Host}{uriBuilder.Path}{(hasPartNumber ? $"?p={partNumber}" : null)}");
 
         return true;
-    }
-
-    private static int? GetEncodingCodePage(string name)
-    {
-        return typeof(Settings)
-            .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.GetProperty)
-            .Where(getter => getter.Name == name)
-            .Select(getter => getter.GetCustomAttribute<CodePageAttribute>())
-            .Where(attr => attr != null)
-            .Select(attr => attr.CodePage)
-            .FirstOrDefault();
     }
 }

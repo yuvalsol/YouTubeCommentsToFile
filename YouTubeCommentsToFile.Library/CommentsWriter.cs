@@ -13,9 +13,6 @@ public partial class CommentsWriter(Settings settings)
     private string jsonFile;
     private List<Comment> comments;
     private List<string> allAuthors;
-    private bool hasHighlightUploader;
-    private bool hasHighlightAuthor;
-    private bool hasHighlightText;
 
     #endregion
 
@@ -465,7 +462,7 @@ public partial class CommentsWriter(Settings settings)
             .Where(x => x.attr != null)
             .Where(x => x.getter.GetValue(settings) as bool? == true)
             .Select(x => x.attr.CodePage)
-            .FirstOrDefault(websiteInfo.EncodingCodePage ?? -1);
+            .FirstOrDefault(-1);
     }
 
     #endregion
@@ -570,7 +567,7 @@ public partial class CommentsWriter(Settings settings)
 
         try
         {
-            ProcessComments(out string uploaderId, out allAuthors, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText, out commentsCount, out totalComments);
+            ProcessComments(out string uploaderId, out allAuthors, out commentsCount, out totalComments);
 
             if (string.IsNullOrEmpty(videoInfo.UploaderID) && string.IsNullOrEmpty(uploaderId) == false)
             {
@@ -1008,9 +1005,6 @@ public partial class CommentsWriter(Settings settings)
     private void ProcessComments(
         out string uploaderId,
         out List<string> allAuthors,
-        out bool hasHighlightUploader,
-        out bool hasHighlightAuthor,
-        out bool hasHighlightText,
         out int commentsCount,
         out int totalComments)
     {
@@ -1040,7 +1034,7 @@ public partial class CommentsWriter(Settings settings)
 
         FilterComments();
 
-        EnumerateAndHighlightComments(out commentsCount, out hasHighlightUploader, out hasHighlightAuthor, out hasHighlightText);
+        EnumerateAndHighlightComments(out commentsCount);
     }
 
     private void AddRepliesToComments()
@@ -1163,12 +1157,9 @@ public partial class CommentsWriter(Settings settings)
             RemoveUnfilteredReplies(reply, filteredComments);
     }
 
-    private void EnumerateAndHighlightComments(out int commentsCount, out bool hasHighlightUploader, out bool hasHighlightAuthor, out bool hasHighlightText)
+    private void EnumerateAndHighlightComments(out int commentsCount)
     {
         commentsCount = 0;
-        hasHighlightUploader = false;
-        hasHighlightAuthor = false;
-        hasHighlightText = false;
 
         if (comments.IsNullOrEmpty())
             return;
@@ -1177,11 +1168,11 @@ public partial class CommentsWriter(Settings settings)
         foreach (var comment in comments)
         {
             int replyNumber = 0;
-            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount, ref hasHighlightUploader, ref hasHighlightAuthor, ref hasHighlightText);
+            EnumerateAndHighlightComment(comment, commentNumber++, ref replyNumber, ref commentsCount);
         }
     }
 
-    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount, ref bool hasHighlightUploader, ref bool hasHighlightAuthor, ref bool hasHighlightText)
+    private void EnumerateAndHighlightComment(Comment comment, int commentNumber, ref int replyNumber, ref int commentsCount)
     {
         comment.CommentNumber = commentNumber;
         comment.ReplyNumber = replyNumber++;
@@ -1206,15 +1197,11 @@ public partial class CommentsWriter(Settings settings)
             comment.IsHighlightText = comment.Text.HasEmoji();
 #endif
 
-        hasHighlightUploader |= comment.IsHighlightUploader;
-        hasHighlightAuthor |= comment.IsHighlightAuthor;
-        hasHighlightText |= comment.IsHighlightText;
-
         if (comment.Count == 0)
             return;
 
         foreach (var reply in comment)
-            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount, ref hasHighlightUploader, ref hasHighlightAuthor, ref hasHighlightText);
+            EnumerateAndHighlightComment(reply, commentNumber, ref replyNumber, ref commentsCount);
     }
 
     #endregion
@@ -1255,8 +1242,8 @@ public partial class CommentsWriter(Settings settings)
 
         // calculate the textLineLength at X replies deep
         // pass that point, textLineLength is too small and the text is spread vertically
-        int repliesDeep = 8;
-        int textLineLengthRepliesDeep = TEXT_LINE_MIN_LENGTH - (repliesDeep * indentSize);
+        const int REPLIES_DEEP = 8;
+        int textLineLengthRepliesDeep = TEXT_LINE_MIN_LENGTH - (REPLIES_DEEP * indentSize);
         if (textLineLengthRepliesDeep < TEXT_LINE_MIN_LENGTH / 2)
             textLineLengthRepliesDeep = TEXT_LINE_MIN_LENGTH / 2;
 
@@ -1268,108 +1255,99 @@ public partial class CommentsWriter(Settings settings)
 
         if (writeToHTML)
         {
-            Color textColor = (settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor));
-            Color backgroundColor = (settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor));
-            Color authorColor = (settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor));
-            Color repliedAuthorColor = (settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor));
-            Color otherAuthorColor = (settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor));
-            Color smallElementsColor = (settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor));
-            Color favoritedBackgroundColor = (settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor));
-            Color headerBackgroundColor = (settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor));
-            Color highlightUploaderTextColor = (settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor));
-            Color highlightUploaderBackgroundColor = (settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor));
-            Color highlightUploaderBorderColor = (settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor));
-            Color highlightAuthorTextColor = (settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor));
-            Color highlightAuthorBackgroundColor = (settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor));
-            Color highlightAuthorBorderColor = (settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor));
-            Color highlightTextTextColor = (settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor));
-            Color highlightTextBackgroundColor = (settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor));
-            Color highlightTextBorderColor = (settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor));
-            Color linkColor = (settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor));
-            Color copyTextSuccessColor = (settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor));
-            Color copyTextFailureColor = (settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor));
+            var s4 = new string(' ', 4);
+            var s8 = new string(' ', 8);
+            var s12 = new string(' ', 12);
 
+            writer.WriteLine("<!DOCTYPE html>");
+            writer.WriteLine(@"<html lang=""en"">");
+            writer.WriteLine("<head>");
+            writer.WriteLine($@"{s4}<meta charset=""{encoding?.WebName ?? "utf-8"}"" />");
+            writer.WriteLine($@"{s4}<meta name=""viewport"" content=""width=device-width, initial-scale=1.0, user-scalable=yes"" />");
+            writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
+            writer.WriteLine($@"{s4}<meta name=""title"" content=""{HttpUtility.HtmlAttributeEncode(videoInfo.Title)}"" />");
+            if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
+                writer.WriteLine($@"{s4}<meta name=""author"" content=""{HttpUtility.HtmlAttributeEncode(videoInfo.Uploader)}"" />");
+            else if (string.IsNullOrEmpty(videoInfo.UploaderID) == false)
+                writer.WriteLine($@"{s4}<meta name=""author"" content=""{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderID)}"" />");
+            string metaDescription = GetMetaDescription();
+            if (string.IsNullOrEmpty(metaDescription) == false)
+                writer.WriteLine($@"{s4}<meta name=""description"" content=""{HttpUtility.HtmlAttributeEncode(metaDescription)}"" />");
+            string[] tags = videoInfo.GetTags();
+            if (tags.HasAny())
+                writer.WriteLine($@"{s4}<meta name=""keywords"" content=""{HttpUtility.HtmlAttributeEncode(string.Join(", ", tags))}"" />");
+            writer.WriteLine($@"{s4}<meta name=""article:published_time"" content=""{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}"" />");
+            writer.WriteLine($"{s4}<style>");
+            writer.WriteLine($"{s8}:root {{");
+            writer.WriteLine($"{s12}--text-color: rgb({(settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--background-color: rgb({(settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--author-color: rgb({(settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--replied-author-color: rgb({(settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--other-author-color: rgb({(settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--small-elements-color: rgb({(settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--favorited-background-color: rgb({(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--header-background-color: rgb({(settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-uploader-text-color: rgb({(settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-uploader-background-color: rgb({(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-uploader-border-color: rgb({(settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-author-text-color: rgb({(settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-author-background-color: rgb({(settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-author-border-color: rgb({(settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-text-text-color: rgb({(settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-text-background-color: rgb({(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-text-border-color: rgb({(settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--link-color: rgb({(settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--heart-color: rgb({HeartColor.ToRgb()});");
+            if (settings.ShowCopyLinks)
+            {
+                writer.WriteLine($"{s12}--copy-text-success-color: rgb({(settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor)).ToRgb()});");
+                writer.WriteLine($"{s12}--copy-text-failure-color: rgb({(settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor)).ToRgb()});");
+            }
+            writer.WriteLine($"{s8}}}");
+            writer.WriteLine($@"{s8}* {{ font-family: ""Cascadia Mono"", ""Courier New"", Courier, monospace; }}");
+            writer.WriteLine($"{s8}html, body {{ color: var(--text-color); background-color: var(--background-color); line-height: 1; }}");
+            writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
+            writer.WriteLine($"{s8}a:link {{ color: var(--link-color); }}");
+                writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
             var widthsCh =
                 comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0, writeToHTML))
                 .Append(textLineLength)
                 .Distinct()
                 .OrderBy(widthCh => widthCh);
-
-            var s4 = new string(' ', 4);
-            var s8 = new string(' ', 8);
-
-            writer.WriteLine("<!DOCTYPE html>");
-            writer.WriteLine("<html xmlns='http://www.w3.org/1999/xhtml' lang='en' xml:lang='en'>");
-            writer.WriteLine("<head>");
-            writer.WriteLine($"{s4}<meta charset='{encoding?.WebName ?? "utf-8"}' />");
-            writer.WriteLine($"{s4}<meta name='viewport' content='width=device-width, initial-scale=1.0, user-scalable=yes'>");
-            writer.WriteLine($"{s4}<title>{HttpUtility.HtmlEncode(videoInfo.Title)}</title>");
-            writer.WriteLine($"{s4}<meta name='title' content='{HttpUtility.HtmlAttributeEncode(videoInfo.Title)}'>");
-            if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
-                writer.WriteLine($"{s4}<meta name='author' content='{HttpUtility.HtmlAttributeEncode(videoInfo.Uploader)}'>");
-            else if (string.IsNullOrEmpty(videoInfo.UploaderID) == false)
-                writer.WriteLine($"{s4}<meta name='author' content='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderID)}'>");
-            string metaDescription = GetMetaDescription();
-            if (string.IsNullOrEmpty(metaDescription) == false)
-                writer.WriteLine($"{s4}<meta name='description' content='{HttpUtility.HtmlAttributeEncode(metaDescription)}'>");
-            string[] keywords = videoInfo.GetKeywords();
-            if (keywords.HasAny())
-                writer.WriteLine($"{s4}<meta name='keywords' content='{HttpUtility.HtmlAttributeEncode(string.Join(", ", keywords))}'>");
-            writer.WriteLine($"{s4}<meta name='article:published_time' content='{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}'>");
-            writer.WriteLine($"{s4}<style>");
-            writer.WriteLine($"{s8}* {{ font-family: 'Cascadia Mono', 'Courier New', Courier, monospace; }}");
-            writer.WriteLine($"{s8}html, body {{ color: rgb({textColor.ToRgb()}); background-color: rgb({backgroundColor.ToRgb()}); line-height: 1; }}");
-            writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
-            writer.WriteLine($"{s8}a:link {{ color: rgb({linkColor.ToRgb()}); }}");
-            if (settings.HideCommentSeparators == false)
-                writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
             foreach (var widthCh in widthsCh)
                 writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? $"{(settings.HideCommentSeparators ? null : ", hr")}{(settings.HideHeader ? null : ", .header")}" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
-            if (settings.HideHeader == false)
-                writer.WriteLine($"{s8}.header {{ background-color: rgb({headerBackgroundColor.ToRgb()}); }}");
+            writer.WriteLine($"{s8}.header {{ background-color: var(--header-background-color); padding-top: 2px; padding-bottom: 2px; }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             foreach (var sa in SpecialAuthor.SpecialAuthors.Where(sa => comments.HasAny(c => sa.IsSpecialAuthor(c))))
                 writer.WriteLine($"{s8}.{sa.Class} {{ color: rgb({sa.Color.ToRgb()}); background-color: rgb({sa.BackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
-            writer.WriteLine($"{s8}.uploader {{ color: rgb({backgroundColor.ToRgb()}); background-color: rgb({textColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
-            writer.WriteLine($"{s8}.author {{ color: rgb({authorColor.ToRgb()}); font-weight: bold; }}");
-            writer.WriteLine($"{s8}.replied-author {{ color: rgb({repliedAuthorColor.ToRgb()}); font-weight: bold; }}");
-            writer.WriteLine($"{s8}.other-author {{ color: rgb({otherAuthorColor.ToRgb()}); }}");
-            writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: rgb({smallElementsColor.ToRgb()}); font-size: smaller; }}");
-            writer.WriteLine($"{s8}.favorited {{ color: rgb({textColor.ToRgb()}); background-color: rgb({favoritedBackgroundColor.ToRgb()}); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
-            writer.WriteLine($"{s8}.heart {{ color: rgb({HeartColor.ToRgb()}); }}");
-
-            if (hasHighlightUploader || hasHighlightAuthor || hasHighlightText)
-            {
-                if (hasHighlightUploader)
-                    writer.WriteLine($"{s8}.highlight-uploader {{ color: rgb({highlightUploaderTextColor.ToRgb()}); background-color: rgb({highlightUploaderBackgroundColor.ToRgb()}); border-color: rgb({highlightUploaderBorderColor.ToRgb()}); }}");
-
-                if (hasHighlightAuthor)
-                    writer.WriteLine($"{s8}.highlight-author {{ color: rgb({highlightAuthorTextColor.ToRgb()}); background-color: rgb({highlightAuthorBackgroundColor.ToRgb()}); border-color: rgb({highlightAuthorBorderColor.ToRgb()}); }}");
-
-                if (hasHighlightText)
-                    writer.WriteLine($"{s8}.highlight-text {{ color: rgb({highlightTextTextColor.ToRgb()}); background-color: rgb({highlightTextBackgroundColor.ToRgb()}); border-color: rgb({highlightTextBorderColor.ToRgb()}); }}");
-
+            writer.WriteLine($"{s8}.uploader {{ color: var(--background-color); background-color: var(--text-color); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+            writer.WriteLine($"{s8}.author {{ color: var(--author-color); font-weight: bold; }}");
+            writer.WriteLine($"{s8}.replied-author {{ color: var(--replied-author-color); font-weight: bold; }}");
+            writer.WriteLine($"{s8}.other-author {{ color: var(--other-author-color); }}");
+            writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: var(--small-elements-color); font-size: smaller; }}");
+            writer.WriteLine($"{s8}.favorited {{ color: var(--text-color); background-color: var(--favorited-background-color); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
+            writer.WriteLine($"{s8}.heart {{ color: var(--heart-color); }}");
+            writer.WriteLine($"{s8}.highlight-uploader {{ color: var(--highlight-uploader-text-color); background-color: var(--highlight-uploader-background-color); border-color: var(--highlight-uploader-border-color); }}");
+            writer.WriteLine($"{s8}.highlight-author {{ color: var(--highlight-author-text-color); background-color: var(--highlight-author-background-color); border-color: var(--highlight-author-border-color); }}");
+            writer.WriteLine($"{s8}.highlight-text {{ color: var(--highlight-text-text-color); background-color: var(--highlight-text-background-color); border-color: var(--highlight-text-border-color); }}");
                 writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
                 writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
                 writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");
-            }
-
-            if (settings.ShowCopyLinks)
-            {
-                writer.WriteLine($"{s8}.copy-text {{ color: rgb({linkColor.ToRgb()}); font-size: smaller; cursor: pointer; }}");
-                writer.WriteLine($"{s8}.copy-text-success {{ color: rgb({copyTextSuccessColor.ToRgb()}); }}");
-                writer.WriteLine($"{s8}.copy-text-failure {{ color: rgb({copyTextFailureColor.ToRgb()}); }}");
-                writer.WriteLine($"{s8}.copy-text-success, .copy-text-failure {{ font-weight: bold; pointer-events: none; cursor: default; }}");
-            }
-
             writer.WriteLine($"{s8}.comment-link {{ font-size: smaller; }}");
             writer.WriteLine($"{s8}.nav-comment {{ }}");
             writer.WriteLine($"{s8}.link {{ text-decoration: none; }}");
-            writer.WriteLine($"{s8}.link:link, .link:visited {{ color: rgb({linkColor.ToRgb()}); }}");
-            writer.WriteLine($"{s8}.disabled-link {{ color: rgb({linkColor.ToRgb()}); pointer-events: none; cursor: default; opacity: 0.5; }}");
+            writer.WriteLine($"{s8}.link:link, .link:visited {{ color: var(--link-color); }}");
+            writer.WriteLine($"{s8}.disabled-link {{ color: var(--link-color); pointer-events: none; cursor: default; opacity: 0.5; }}");
+            if (settings.ShowCopyLinks)
+            {
+                writer.WriteLine($"{s8}.copy-text {{ color: var(--link-color); font-size: smaller; cursor: pointer; }}");
+                writer.WriteLine($"{s8}.copy-text-success {{ color: var(--copy-text-success-color); }}");
+                writer.WriteLine($"{s8}.copy-text-failure {{ color: var(--copy-text-failure-color); }}");
+                writer.WriteLine($"{s8}.copy-text-success, .copy-text-failure {{ font-weight: bold; pointer-events: none; cursor: default; }}");
+            }
             writer.WriteLine($"{s4}</style>");
             writer.WriteLine("</head>");
             writer.WriteLine("<body>");
@@ -1380,7 +1358,7 @@ public partial class CommentsWriter(Settings settings)
         {
             if (writeToHTML)
             {
-                writer.WriteLine("<pre class='header'>");
+                writer.WriteLine(@"<pre class=""header"">");
 
                 if (string.IsNullOrEmpty(settings.URL))
                     writer.WriteLine(HttpUtility.HtmlEncode(videoInfo.Title));
@@ -1392,7 +1370,7 @@ public partial class CommentsWriter(Settings settings)
                     if (string.IsNullOrEmpty(videoInfo.UploaderURL))
                         writer.WriteLine(HttpUtility.HtmlEncode(videoInfo.Uploader));
                     else
-                        writer.WriteLine($"<a href='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}'>{HttpUtility.HtmlEncode(videoInfo.Uploader)}</a>");
+                        writer.WriteLine($@"<a href=""{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}"">{HttpUtility.HtmlEncode(videoInfo.Uploader)}</a>");
                 }
 
                 if (string.IsNullOrEmpty(videoInfo.UploaderID) == false)
@@ -1400,15 +1378,15 @@ public partial class CommentsWriter(Settings settings)
                     if (string.IsNullOrEmpty(videoInfo.UploaderURL))
                         writer.WriteLine(HttpUtility.HtmlEncode(videoInfo.UploaderID));
                     else
-                        writer.WriteLine($"<a href='{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}'>{HttpUtility.HtmlEncode(videoInfo.UploaderID)}</a>");
+                        writer.WriteLine($@"<a href=""{HttpUtility.HtmlAttributeEncode(videoInfo.UploaderURL)}"">{HttpUtility.HtmlEncode(videoInfo.UploaderID)}</a>");
                 }
 
                 DateTime? uploadDate = videoInfo.GetUploadDate();
                 if (uploadDate != null)
-                    writer.WriteLine($"{HttpUtility.HtmlEncode("Uploaded at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(uploadDate.Value.ToString("o"))}'>{HttpUtility.HtmlEncode(uploadDate.Value.ToString("d"))}</time>");
+                    writer.WriteLine($@"{HttpUtility.HtmlEncode("Uploaded on ")}<time datetime=""{HttpUtility.HtmlAttributeEncode(uploadDate.Value.ToString("o"))}"">{HttpUtility.HtmlEncode(uploadDate.Value.ToString("d"))}</time>");
 
                 writer.WriteLine();
-                writer.WriteLine($"{HttpUtility.HtmlEncode("Comments processed at ")}<time datetime='{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}'>{HttpUtility.HtmlEncode(processDateStr)}</time>");
+                writer.WriteLine($@"{HttpUtility.HtmlEncode("Comments processed on ")}<time datetime=""{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}"">{HttpUtility.HtmlEncode(processDateStr)}</time>");
             }
             else
             {
@@ -1425,10 +1403,10 @@ public partial class CommentsWriter(Settings settings)
 
                 DateTime? uploadDate = videoInfo.GetUploadDate();
                 if (uploadDate != null)
-                    writer.WriteLine($"Uploaded at {uploadDate.Value:d}");
+                    writer.WriteLine($"Uploaded on {uploadDate.Value:d}");
 
                 writer.WriteLine();
-                writer.WriteLine($"Comments processed at {processDateStr}");
+                writer.WriteLine($"Comments processed on {processDateStr}");
             }
 
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
@@ -1565,8 +1543,9 @@ public partial class CommentsWriter(Settings settings)
             .Split([Environment.NewLine, "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
         );
 
-        if (metaDescription.Length > 160)
-            metaDescription = $"{metaDescription[..157]}...";
+        const int META_DESCRIPTION_MAX_LENGTH = 160;
+        if (metaDescription.Length > META_DESCRIPTION_MAX_LENGTH)
+            metaDescription = $"{metaDescription[..(META_DESCRIPTION_MAX_LENGTH - 3)]}...";
 
         return metaDescription;
     }
@@ -1594,7 +1573,7 @@ public partial class CommentsWriter(Settings settings)
                     string html = line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
 
                     if (isLineRTL)
-                        yield return $"<span class='rtl width-{textLineLength}'>{html}</span>";
+                        yield return $@"<span class=""rtl width-{textLineLength}"">{html}</span>";
                     else
                         yield return html;
                 }
@@ -1612,7 +1591,7 @@ public partial class CommentsWriter(Settings settings)
                     {
                         string html = (innerLines[k] ?? string.Empty).Trim();
                         if (isLineRTL)
-                            yield return $"<span class='rtl width-{textLineLength}'>{html}</span>";
+                            yield return $@"<span class=""rtl width-{textLineLength}"">{html}</span>";
                         else
                             yield return html;
                     }
@@ -1651,20 +1630,20 @@ public partial class CommentsWriter(Settings settings)
 
         if (writeToHTML)
         {
-            writer.WriteLine($"<pre id='c{comment.CommentNumber}'>");
+            writer.WriteLine($@"<pre id=""c{comment.CommentNumber}"">");
 
             if (settings.ShowCommentNavigationLinks)
             {
                 if ((isFirstComment && isLastComment) == false)
                 {
                     string prev = (isFirstComment ?
-                        $"<a class='link disabled-link'><span class='nav-comment'>{HttpUtility.HtmlEncode("↑ Prev")}</span></a>" :
-                        $"<a class='link' href='{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber - 1}")}' title='{HttpUtility.HtmlAttributeEncode($"Previous Comment #{comment.CommentNumber - 1}")}'><span class='nav-comment'>{HttpUtility.HtmlEncode("↑ Prev")}</span></a>"
+                        $@"<a class=""link disabled-link""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>" :
+                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber - 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Previous Comment #{comment.CommentNumber - 1}")}""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>"
                     );
 
                     string next = (isLastComment ?
-                        $"<a class='link disabled-link'><span class='nav-comment'>{HttpUtility.HtmlEncode("↓ Next")}</span></a>" :
-                        $"<a class='link' href='{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber + 1}")}' title='{HttpUtility.HtmlAttributeEncode($"Next Comment #{comment.CommentNumber + 1}")}'><span class='nav-comment'>{HttpUtility.HtmlEncode("↓ Next")}</span></a>"
+                        $@"<a class=""link disabled-link""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>" :
+                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber + 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Next Comment #{comment.CommentNumber + 1}")}""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>"
                     );
 
                     writer.WriteLine($"{next}  {prev}");

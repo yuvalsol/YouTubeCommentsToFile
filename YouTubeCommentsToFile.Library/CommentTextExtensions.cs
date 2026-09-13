@@ -355,18 +355,18 @@ internal static partial class CommentTextExtensions
 
             if (item.IsRepliedAuthor)
             {
-                replacementPrefix = "<span class='replied-author'>";
+                replacementPrefix = @"<span class=""replied-author"">";
                 replacementSuffix = "</span>";
             }
             else if (item.IsOtherAuthor)
             {
-                replacementPrefix = "<span class='other-author'>";
+                replacementPrefix = @"<span class=""other-author"">";
                 replacementSuffix = "</span>";
             }
             else if (item.IsLink)
             {
                 string value = item.Value.Replace("\n", string.Empty);
-                replacementPrefix = $"<a href='{HttpUtility.HtmlAttributeEncode(value)}'>";
+                replacementPrefix = $@"<a href=""{HttpUtility.HtmlAttributeEncode(value)}"">";
                 replacementSuffix = "</a>";
             }
             else if (item.IsHashtag)
@@ -375,7 +375,7 @@ internal static partial class CommentTextExtensions
                 string hashtag = value[1..];
                 if (isToLowerCaseHashtag)
                     hashtag = hashtag.ToLowerInvariant();
-                replacementPrefix = $"<a href='{HttpUtility.HtmlAttributeEncode($"{hashtagURL}{hashtag}")}'>";
+                replacementPrefix = $@"<a href=""{HttpUtility.HtmlAttributeEncode($"{hashtagURL}{hashtag}")}"">";
                 replacementSuffix = "</a>";
             }
             else if (item.IsTimestamp)
@@ -383,13 +383,13 @@ internal static partial class CommentTextExtensions
                 string value = item.Value.Replace("\n", string.Empty);
                 if (TimeSpan.TryParse($"{(value.Length <= 5 /* 00:00 */ ? "00:" /* hours */ : null)}{value}", enUS, out TimeSpan ts))
                 {
-                    replacementPrefix = $"<a href='{HttpUtility.HtmlAttributeEncode($"{url}&t={ts.TotalSeconds}s")}'>";
+                    replacementPrefix = $@"<a href=""{HttpUtility.HtmlAttributeEncode($"{url}&t={ts.TotalSeconds}s")}"">";
                     replacementSuffix = "</a>";
                 }
             }
             else if (item.IsHeart)
             {
-                replacementPrefix = "<span class='heart'>";
+                replacementPrefix = @"<span class=""heart"">";
                 replacementSuffix = "</span>";
             }
 
@@ -700,11 +700,11 @@ internal static partial class CommentTextExtensions
 
                     if (lineLength > line.Length)
                     {
-                        int stepCh = 10;
-                        int lineChRecalculte = lineCh - stepCh;
-                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte > lineLength; lineChRecalculte -= stepCh) ;
+                        const int STEP_CH = 10;
+                        int lineChRecalculte = lineCh - STEP_CH;
+                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte > lineLength; lineChRecalculte -= STEP_CH) ;
 
-                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte <= lineLength; lineChRecalculte -= stepCh)
+                        for (; CommentsWriter.TEXT_LINE_MIN_LENGTH <= lineChRecalculte && lineChRecalculte <= lineLength; lineChRecalculte -= STEP_CH)
                         {
                             StringBuilder sb = line.SplitTextToLines(lineChRecalculte, skipLastMeasurements: true);
                             string lineRecalculte = sb.ToString();

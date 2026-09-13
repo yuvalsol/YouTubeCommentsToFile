@@ -297,7 +297,7 @@ internal partial class Program(string[] args)
 
     private void WriteVerboseCommandLine()
     {
-        WriteVerboseArgs("Command Line", args);
+        WriteVerboseArgs("Command Line", [.. args.Select(arg => arg.FormatValue())]);
     }
 
     private void WriteVerboseOptions()

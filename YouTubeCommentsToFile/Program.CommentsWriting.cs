@@ -49,13 +49,16 @@ internal partial class Program
     }
 
     private void OnStart(object sender, StartEventArgs e)
-    {
-    }
+    { }
 
     private void OnEncodings(object sender, EncodingsEventArgs e)
     {
         if (e.Encoding != null)
-            WriteVerboseProperty("Encoding", $"{e.Encoding.EncodingName}, {e.Encoding.WebName}, code page {e.Encoding.CodePage}".Trim(' ', ','));
+        {
+            WriteVerboseProperty("Encoding", $"{e.Encoding.EncodingName}, {e.Encoding.WebName}, code page {e.Encoding.CodePage}".Trim(' ', ','), singleLine: false);
+            if (operationOptions.Verbose)
+                WriteLine();
+        }
     }
 
     private void OnStartConvert(object sender, StartConvertEventArgs e)
@@ -63,7 +66,12 @@ internal partial class Program
         download = false;
         WriteLine($"{(e.Total > 1 ? $"{e.Count}/{e.Total} " : null)}Convert {Path.GetFileName(e.JsonFile)}");
         if (string.IsNullOrEmpty(e.URL) == false)
-            WriteLine($"URL: {e.URL}");
+        {
+            if (operationOptions.Verbose)
+                WriteVerboseProperty("URL", e.URL);
+            else
+                WriteLine($"URL: {e.URL}");
+        }
     }
 
     private void OnStartDownload(object sender, StartDownloadEventArgs e)
@@ -74,7 +82,7 @@ internal partial class Program
 
     private void OnStartDownloadVideoInfo(object sender, StartDownloadVideoInfoEventArgs e)
     {
-        WriteVerboseProperty("Video Info yt-dlp", e.YtDlpCommandLine);
+        WriteVerboseProperty("yt-dlp Video Info", e.YtDlpCommandLine);
         Write("Downloading video information...");
     }
 
@@ -103,7 +111,7 @@ internal partial class Program
     private void OnStartDownloadComments(object sender, StartDownloadCommentsEventArgs e)
     {
         WriteVerboseProperty("URL", e.URL);
-        WriteVerboseProperty("Comments yt-dlp", e.YtDlpCommandLine);
+        WriteVerboseProperty("yt-dlp Comments", e.YtDlpCommandLine);
         if (operationOptions.YtDlpQuiet)
             Write("Downloading comments...");
         else
@@ -359,9 +367,9 @@ internal partial class Program
         );
     }
 
-    private void WriteVerboseProperty(string property, string value)
+    private void WriteVerboseProperty(string property, string value, bool singleLine = true)
     {
         if (operationOptions.Verbose && string.IsNullOrEmpty(value) == false)
-            WriteMessages(GetPropertyMessages(property, [value]), singleLine: true);
+            WriteMessages(GetPropertyMessages(property, [value]), singleLine);
     }
 }

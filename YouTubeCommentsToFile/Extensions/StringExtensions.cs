@@ -31,7 +31,7 @@ public static partial class StringExtensions
             return name;
 
         name = name.ToWords();
-        name = $"{char.ToUpper(name[0])}{name[1..]}";
+        name = $"{char.ToUpperInvariant(name[0])}{name[1..]}";
         return name;
     }
 

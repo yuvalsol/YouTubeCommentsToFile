@@ -542,7 +542,8 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
                 return Path.GetDirectoryName(jsonFile);
             })
             .Where(directory => string.IsNullOrWhiteSpace(directory) == false)
-            .Distinct()];
+            .Distinct()
+        ];
     }
 
     public void FixPaths(Func<string, string> FixPath)
@@ -596,7 +597,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
             .. OptionsHelper.GetInstanceOptionsPrecedence(this)
                .Where(x => x.OptionName != nameof(JsonFilesOption))
                .SelectMany(x => x.ToArgs()),
-            .. JsonFiles,
+            .. JsonFiles
         ];
     }
 
@@ -607,7 +608,7 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
             .. OptionsHelper.GetInstanceOptionsPrecedence(this)
                .Where(x => x.OptionName != nameof(JsonFilesOption))
                .Select(x => x.ToString()),
-            .. JsonFiles.Select(url => url.FormatValue()),
+            .. JsonFiles.Select(jsonFile => jsonFile.FormatValue())
         ];
     }
 }
@@ -723,7 +724,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
             .. OptionsHelper.GetInstanceOptionsPrecedence(this)
                .Where(x => x.OptionName != nameof(URLsOption))
                .SelectMany(x => x.ToArgs()),
-            .. URLs,
+            .. URLs
         ];
     }
 
@@ -734,7 +735,7 @@ internal class DownloadOptions : SharedOptions, IDownloadOptions, IOperationOpti
             .. OptionsHelper.GetInstanceOptionsPrecedence(this)
                .Where(x => x.OptionName != nameof(URLsOption))
                .Select(x => x.ToString()),
-            .. URLs.Select(url => url.FormatValue()),
+            .. URLs.Select(url => url.FormatValue())
         ];
     }
 }
@@ -1579,7 +1580,7 @@ internal class AuthorsExamples : BaseExamples
                 $"2. Highlight all comments written by either @{ALICE} or @{BOB}.{NEW_LINE}Search for author names is case insensitive",
                 new DownloadOptions
                 {
-                    HighlightAuthorsIgnoreCase = [ALICE.ToLower(), $"@{BOB.ToLower()}"]
+                    HighlightAuthorsIgnoreCase = [ALICE.ToLowerInvariant(), $"@{BOB.ToLowerInvariant()}"]
                 }
             );
 
@@ -1587,7 +1588,7 @@ internal class AuthorsExamples : BaseExamples
                 $"3. Show only conversations that either @{ALICE} or @{BOB} participated in.{NEW_LINE}Search for author names is case insensitive",
                 new DownloadOptions
                 {
-                    FilterAuthorsIgnoreCase = [ALICE.ToLower(), BOB.ToLower()]
+                    FilterAuthorsIgnoreCase = [ALICE.ToLowerInvariant(), BOB.ToLowerInvariant()]
                 }
             );
         }
@@ -1613,7 +1614,7 @@ internal class TextsExamples : BaseExamples
                 $@"2. Highlight all comments that contain any of the text phrases ""{PHRASE1}"" and ""{PHRASE2}"".{NEW_LINE}Search for text phrases is case insensitive",
                 new DownloadOptions
                 {
-                    HighlightTextsIgnoreCase = [PHRASE1.ToLower(), PHRASE2.ToLower()]
+                    HighlightTextsIgnoreCase = [PHRASE1.ToLowerInvariant(), PHRASE2.ToLowerInvariant()]
                 }
             );
 
