@@ -1374,9 +1374,23 @@ public partial class CommentsWriter(Settings settings)
                 writer.WriteLine(@"<pre class=""header"">");
 
                 if (string.IsNullOrEmpty(url))
-                    writer.WriteLine(HttpUtility.HtmlEncode(videoInfo.Title));
+                {
+                    foreach (var line in GetTextLines(videoInfo.Title, textLineLength, writeToHTML))
+                        writer.WriteLine(line);
+                }
                 else
-                    writer.WriteLine($@"<a href=""{HttpUtility.HtmlAttributeEncode(url)}"">{HttpUtility.HtmlEncode(videoInfo.Title)}</a>");
+                {
+                    string[] lines = [.. GetTextLines(videoInfo.Title, textLineLength, writeToHTML)];
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        if (i == 0)
+                            writer.Write($@"<a href=""{HttpUtility.HtmlAttributeEncode(url)}"">");
+                        writer.Write(lines[i]);
+                        if (i == lines.Length - 1)
+                            writer.Write("</a>");
+                        writer.WriteLine();
+                    }
+                }
 
                 if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
                 {
@@ -1403,7 +1417,8 @@ public partial class CommentsWriter(Settings settings)
             }
             else
             {
-                writer.WriteLine(videoInfo.Title);
+                foreach (var line in GetTextLines(videoInfo.Title, textLineLength, writeToHTML))
+                    writer.WriteLine(line);
 
                 if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
                     writer.WriteLine(videoInfo.Uploader);
@@ -1425,7 +1440,7 @@ public partial class CommentsWriter(Settings settings)
             if (string.IsNullOrEmpty(videoInfo.Description) == false)
             {
                 writer.WriteLine();
-                foreach (var line in GetDescriptionLines(textLineLength, writeToHTML))
+                foreach (var line in GetTextLines(videoInfo.Description, textLineLength, writeToHTML))
                     writer.WriteLine(line);
             }
 
@@ -1563,10 +1578,10 @@ public partial class CommentsWriter(Settings settings)
         return metaDescription;
     }
 
-    private IEnumerable<string> GetDescriptionLines(int textLineLength, bool writeToHTML)
+    private IEnumerable<string> GetTextLines(string text, int textLineLength, bool writeToHTML)
     {
         var lines =
-            (writeToHTML ? videoInfo.Description : videoInfo.Description.CleanTextForTextFile())
+            (writeToHTML ? text : text.CleanTextForTextFile())
             .Split([Environment.NewLine, "\n"], StringSplitOptions.None)
             .Select(line => (line ?? string.Empty).Trim())
             .ToArray();
