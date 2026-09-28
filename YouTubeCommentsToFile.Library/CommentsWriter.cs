@@ -7,10 +7,11 @@ public partial class CommentsWriter(Settings settings)
     #region Fields
 
     private readonly Settings settings = settings ?? new();
-    private WebsiteInfo websiteInfo;
     private Encoding encoding = Encoding.UTF8;
-    private VideoInfo videoInfo;
     private string jsonFile;
+    private string url;
+    private WebsiteInfo websiteInfo;
+    private VideoInfo videoInfo;
     private List<Comment> comments;
     private List<string> allAuthors;
 
@@ -128,11 +129,10 @@ public partial class CommentsWriter(Settings settings)
             if (settings.URLs.IsNullOrEmpty())
                 throw new ArgumentException("URL not specified.", nameof(settings.URLs));
 
-            foreach (var url in settings.URLs)
+            foreach (var settingURL in settings.URLs)
             {
-                settings.URL = url;
-                if (ValidateAndCleanURL() == false)
-                    throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URLs));
+                if (ValidateAndCleanURL(settingURL) == false)
+                    throw new ArgumentException($"Not a video URL '{settingURL}'.", nameof(settings.URLs));
             }
 
             if (isYtDlpAccessible == false)
@@ -170,20 +170,20 @@ public partial class CommentsWriter(Settings settings)
             if (settings.JsonFiles.IsNullOrEmpty())
                 throw new ArgumentException("JSON file not specified.", nameof(settings.JsonFiles));
 
-            foreach (var jsonFile in settings.JsonFiles)
+            foreach (var (JsonFile, URL) in settings.JsonFiles)
             {
-                if (string.IsNullOrEmpty(jsonFile))
-                    throw new ArgumentException($"Not a JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+                if (string.IsNullOrEmpty(JsonFile))
+                    throw new ArgumentException($"Not a JSON file '{JsonFile}'.", nameof(settings.JsonFiles));
 
-                if (string.Compare(Path.GetExtension(jsonFile), ".json", StringComparison.OrdinalIgnoreCase) != 0)
-                    throw new ArgumentException($"Not a JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+                if (string.Compare(Path.GetExtension(JsonFile), ".json", StringComparison.OrdinalIgnoreCase) != 0)
+                    throw new ArgumentException($"Not a JSON file '{JsonFile}'.", nameof(settings.JsonFiles));
 
-                if (File.Exists(jsonFile) == false)
-                    throw new ArgumentException($"Could not find JSON file '{jsonFile}'.", nameof(settings.JsonFiles));
+                if (File.Exists(JsonFile) == false)
+                    throw new ArgumentException($"Could not find JSON file '{JsonFile}'.", nameof(settings.JsonFiles));
+
+                if (ValidateAndCleanURL(URL) == false)
+                    throw new ArgumentException($"Not a video URL '{URL}'.", nameof(settings.JsonFiles));
             }
-
-            if (ValidateAndCleanURL() == false)
-                throw new ArgumentException($"Not a video URL '{settings.URL}'.", nameof(settings.URL));
 
             if (isYtDlpAccessible == false)
             {
@@ -230,18 +230,20 @@ public partial class CommentsWriter(Settings settings)
 
         Start?.Raise(this, () => new StartEventArgs());
 
+        SetEncoding();
+        Encodings?.Raise(this, () => new EncodingsEventArgs(encoding));
+
+        int count = 0;
+
         if (settings.Download)
         {
-            int count = 0;
-            foreach (var url in settings.URLs)
+            foreach (var settingURL in settings.URLs)
             {
-                settings.URL = url;
-                ValidateAndCleanURL();
+                ResetSettings();
 
-                SetEncoding();
-                Encodings?.Raise(this, () => new EncodingsEventArgs(encoding));
+                ValidateAndCleanURL(settingURL);
 
-                StartDownload?.Raise(this, () => new StartDownloadEventArgs(settings.URL, ++count, settings.URLs.Length));
+                StartDownload?.Raise(this, () => new StartDownloadEventArgs(url, ++count, settings.URLs.Length));
                 long startTimeOperation = Stopwatch.GetTimestamp();
 
                 Exception operationError = null;
@@ -256,15 +258,14 @@ public partial class CommentsWriter(Settings settings)
         }
         else
         {
-            int count = 0;
-            foreach (var jfile in settings.JsonFiles)
+            foreach (var (JsonFile, URL) in settings.JsonFiles)
             {
-                jsonFile = jfile;
+                ResetSettings();
 
-                SetEncoding();
-                Encodings?.Raise(this, () => new EncodingsEventArgs(encoding));
+                jsonFile = JsonFile;
+                ValidateAndCleanURL(URL);
 
-                StartConvert?.Raise(this, () => new StartConvertEventArgs(jsonFile, settings.URL, ++count, settings.JsonFiles.Length));
+                StartConvert?.Raise(this, () => new StartConvertEventArgs(jsonFile, url, ++count, settings.JsonFiles.Length));
                 long startTimeOperation = Stopwatch.GetTimestamp();
 
                 Exception operationError = null;
@@ -289,11 +290,11 @@ public partial class CommentsWriter(Settings settings)
 
         settings.JsonFiles = [..
             settings.JsonFiles
-            .SelectMany(jsonFile =>
+            .SelectMany(x =>
             {
-                if (string.IsNullOrEmpty(jsonFile) == false && Directory.Exists(jsonFile))
-                    return Directory.GetFiles(jsonFile, "*.json");
-                return [jsonFile];
+                if (string.IsNullOrEmpty(x.JsonFile) == false && Directory.Exists(x.JsonFile))
+                    return Directory.GetFiles(x.JsonFile, "*.json").Select(f => new JsonFileSetting(f, x.URL));
+                return [x];
             })
             .Distinct()];
     }
@@ -317,9 +318,22 @@ public partial class CommentsWriter(Settings settings)
             settings.Deno = files.FirstOrDefault(file => string.Compare(Path.GetFileName(file), DENO_PROGRAM) == 0);
     }
 
-    private bool ValidateAndCleanURL()
+    private void ResetSettings()
     {
-        if (string.IsNullOrEmpty(settings.URL))
+        jsonFile = null;
+        url = null;
+        websiteInfo = null;
+        videoInfo = null;
+        comments = null;
+        allAuthors = null;
+    }
+
+    private bool ValidateAndCleanURL(string settingURL)
+    {
+        websiteInfo = null;
+        url = null;
+
+        if (string.IsNullOrEmpty(settingURL))
         {
             if (settings.Download)
             {
@@ -335,7 +349,7 @@ public partial class CommentsWriter(Settings settings)
         UriBuilder uriBuilder;
         try
         {
-            uriBuilder = new UriBuilder(settings.URL);
+            uriBuilder = new UriBuilder(settingURL);
         }
         catch
         {
@@ -359,10 +373,9 @@ public partial class CommentsWriter(Settings settings)
 
     private bool ValidateAndCleanURL(WebsiteInfo website, UriBuilder uriBuilder)
     {
-        if (website.ValidateURL(uriBuilder, out string cleanURL))
+        if (website.ValidateURL(uriBuilder, out url))
         {
             websiteInfo = website;
-            settings.URL = cleanURL;
             return true;
         }
 
@@ -473,11 +486,11 @@ public partial class CommentsWriter(Settings settings)
     {
         #region Download Video Info
 
-        if (string.IsNullOrEmpty(settings.URL) == false &&
+        if (string.IsNullOrEmpty(url) == false &&
             string.IsNullOrEmpty(settings.YtDlp) == false &&
             settings.HideHeader == false)
         {
-            string ytDlpCommandLine = GetVideoInfoCommandLine(settings.URL, settings.HideVideoDescription, encoding, settings.UpdateYtDlp);
+            string ytDlpCommandLine = GetVideoInfoCommandLine(url, settings.HideVideoDescription, encoding, settings.UpdateYtDlp);
 
             StartDownloadVideoInfo?.Raise(this, () => new StartDownloadVideoInfoEventArgs(ytDlpCommandLine));
 
@@ -509,7 +522,7 @@ public partial class CommentsWriter(Settings settings)
         {
             string ytDlpCommandLine = GetYtDlpCommandLine();
 
-            StartDownloadComments?.Raise(this, () => new StartDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine));
+            StartDownloadComments?.Raise(this, () => new StartDownloadCommentsEventArgs(url, ytDlpCommandLine));
 
             try
             {
@@ -518,7 +531,7 @@ public partial class CommentsWriter(Settings settings)
 
                 if (DownloadComments(ytDlpCommandLine, out jsonFile, out string errorMessage))
                 {
-                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile));
+                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(url, ytDlpCommandLine, jsonFile));
 
                     if (settings.OnlyDownloadComments)
                         return;
@@ -526,14 +539,14 @@ public partial class CommentsWriter(Settings settings)
                 else
                 {
                     var error = operationError = new Exception(errorMessage);
-                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, error));
+                    FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(url, ytDlpCommandLine, jsonFile, error));
                     return;
                 }
             }
             catch (Exception ex)
             {
                 operationError = ex;
-                FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(settings.URL, ytDlpCommandLine, jsonFile, ex));
+                FinishDownloadComments?.Raise(this, () => new FinishDownloadCommentsEventArgs(url, ytDlpCommandLine, jsonFile, ex));
                 return;
             }
         }
@@ -748,7 +761,7 @@ public partial class CommentsWriter(Settings settings)
 
         videoInfo ??= new VideoInfo()
         {
-            Title = settings.URL
+            Title = url
         };
     }
 
@@ -784,7 +797,7 @@ public partial class CommentsWriter(Settings settings)
         if (max_comments != null || comment_sort != null)
         {
             string ytDlpExtractor =
-                new UriBuilder(settings.URL).Host.ToLowerInvariant()
+                new UriBuilder(url).Host.ToLowerInvariant()
                 .Replace("www.", string.Empty)
                 .Replace(".com", string.Empty)
                 .Replace(".net", string.Empty)
@@ -820,7 +833,7 @@ public partial class CommentsWriter(Settings settings)
         if (string.IsNullOrEmpty(settings.Deno) == false)
             ytDlpCommandLine += $@" --js-runtimes ""deno:{settings.Deno}""";
 
-        ytDlpCommandLine += $@" {settings.URL}";
+        ytDlpCommandLine += $@" {url}";
 
         return ytDlpCommandLine;
     }
@@ -1308,7 +1321,7 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}html, body {{ color: var(--text-color); background-color: var(--background-color); line-height: 1; }}");
             writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
             writer.WriteLine($"{s8}a:link {{ color: var(--link-color); }}");
-                writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
+            writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
             var widthsCh =
                 comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0, writeToHTML))
                 .Append(textLineLength)
@@ -1332,10 +1345,10 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.highlight-uploader {{ color: var(--highlight-uploader-text-color); background-color: var(--highlight-uploader-background-color); border-color: var(--highlight-uploader-border-color); }}");
             writer.WriteLine($"{s8}.highlight-author {{ color: var(--highlight-author-text-color); background-color: var(--highlight-author-background-color); border-color: var(--highlight-author-border-color); }}");
             writer.WriteLine($"{s8}.highlight-text {{ color: var(--highlight-text-text-color); background-color: var(--highlight-text-background-color); border-color: var(--highlight-text-border-color); }}");
-                writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
-                writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
-                writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
-                writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");
+            writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
+            writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
+            writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
+            writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");
             writer.WriteLine($"{s8}.comment-link {{ font-size: smaller; }}");
             writer.WriteLine($"{s8}.nav-comment {{ }}");
             writer.WriteLine($"{s8}.link {{ text-decoration: none; }}");
@@ -1360,10 +1373,10 @@ public partial class CommentsWriter(Settings settings)
             {
                 writer.WriteLine(@"<pre class=""header"">");
 
-                if (string.IsNullOrEmpty(settings.URL))
+                if (string.IsNullOrEmpty(url))
                     writer.WriteLine(HttpUtility.HtmlEncode(videoInfo.Title));
                 else
-                    writer.WriteLine($"<a href='{HttpUtility.HtmlAttributeEncode(settings.URL)}'>{HttpUtility.HtmlEncode(videoInfo.Title)}</a>");
+                    writer.WriteLine($@"<a href=""{HttpUtility.HtmlAttributeEncode(url)}"">{HttpUtility.HtmlEncode(videoInfo.Title)}</a>");
 
                 if (string.IsNullOrEmpty(videoInfo.Uploader) == false)
                 {
@@ -1398,8 +1411,8 @@ public partial class CommentsWriter(Settings settings)
                 if (string.IsNullOrEmpty(videoInfo.UploaderID) == false)
                     writer.WriteLine(videoInfo.UploaderID);
 
-                if (string.IsNullOrEmpty(settings.URL) == false)
-                    writer.WriteLine(settings.URL);
+                if (string.IsNullOrEmpty(url) == false)
+                    writer.WriteLine(url);
 
                 DateTime? uploadDate = videoInfo.GetUploadDate();
                 if (uploadDate != null)
@@ -1570,7 +1583,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (writeToHTML)
                 {
-                    string html = line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
+                    string html = line.ToHtml(url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
 
                     if (isLineRTL)
                         yield return $@"<span class=""rtl width-{textLineLength}"">{html}</span>";
@@ -1586,7 +1599,7 @@ public partial class CommentsWriter(Settings settings)
             {
                 if (writeToHTML)
                 {
-                    string[] innerLines = line.SplitToHtmlLines(textLineLength, settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
+                    string[] innerLines = line.SplitToHtmlLines(textLineLength, url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: false, allAuthors);
                     for (int k = 0; k < innerLines.Length; k++)
                     {
                         string html = (innerLines[k] ?? string.Empty).Trim();
@@ -1777,7 +1790,7 @@ public partial class CommentsWriter(Settings settings)
             indentSecondLine = AddPipesToIndent(indentSecondLine, indentSize, isLastReply);
             indentRestOfLines = AddPipesToIndent(indentRestOfLines, indentSize, isLastReply);
 
-            var lines = comment.ToLines(settings, websiteInfo, videoInfo.UploaderID, indentCount, textLineLength, textLineLengthRepliesDeep, allAuthors, writeToHTML);
+            var lines = comment.ToLines(url, settings, websiteInfo, videoInfo.UploaderID, indentCount, textLineLength, textLineLengthRepliesDeep, allAuthors, writeToHTML);
 
             writer.Write(indentFirstLine);
             writer.WriteLine(lines.First());
@@ -1793,7 +1806,7 @@ public partial class CommentsWriter(Settings settings)
         }
         else
         {
-            foreach (var line in comment.ToLines(settings, websiteInfo, videoInfo.UploaderID, indentCount: 0, textLineLength, textLineLengthRepliesDeep, allAuthors, writeToHTML))
+            foreach (var line in comment.ToLines(url, settings, websiteInfo, videoInfo.UploaderID, indentCount: 0, textLineLength, textLineLengthRepliesDeep, allAuthors, writeToHTML))
                 writer.WriteLine(line);
         }
     }

@@ -147,6 +147,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
     public override string ToString()
     {
         return string.Join(Environment.NewLine, ToLines(
+            url: null,
             settings: new(),
             websiteInfo: new YouTube(),
             uploaderId: null,
@@ -159,6 +160,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
     }
 
     public virtual IEnumerable<string> ToLines(
+        string url,
         Settings settings,
         WebsiteInfo websiteInfo,
         string uploaderId,
@@ -234,19 +236,19 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             string time = null;
             if (ShowTime(settings))
             {
-                if (string.IsNullOrEmpty(settings.URL) || string.IsNullOrEmpty(commentURLPart))
-                    time = $" <span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span>";
+                if (string.IsNullOrEmpty(url) || string.IsNullOrEmpty(commentURLPart))
+                    time = $@" <span class=""time"">{HttpUtility.HtmlEncode(TimeText)}</span>";
                 else
-                    time = $" <a href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentURLPart}")}'><span class='time'>{HttpUtility.HtmlEncode(TimeText)}</span></a>";
+                    time = $@" <a href=""{HttpUtility.HtmlAttributeEncode($"{url}{commentURLPart}")}""><span class=""time"">{HttpUtility.HtmlEncode(TimeText)}</span></a>";
             }
 
             string commentLink = null;
             if (ShowCommentLink(settings) && string.IsNullOrEmpty(commentURLPart) == false)
             {
-                if (string.IsNullOrEmpty(settings.URL))
-                    commentLink = $" <span class='comment-link-text'>{commentURLPart}</span>";
+                if (string.IsNullOrEmpty(url))
+                    commentLink = $@" <span class=""comment-link-text"">{commentURLPart}</span>";
                 else
-                    commentLink = $" <a class='link' href='{HttpUtility.HtmlAttributeEncode($"{settings.URL}{commentURLPart}")}'><span class='comment-link'>Highlighted {(IsReply ? "Reply" : "Comment")}</span></a>";
+                    commentLink = $@" <a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"{url}{commentURLPart}")}""><span class=""comment-link"">Highlighted {(IsReply ? "Reply" : "Comment")}</span></a>";
             }
 
             string copyText = null;
@@ -271,7 +273,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
             if (ShowCommentLink(settings) && string.IsNullOrEmpty(commentURLPart) == false)
             {
-                line = $"{settings.URL}{commentURLPart}";
+                line = $"{url}{commentURLPart}";
 
                 if (isTextHighlight)
                 {
@@ -302,7 +304,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                     if (isHTMLHighlight && lineLength == 0)
                         line = " ";
 
-                    yield return $"{(ShowLikes(settings) == false && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class='{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}'{(settings.ShowCopyLinks ? $" data-id='{id}'" : null)}>{line.ToHtml(settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
+                    yield return $@"{(ShowLikes(settings) == false && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class=""{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{line.ToHtml(url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
                 }
                 else
                 {
@@ -321,7 +323,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             {
                 if (writeToHTML)
                 {
-                    string[] innerLines = line.SplitToHtmlLines(lineCh, settings.URL, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors);
+                    string[] innerLines = line.SplitToHtmlLines(lineCh, url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors);
                     for (int k = 0; k < innerLines.Length; k++)
                     {
                         string innerLine = (innerLines[k] ?? string.Empty).Trim();

@@ -5,8 +5,7 @@ public class Settings
     public bool Download { get; set; }
 
     // Convert
-    public string[] JsonFiles { get; set; }
-    public string URL { get; set; }
+    public JsonFileSetting[] JsonFiles { get; set; }
 
     // Download
     public string[] URLs { get; set; }

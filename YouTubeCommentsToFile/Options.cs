@@ -13,11 +13,11 @@ internal interface IYouTubeCommentsToFileOptions { }
 [OptionPrecedence(1)]
 internal interface IConvertOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("json-file", MetaValue = "PATH...", HelpText = "Paths to comments JSON files or directories.")]
+    [Option("json-file", MetaValue = "PATH[|URL]...", HelpText = "Paths to comments JSON files or directories. A video URL, associated with the path, can be specified by concatenating with '|'. Otherwise, the URL is taken from option '--url'.")]
     [OptionPrecedence(1)]
     IEnumerable<string> JsonFilesOption { get; set; }
 
-    [Value(0, MetaName = "Json Files", MetaValue = "PATH...", HelpText = "Paths to comments JSON files or directories.")]
+    [Value(0, MetaName = "Json Files", MetaValue = "PATH[|URL]...", HelpText = "Paths to comments JSON files or directories. A video URL, associated with the path, can be specified by concatenating with '|'. Otherwise, the URL is taken from option '--url'.")]
     IEnumerable<string> JsonFilesValue { get; set; }
 
     [Option("url", MetaValue = "URL", HelpText = "Video URL. Since the video URL can't be extracted from the comments JSON file, by providing it, it makes the output file more robust by writing links to the video, to its comments and replies. URL is not required in order to write to output file.")]
@@ -530,10 +530,22 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     {
         return [..
             JsonFiles
+            .Select(jsonFile =>
+            {
+                if (string.IsNullOrWhiteSpace(jsonFile))
+                    return null;
+
+                if (jsonFile.Contains('|') == false)
+                    return jsonFile;
+
+                int lastIndex = jsonFile.LastIndexOf('|');
+                string file = jsonFile[..lastIndex];
+                return file;
+            })
             .Select(FixPath)
             .Select(jsonFile =>
             {
-                if (string.IsNullOrEmpty(jsonFile))
+                if (string.IsNullOrWhiteSpace(jsonFile))
                     return null;
 
                 if (Directory.Exists(jsonFile))
@@ -549,11 +561,22 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     public void FixPaths(Func<string, string> FixPath)
     {
         if (JsonFilesOption.HasAny())
-            JsonFilesOption = JsonFilesOption.Select(FixPath);
+            JsonFilesOption = JsonFilesOption.Select(jsonFile => FixJsonFilePath(jsonFile, FixPath));
         if (JsonFilesValue.HasAny())
-            JsonFilesValue = JsonFilesValue.Select(FixPath);
+            JsonFilesValue = JsonFilesValue.Select(jsonFile => FixJsonFilePath(jsonFile, FixPath));
         YtDlp = FixPath(YtDlp);
         Deno = FixPath(Deno);
+    }
+
+    private static string FixJsonFilePath(string jsonFile, Func<string, string> FixPath)
+    {
+        if (string.IsNullOrWhiteSpace(jsonFile) || jsonFile.Contains('|') == false)
+            return FixPath(jsonFile);
+
+        int lastIndex = jsonFile.LastIndexOf('|');
+        string file = jsonFile[..lastIndex];
+        string url = jsonFile[(lastIndex + 1)..];
+        return $"{FixPath(file)}|{url}";
     }
 
     public string NameOf()
@@ -565,11 +588,24 @@ internal class ConvertOptions : SharedOptions, IConvertOptions, IOperationOption
     {
         var settings = base.ToSettings();
         settings.Download = false;
-        settings.JsonFiles = [.. JsonFiles];
-        settings.URL = URL;
+        settings.JsonFiles = [.. JsonFiles.Select(GetJsonFileSetting)];
         settings.YtDlp = YtDlp;
         settings.Deno = Deno;
         return settings;
+    }
+
+    private JsonFileSetting GetJsonFileSetting(string jsonFile)
+    {
+        if (string.IsNullOrWhiteSpace(jsonFile))
+            return new(null, URL);
+
+        if (jsonFile.Contains('|') == false)
+            return new(jsonFile, URL);
+
+        int lastIndex = jsonFile.LastIndexOf('|');
+        string file = jsonFile[..lastIndex];
+        string url = jsonFile[(lastIndex + 1)..];
+        return new(file, url);
     }
 
     public void MergeOptions(ConvertOptions options)
@@ -1374,7 +1410,18 @@ internal class ConvertExamples : BaseExamples
             );
 
             yield return new Example(
-                "3. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description",
+                "3. Convert more than one JSON file, with their respective URLs",
+                new ConvertOptions
+                {
+                    JsonFilesValue = [
+                        $@"C:\Path\To\Carl Sagan on The Demon-Haunted World and Science.json|{URL}",
+                        @"C:\Path\To\Carl Sagan on the Existence of God.json|https://www.youtube.com/watch?v=ML4kiFCKZGo"
+                    ]
+                }
+            );
+
+            yield return new Example(
+                "4. Convert to more robust HTML file. By specifying the URL, yt-dlp will download video information - title, uploader, upload date, description",
                 new ConvertOptions
                 {
                     JsonFilesOption = [JSON_FILE],
@@ -1389,7 +1436,7 @@ internal class ConvertExamples : BaseExamples
             );
 
             yield return new Example(
-                "4. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted",
+                "5. Highlight uploader, authors and texts. If a comment or reply matches any of the specified highlight items, the comment is highlighted",
                 new ConvertOptions
                 {
                     JsonFilesValue = [JSON_FILE],
@@ -1400,7 +1447,7 @@ internal class ConvertExamples : BaseExamples
             );
 
             yield return new Example(
-                "5. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed",
+                "6. Filter by uploader, authors and texts. If a comment or reply matches any of the specified filter items, it is shown. Otherwise, it is removed",
                 new ConvertOptions
                 {
                     JsonFilesValue = [JSON_FILE],
