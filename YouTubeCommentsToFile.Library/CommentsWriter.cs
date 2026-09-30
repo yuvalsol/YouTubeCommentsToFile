@@ -1293,21 +1293,21 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}:root {{");
             writer.WriteLine($"{s12}--text-color: rgb({(settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--background-color: rgb({(settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--bg-color: rgb({(settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--author-color: rgb({(settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--replied-author-color: rgb({(settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--other-author-color: rgb({(settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--small-elements-color: rgb({(settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--favorited-background-color: rgb({(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--header-background-color: rgb({(settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--favorited-bg-color: rgb({(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--header-bg-color: rgb({(settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-uploader-text-color: rgb({(settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-uploader-background-color: rgb({(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-uploader-bg-color: rgb({(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-uploader-border-color: rgb({(settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-author-text-color: rgb({(settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-author-background-color: rgb({(settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-author-bg-color: rgb({(settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-author-border-color: rgb({(settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-text-text-color: rgb({(settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-text-background-color: rgb({(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToRgb()});");
+            writer.WriteLine($"{s12}--highlight-text-bg-color: rgb({(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--highlight-text-border-color: rgb({(settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--link-color: rgb({(settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor)).ToRgb()});");
             writer.WriteLine($"{s12}--heart-color: rgb({HeartColor.ToRgb()});");
@@ -1318,7 +1318,7 @@ public partial class CommentsWriter(Settings settings)
             }
             writer.WriteLine($"{s8}}}");
             writer.WriteLine($@"{s8}* {{ font-family: ""Cascadia Mono"", ""Courier New"", Courier, monospace; }}");
-            writer.WriteLine($"{s8}html, body {{ color: var(--text-color); background-color: var(--background-color); line-height: 1; }}");
+            writer.WriteLine($"{s8}html, body {{ color: var(--text-color); background-color: var(--bg-color); line-height: 1; }}");
             writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
             writer.WriteLine($"{s8}a:link {{ color: var(--link-color); }}");
             writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
@@ -1329,22 +1329,22 @@ public partial class CommentsWriter(Settings settings)
                 .OrderBy(widthCh => widthCh);
             foreach (var widthCh in widthsCh)
                 writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? $"{(settings.HideCommentSeparators ? null : ", hr")}{(settings.HideHeader ? null : ", .header")}" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
-            writer.WriteLine($"{s8}.header {{ background-color: var(--header-background-color); padding-top: 2px; padding-bottom: 2px; }}");
+            writer.WriteLine($"{s8}.header {{ background-color: var(--header-bg-color); padding-top: 2px; padding-bottom: 2px; }}");
             writer.WriteLine($"{s8}.comment {{ }}");
             writer.WriteLine($"{s8}.reply {{ }}");
             writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             foreach (var sa in SpecialAuthor.SpecialAuthors.Where(sa => comments.HasAny(c => sa.IsSpecialAuthor(c))))
                 writer.WriteLine($"{s8}.{sa.Class} {{ color: rgb({sa.Color.ToRgb()}); background-color: rgb({sa.BackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
-            writer.WriteLine($"{s8}.uploader {{ color: var(--background-color); background-color: var(--text-color); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+            writer.WriteLine($"{s8}.uploader {{ color: var(--bg-color); background-color: var(--text-color); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: var(--author-color); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: var(--replied-author-color); font-weight: bold; }}");
             writer.WriteLine($"{s8}.other-author {{ color: var(--other-author-color); }}");
             writer.WriteLine($"{s8}.pinned, .time, .likes, .comment-link-text {{ color: var(--small-elements-color); font-size: smaller; }}");
-            writer.WriteLine($"{s8}.favorited {{ color: var(--text-color); background-color: var(--favorited-background-color); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
+            writer.WriteLine($"{s8}.favorited {{ color: var(--text-color); background-color: var(--favorited-bg-color); padding: 3px 6px 3px 6px; border-radius: 15px; }}");
             writer.WriteLine($"{s8}.heart {{ color: var(--heart-color); }}");
-            writer.WriteLine($"{s8}.highlight-uploader {{ color: var(--highlight-uploader-text-color); background-color: var(--highlight-uploader-background-color); border-color: var(--highlight-uploader-border-color); }}");
-            writer.WriteLine($"{s8}.highlight-author {{ color: var(--highlight-author-text-color); background-color: var(--highlight-author-background-color); border-color: var(--highlight-author-border-color); }}");
-            writer.WriteLine($"{s8}.highlight-text {{ color: var(--highlight-text-text-color); background-color: var(--highlight-text-background-color); border-color: var(--highlight-text-border-color); }}");
+            writer.WriteLine($"{s8}.highlight-uploader {{ color: var(--highlight-uploader-text-color); background-color: var(--highlight-uploader-bg-color); border-color: var(--highlight-uploader-border-color); }}");
+            writer.WriteLine($"{s8}.highlight-author {{ color: var(--highlight-author-text-color); background-color: var(--highlight-author-bg-color); border-color: var(--highlight-author-border-color); }}");
+            writer.WriteLine($"{s8}.highlight-text {{ color: var(--highlight-text-text-color); background-color: var(--highlight-text-bg-color); border-color: var(--highlight-text-border-color); }}");
             writer.WriteLine($"{s8}.highlight-border-top, .highlight-border-middle, .highlight-border-bottom {{ border-style: solid; border-width: 1px; padding-left: 1px; padding-right: 1px; }}");
             writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
             writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");

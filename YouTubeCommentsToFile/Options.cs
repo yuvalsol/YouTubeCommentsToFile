@@ -317,7 +317,7 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(1)]
     string TextColor { get; set; }
 
-    [Option("background-color", MetaValue = "COLOR", HelpText = "The background color of comments.")]
+    [Option("bg-color", MetaValue = "COLOR", HelpText = "The background color of comments.")]
     [OptionPrecedence(2)]
     string BackgroundColor { get; set; }
 
@@ -337,11 +337,11 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(6)]
     string SmallElementsColor { get; set; }
 
-    [Option("favorited-background-color", MetaValue = "COLOR", HelpText = "The background color of favorited by the uploader of the video.")]
+    [Option("favorited-bg-color", MetaValue = "COLOR", HelpText = "The background color of favorited by the uploader of the video.")]
     [OptionPrecedence(7)]
     string FavoritedBackgroundColor { get; set; }
 
-    [Option("header-background-color", MetaValue = "COLOR", HelpText = "The background color of the header.")]
+    [Option("header-bg-color", MetaValue = "COLOR", HelpText = "The background color of the header.")]
     [OptionPrecedence(8)]
     string HeaderBackgroundColor { get; set; }
 
@@ -349,7 +349,7 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(9)]
     string HighlightUploaderTextColor { get; set; }
 
-    [Option("highlight-uploader-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
+    [Option("highlight-uploader-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
     [OptionPrecedence(10)]
     string HighlightUploaderBackgroundColor { get; set; }
 
@@ -361,7 +361,7 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(12)]
     string HighlightAuthorTextColor { get; set; }
 
-    [Option("highlight-author-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
+    [Option("highlight-author-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
     [OptionPrecedence(13)]
     string HighlightAuthorBackgroundColor { get; set; }
 
@@ -373,7 +373,7 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(15)]
     string HighlightTextTextColor { get; set; }
 
-    [Option("highlight-text-background-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
+    [Option("highlight-text-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
     [OptionPrecedence(16)]
     string HighlightTextBackgroundColor { get; set; }
 

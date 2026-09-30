@@ -519,41 +519,41 @@ Or, use one of these predefined encodings.
 These options set the colors of various HTML elements. A color value can be a known name (`Honeydew`), hex code (`#F0FFF0`; `F0FFF0`) or RGB (`240, 255, 240`; `240 255 240`).
 
 ```console
---text-color COLOR                             The text color of comments.
---background-color COLOR                       The background color of comments.
---author-color COLOR                           The text color of the author of the comment.
---replied-author-color COLOR                   The text color of an author, of other comment,
-                                               appearing at the start of the comment.
---other-author-color COLOR                     The text color of an author, of other comment,
-                                               appearing anywhere else but the start of the comment.
---small-elements-color COLOR                   The text color of small elements, such as
-                                               pinned comment, comment time, likes.
---favorited-background-color COLOR             The background color of favorited by the
-                                               uploader of the video.
---header-background-color COLOR                The background color of the header.
---highlight-uploader-text-color COLOR          The text color of highlighted comments
-                                               written by the uploader of the video.
---highlight-uploader-background-color COLOR    The background color of highlighted comments
-                                               written by the uploader of the video.
---highlight-uploader-border-color COLOR        The color of the border around highlighted comments
-                                               written by the uploader of the video.
---highlight-author-text-color COLOR            The text color of highlighted comments
-                                               written by any of the searched authors.
---highlight-author-background-color COLOR      The background color of highlighted comments
-                                               written by any of the searched authors.
---highlight-author-border-color COLOR          The color of the border around highlighted comments
-                                               written by any of the searched authors.
---highlight-text-text-color COLOR              The text color of highlighted comments
-                                               containing any of the searched texts.
---highlight-text-background-color COLOR        The background color of highlighted comments
-                                               containing any of the searched texts.
---highlight-text-border-color COLOR            The color of the border around highlighted comments
-                                               containing any of the searched texts.
---link-color COLOR                             The text color of HTML links.
---copy-text-success-color COLOR                The text color of a success message after copying
-                                               a comment to the clipboard.
---copy-text-failure-color COLOR                The text color of an error message after failing
-                                               to copy a comment to the clipboard.
+--text-color COLOR                         The text color of comments.
+--bg-color COLOR                           The background color of comments.
+--author-color COLOR                       The text color of the author of the comment.
+--replied-author-color COLOR               The text color of an author, of other comment,
+                                           appearing at the start of the comment.
+--other-author-color COLOR                 The text color of an author, of other comment,
+                                           appearing anywhere else but the start of the comment.
+--small-elements-color COLOR               The text color of small elements, such as
+                                           pinned comment, comment time, likes.
+--favorited-bg-color COLOR                 The background color of favorited by the
+                                           uploader of the video.
+--header-bg-color COLOR                    The background color of the header.
+--highlight-uploader-text-color COLOR      The text color of highlighted comments
+                                           written by the uploader of the video.
+--highlight-uploader-bg-color COLOR        The background color of highlighted comments
+                                           written by the uploader of the video.
+--highlight-uploader-border-color COLOR    The color of the border around highlighted comments
+                                           written by the uploader of the video.
+--highlight-author-text-color COLOR        The text color of highlighted comments
+                                           written by any of the searched authors.
+--highlight-author-bg-color COLOR          The background color of highlighted comments
+                                           written by any of the searched authors.
+--highlight-author-border-color COLOR      The color of the border around highlighted comments
+                                           written by any of the searched authors.
+--highlight-text-text-color COLOR          The text color of highlighted comments
+                                           containing any of the searched texts.
+--highlight-text-bg-color COLOR            The background color of highlighted comments
+                                           containing any of the searched texts.
+--highlight-text-border-color COLOR        The color of the border around highlighted comments
+                                           containing any of the searched texts.
+--link-color COLOR                         The text color of HTML links.
+--copy-text-success-color COLOR            The text color of a success message after copying
+                                           a comment to the clipboard.
+--copy-text-failure-color COLOR            The text color of an error message after failing
+                                           to copy a comment to the clipboard.
 ```
 
 The colors of the HTML elements are determined by light theme (default theme) or dark theme (`--dark-theme`).
@@ -583,7 +583,7 @@ The following are the colors of these themes.
             <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>#F1F1F1</td>
         </tr>
         <tr>
-            <td>Background<br /><code>--background-color</code></td>
+            <td>Background<br /><code>--bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>255, 255, 255</td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(255, 255, 255);'>#FFFFFF</td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(15, 15, 15);'>15, 15, 15</td>
@@ -618,14 +618,14 @@ The following are the colors of these themes.
             <td style='color: rgb(170, 170, 170); background-color: rgb(15, 15, 15);'>#AAAAAA</td>
         </tr>
         <tr>
-            <td>Favorited Background<br /><code>--favorited-background-color</code></td>
+            <td>Favorited Background<br /><code>--favorited-bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(229, 235, 238);'>229, 235, 238</td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(229, 235, 238);'>#E5EBEE</td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(96, 96, 96);'>96, 96, 96</td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(96, 96, 96);'>#606060</td>
         </tr>
         <tr>
-            <td>Header Background<br /><code>--header-background-color</code></td>
+            <td>Header Background<br /><code>--header-bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(242, 242, 242);'>242, 242, 242</td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(242, 242, 242);'>#F2F2F2</td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(39, 39, 39);'>39, 39, 39</td>
@@ -639,7 +639,7 @@ The following are the colors of these themes.
             <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>#F1F1F1</span></td>
         </tr>
         <tr>
-            <td>Highlight Uploader: Background<br /><code>--highlight-uploader-background-color</code></td>
+            <td>Highlight Uploader: Background<br /><code>--highlight-uploader-bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>255, 250, 238</span></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(255, 250, 238);'><span style='border: 1px solid rgb(183, 136, 0); padding: 10px;'>#FFFAEE</span></td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(140, 33, 23);'><span style='border: 1px solid rgb(252, 225, 150); padding: 10px;'>140, 33, 23</span></td>
@@ -660,7 +660,7 @@ The following are the colors of these themes.
             <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>#F1F1F1</span></td>
         </tr>
         <tr>
-            <td>Highlight Author: Background<br /><code>--highlight-author-background-color</code></td>
+            <td>Highlight Author: Background<br /><code>--highlight-author-bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>252, 241, 237</span></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(252, 241, 237);'><span style='border: 1px solid rgb(255, 67, 5); padding: 10px;'>#FCF1ED</span></td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(137, 57, 16);'><span style='border: 1px solid rgb(255, 165, 0); padding: 10px;'>137, 57, 16</span></td>
@@ -681,7 +681,7 @@ The following are the colors of these themes.
             <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>#F1F1F1</span></td>
         </tr>
         <tr>
-            <td>Highlight Text: Background<br /><code>--highlight-text-background-color</code></td>
+            <td>Highlight Text: Background<br /><code>--highlight-text-bg-color</code></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>231, 239, 252</span></td>
             <td style='color: rgb(15, 15, 15); background-color: rgb(231, 239, 252);'><span style='border: 1px solid rgb(34, 110, 233); padding: 10px;'>#E7EFFC</span></td>
             <td style='color: rgb(241, 241, 241); background-color: rgb(13, 57, 132);'><span style='border: 1px solid rgb(231, 239, 252); padding: 10px;'>13, 57, 132</span></td>
