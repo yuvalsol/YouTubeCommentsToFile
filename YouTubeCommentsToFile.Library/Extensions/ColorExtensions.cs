@@ -4,11 +4,6 @@ namespace System.Drawing;
 
 public static partial class ColorExtensions
 {
-    public static string HexA(this Color color)
-    {
-        return color.A.ToString("X2");
-    }
-
     public static string HexR(this Color color)
     {
         return color.R.ToString("X2");
@@ -24,27 +19,42 @@ public static partial class ColorExtensions
         return color.B.ToString("X2");
     }
 
+    public static string HexA(this Color color)
+    {
+        return color.A.ToString("X2");
+    }
+
+    private static string ToHexRGB(this Color color)
+    {
+        return $"{color.HexR()}{color.HexG()}{color.HexB()}";
+    }
+
     public static string ToHex(this Color color)
     {
-        return $"#{color.R:X2}{color.G:X2}{color.B:X2}";
+        return $"#{color.ToHexRGB()}";
     }
 
-    public static void ToHex(this Color color, out string hexR, out string hexG, out string hexB)
+    public static string ToAHex(this Color color)
     {
-        hexR = color.R.ToString("X2");
-        hexG = color.G.ToString("X2");
-        hexB = color.B.ToString("X2");
+        return $"#{color.HexA()}{color.ToHexRGB()}";
     }
 
-    public static string ToArgbHex(this Color color)
+    public static string ToHexA(this Color color)
     {
-        return $"#{color.A:X2}{color.R:X2}{color.G:X2}{color.B:X2}";
+        return $"#{color.ToHexRGB()}{color.HexA()}";
     }
 
-    public static void ToHex(this Color color, out string hexA, out string hexR, out string hexG, out string hexB)
+    public static void GetHex(this Color color, out string hexR, out string hexG, out string hexB)
     {
-        hexA = color.A.ToString("X2");
-        color.ToHex(out hexR, out hexG, out hexB);
+        hexR = color.HexR();
+        hexG = color.HexG();
+        hexB = color.HexB();
+    }
+
+    public static void GetHex(this Color color, out string hexR, out string hexG, out string hexB, out string hexA)
+    {
+        color.GetHex(out hexR, out hexG, out hexB);
+        hexA = color.HexA();
     }
 
     public static string ToRgb(this Color color)
@@ -54,29 +64,59 @@ public static partial class ColorExtensions
 
     public static string ToArgb(this Color color)
     {
-        return $"{color.A}, {color.R}, {color.G}, {color.B}";
+        return $"{color.A}, {color.ToRgb()}";
+    }
+
+    public static string ToRgba(this Color color)
+    {
+        return $"{color.ToRgb()}, {color.A}";
     }
 
     public static string ToHsl(this Color color)
     {
-        color.ToHsl(out float h, out float s, out float l);
-        return $"{h}, {s}, {l}";
+        return $"{color.GetHue()}, {color.GetSaturation()}, {color.GetBrightness()}";
     }
 
-    public static void ToHsl(this Color color, out float hue, out float saturation, out float lightness)
+    public static string ToAhsl(this Color color)
+    {
+        return $"{color.A}, {color.ToHsl()}";
+    }
+
+    public static string ToHsla(this Color color)
+    {
+        return $"{color.ToHsl()}, {color.A}";
+    }
+
+    public static void GetHsl(this Color color, out float hue, out float saturation, out float lightness)
     {
         hue = color.GetHue();
         saturation = color.GetSaturation();
         lightness = color.GetBrightness();
     }
 
-    public static string ToHsv(this Color color)
+    public static void GetHsl(this Color color, out float hue, out float saturation, out float lightness, out byte alpha)
     {
-        color.ToHsv(out double h, out double s, out double v);
-        return $"{h}, {s}, {v}";
+        color.GetHsl(out hue, out saturation, out lightness);
+        alpha = color.A;
     }
 
-    public static void ToHsv(this Color color, out double hue, out double saturation, out double value)
+    public static string ToHsv(this Color color)
+    {
+        color.GetHsv(out double hue, out double saturation, out double value);
+        return $"{hue}, {saturation}, {value}";
+    }
+
+    public static string ToAhsv(this Color color)
+    {
+        return $"{color.A}, {color.ToHsv()}";
+    }
+
+    public static string ToHsva(this Color color)
+    {
+        return $"{color.ToHsv()}, {color.A}";
+    }
+
+    public static void GetHsv(this Color color, out double hue, out double saturation, out double value)
     {
         // Normalize R, G, B values to the range 0-1
         var rNorm = color.R / 255.0;
@@ -118,5 +158,11 @@ public static partial class ColorExtensions
 
         // Calculate Value
         value = cmax;
+    }
+
+    public static void GetHsv(this Color color, out double hue, out double saturation, out double value, out byte alpha)
+    {
+        color.GetHsv(out hue, out saturation, out value);
+        alpha = color.A;
     }
 }
