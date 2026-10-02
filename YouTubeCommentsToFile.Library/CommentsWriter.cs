@@ -48,12 +48,12 @@ public partial class CommentsWriter(Settings settings)
 
     private static readonly Color TextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color BackgroundLightThemeColor = Color.White;
+    private static readonly Color HeaderBackgroundLightThemeColor = Color.FromArgb(242, 242, 242);
     private static readonly Color AuthorLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color RepliedAuthorLightThemeColor = Color.FromArgb(15, 128, 15);
     private static readonly Color OtherAuthorLightThemeColor = Color.FromArgb(128, 15, 255);
     private static readonly Color SmallElementsLightThemeColor = Color.FromArgb(96, 96, 96);
     private static readonly Color FavoritedBackgroundLightThemeColor = Color.FromArgb(229, 235, 238);
-    private static readonly Color HeaderBackgroundLightThemeColor = Color.FromArgb(242, 242, 242);
     private static readonly Color HighlightUploaderTextLightThemeColor = Color.FromArgb(15, 15, 15);
     private static readonly Color HighlightUploaderBackgroundLightThemeColor = Color.FromArgb(255, 250, 238);
     private static readonly Color HighlightUploaderBorderLightThemeColor = Color.FromArgb(183, 136, 0);
@@ -69,12 +69,12 @@ public partial class CommentsWriter(Settings settings)
 
     private static readonly Color TextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color BackgroundDarkThemeColor = Color.FromArgb(15, 15, 15);
+    private static readonly Color HeaderBackgroundDarkThemeColor = Color.FromArgb(39, 39, 39);
     private static readonly Color AuthorDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color RepliedAuthorDarkThemeColor = Color.FromArgb(15, 128, 15);
     private static readonly Color OtherAuthorDarkThemeColor = Color.FromArgb(191, 15, 255);
     private static readonly Color SmallElementsDarkThemeColor = Color.FromArgb(170, 170, 170);
     private static readonly Color FavoritedBackgroundDarkThemeColor = Color.FromArgb(96, 96, 96);
-    private static readonly Color HeaderBackgroundDarkThemeColor = Color.FromArgb(39, 39, 39);
     private static readonly Color HighlightUploaderTextDarkThemeColor = Color.FromArgb(241, 241, 241);
     private static readonly Color HighlightUploaderBackgroundDarkThemeColor = Color.FromArgb(140, 33, 23);
     private static readonly Color HighlightUploaderBorderDarkThemeColor = Color.FromArgb(252, 225, 150);
@@ -1292,49 +1292,59 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($@"{s4}<meta name=""article:published_time"" content=""{HttpUtility.HtmlAttributeEncode(processDateRoundTrip)}"" />");
             writer.WriteLine($"{s4}<style>");
             writer.WriteLine($"{s8}:root {{");
-            writer.WriteLine($"{s12}--text-color: rgb({(settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--bg-color: rgb({(settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--author-color: rgb({(settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--replied-author-color: rgb({(settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--other-author-color: rgb({(settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--small-elements-color: rgb({(settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--favorited-bg-color: rgb({(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--header-bg-color: rgb({(settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-uploader-text-color: rgb({(settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-uploader-bg-color: rgb({(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-uploader-border-color: rgb({(settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-author-text-color: rgb({(settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-author-bg-color: rgb({(settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-author-border-color: rgb({(settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-text-text-color: rgb({(settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-text-bg-color: rgb({(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--highlight-text-border-color: rgb({(settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--link-color: rgb({(settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor)).ToRgb()});");
-            writer.WriteLine($"{s12}--heart-color: rgb({HeartColor.ToRgb()});");
+            writer.WriteLine($"{s12}--text-color: {(settings.TextColor != null ? settings.TextColor.Value : (settings.DarkTheme ? TextDarkThemeColor : TextLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--bg-color: {(settings.BackgroundColor != null ? settings.BackgroundColor.Value : (settings.DarkTheme ? BackgroundDarkThemeColor : BackgroundLightThemeColor)).ToHex()};");
+            if (settings.CommentColor != null)
+                writer.WriteLine($"{s12}--comment-color: {settings.CommentColor.Value.ToHex()};");
+            if (settings.ReplyColor != null)
+                writer.WriteLine($"{s12}--reply-color: {settings.ReplyColor.Value.ToHex()};");
+            else if (settings.CommentColor != null)
+                writer.WriteLine($"{s12}--reply-color: {settings.CommentColor.Value.ToHex()};");
+            if (settings.HeaderTextColor != null)
+                writer.WriteLine($"{s12}--header-text-color: {settings.HeaderTextColor.Value.ToHex()};");
+            writer.WriteLine($"{s12}--header-bg-color: {(settings.HeaderBackgroundColor != null ? settings.HeaderBackgroundColor.Value : (settings.DarkTheme ? HeaderBackgroundDarkThemeColor : HeaderBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--author-color: {(settings.AuthorColor != null ? settings.AuthorColor.Value : (settings.DarkTheme ? AuthorDarkThemeColor : AuthorLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--replied-author-color: {(settings.RepliedAuthorColor != null ? settings.RepliedAuthorColor.Value : (settings.DarkTheme ? RepliedAuthorDarkThemeColor : RepliedAuthorLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--other-author-color: {(settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--small-elements-color: {(settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--favorited-bg-color: {(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-uploader-text-color: {(settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-uploader-bg-color: {(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-uploader-border-color: {(settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-author-text-color: {(settings.HighlightAuthorTextColor != null ? settings.HighlightAuthorTextColor.Value : (settings.DarkTheme ? HighlightAuthorTextDarkThemeColor : HighlightAuthorTextLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-author-bg-color: {(settings.HighlightAuthorBackgroundColor != null ? settings.HighlightAuthorBackgroundColor.Value : (settings.DarkTheme ? HighlightAuthorBackgroundDarkThemeColor : HighlightAuthorBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-author-border-color: {(settings.HighlightAuthorBorderColor != null ? settings.HighlightAuthorBorderColor.Value : (settings.DarkTheme ? HighlightAuthorBorderDarkThemeColor : HighlightAuthorBorderLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-text-text-color: {(settings.HighlightTextTextColor != null ? settings.HighlightTextTextColor.Value : (settings.DarkTheme ? HighlightTextTextDarkThemeColor : HighlightTextTextLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-text-bg-color: {(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--highlight-text-border-color: {(settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--link-color: {(settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--heart-color: {HeartColor.ToHex()};");
             if (settings.ShowCopyLinks)
             {
-                writer.WriteLine($"{s12}--copy-text-success-color: rgb({(settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor)).ToRgb()});");
-                writer.WriteLine($"{s12}--copy-text-failure-color: rgb({(settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor)).ToRgb()});");
+                writer.WriteLine($"{s12}--copy-text-success-color: {(settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor)).ToHex()};");
+                writer.WriteLine($"{s12}--copy-text-failure-color: {(settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor)).ToHex()};");
             }
             writer.WriteLine($"{s8}}}");
             writer.WriteLine($@"{s8}* {{ font-family: ""Cascadia Mono"", ""Courier New"", Courier, monospace; }}");
             writer.WriteLine($"{s8}html, body {{ color: var(--text-color); background-color: var(--bg-color); line-height: 1; }}");
             writer.WriteLine($"{s8}pre * {{ display: inline-block; }}");
-            writer.WriteLine($"{s8}a:link {{ color: var(--link-color); }}");
             writer.WriteLine($"{s8}hr {{ margin: 0 0; }}");
+            writer.WriteLine($"{s8}a:link {{ color: var(--link-color); }}");
+            writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
             var widthsCh =
                 comments.SelectMany(comment => GetHighlightWidthCh(comment, indentSize, textLineLength, indentCount: 0, writeToHTML))
                 .Append(textLineLength)
                 .Distinct()
                 .OrderBy(widthCh => widthCh);
             foreach (var widthCh in widthsCh)
-                writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? $"{(settings.HideCommentSeparators ? null : ", hr")}{(settings.HideHeader ? null : ", .header")}" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
-            writer.WriteLine($"{s8}.header {{ background-color: var(--header-bg-color); padding-top: 2px; padding-bottom: 2px; }}");
-            writer.WriteLine($"{s8}.comment {{ }}");
-            writer.WriteLine($"{s8}.reply {{ }}");
-            writer.WriteLine($"{s8}.rtl {{ direction: rtl; }}");
+                writer.WriteLine($"{s8}.width-{widthCh}{(widthCh == textLineLength ? ", hr, .header" : null)} {{ min-width: {widthCh}ch; max-width: {widthCh}ch; }}");
+            if (settings.CommentColor != null)
+                writer.WriteLine($"{s8}.comment {{ color: var(--comment-color); }}");
+            if (settings.ReplyColor != null || settings.CommentColor != null)
+                writer.WriteLine($"{s8}.reply {{ color: var(--reply-color); }}");
+            writer.WriteLine($"{s8}.header {{ {(settings.HeaderTextColor != null ? "color: var(--header-text-color); " : null)}background-color: var(--header-bg-color); padding-top: 2px; padding-bottom: 2px; }}");
             foreach (var sa in SpecialAuthor.SpecialAuthors.Where(sa => comments.HasAny(c => sa.IsSpecialAuthor(c))))
-                writer.WriteLine($"{s8}.{sa.Class} {{ color: rgb({sa.Color.ToRgb()}); background-color: rgb({sa.BackgroundColor.ToRgb()}); font-weight: bold; padding: 0px 6px 0px 6px; }}");
+                writer.WriteLine($"{s8}.{sa.Class} {{ color: {sa.Color.ToHex()}; background-color: {sa.BackgroundColor.ToHex()}; font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.uploader {{ color: var(--bg-color); background-color: var(--text-color); font-weight: bold; padding: 0px 6px 0px 6px; }}");
             writer.WriteLine($"{s8}.author {{ color: var(--author-color); font-weight: bold; }}");
             writer.WriteLine($"{s8}.replied-author {{ color: var(--replied-author-color); font-weight: bold; }}");
@@ -1349,11 +1359,11 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.highlight-border-top {{ border-bottom: none; padding-top: 1px; }}");
             writer.WriteLine($"{s8}.highlight-border-middle {{ border-top: none; border-bottom: none; }}");
             writer.WriteLine($"{s8}.highlight-border-bottom {{ border-top: none; margin-bottom: 1px; }}");
-            writer.WriteLine($"{s8}.comment-link {{ font-size: smaller; }}");
-            writer.WriteLine($"{s8}.nav-comment {{ }}");
             writer.WriteLine($"{s8}.link {{ text-decoration: none; }}");
             writer.WriteLine($"{s8}.link:link, .link:visited {{ color: var(--link-color); }}");
             writer.WriteLine($"{s8}.disabled-link {{ color: var(--link-color); pointer-events: none; cursor: default; opacity: 0.5; }}");
+            writer.WriteLine($"{s8}.nav-comment {{ }}");
+            writer.WriteLine($"{s8}.comment-link {{ font-size: smaller; }}");
             if (settings.ShowCopyLinks)
             {
                 writer.WriteLine($"{s8}.copy-text {{ color: var(--link-color); font-size: smaller; cursor: pointer; }}");

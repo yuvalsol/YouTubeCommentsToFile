@@ -77,12 +77,15 @@ public class Settings
     // HTML Colors
     public Color? TextColor { get; set; }
     public Color? BackgroundColor { get; set; }
+    public Color? CommentColor { get; set; }
+    public Color? ReplyColor { get; set; }
+    public Color? HeaderTextColor { get; set; }
+    public Color? HeaderBackgroundColor { get; set; }
     public Color? AuthorColor { get; set; }
     public Color? RepliedAuthorColor { get; set; }
     public Color? OtherAuthorColor { get; set; }
     public Color? SmallElementsColor { get; set; }
     public Color? FavoritedBackgroundColor { get; set; }
-    public Color? HeaderBackgroundColor { get; set; }
     public Color? HighlightUploaderTextColor { get; set; }
     public Color? HighlightUploaderBackgroundColor { get; set; }
     public Color? HighlightUploaderBorderColor { get; set; }

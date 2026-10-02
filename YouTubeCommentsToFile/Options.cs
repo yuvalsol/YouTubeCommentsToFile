@@ -313,84 +313,96 @@ internal interface IEncodingOptions : IYouTubeCommentsToFileOptions
 [OptionPrecedence(8)]
 internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
 {
-    [Option("text-color", MetaValue = "COLOR", HelpText = "The text color of comments.")]
+    [Option("text-color", MetaValue = "COLOR", HelpText = "The text color of the page.")]
     [OptionPrecedence(1)]
     string TextColor { get; set; }
 
-    [Option("bg-color", MetaValue = "COLOR", HelpText = "The background color of comments.")]
+    [Option("bg-color", MetaValue = "COLOR", HelpText = "The background color of the page.")]
     [OptionPrecedence(2)]
     string BackgroundColor { get; set; }
 
-    [Option("author-color", MetaValue = "COLOR", HelpText = "The text color of the author of the comment.")]
+    [Option("comment-color", MetaValue = "COLOR", HelpText = "The text color of the top-level comments and replies.")]
     [OptionPrecedence(3)]
+    string CommentColor { get; set; }
+
+    [Option("reply-color", MetaValue = "COLOR", HelpText = "The text color of the replies.")]
+    [OptionPrecedence(4)]
+    string ReplyColor { get; set; }
+
+    [Option("header-text-color", MetaValue = "COLOR", HelpText = "The text color of the header.")]
+    [OptionPrecedence(5)]
+    string HeaderTextColor { get; set; }
+
+    [Option("header-bg-color", MetaValue = "COLOR", HelpText = "The background color of the header.")]
+    [OptionPrecedence(6)]
+    string HeaderBackgroundColor { get; set; }
+
+    [Option("author-color", MetaValue = "COLOR", HelpText = "The text color of the author of the comment.")]
+    [OptionPrecedence(7)]
     string AuthorColor { get; set; }
 
     [Option("replied-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
-    [OptionPrecedence(4)]
+    [OptionPrecedence(8)]
     string RepliedAuthorColor { get; set; }
 
     [Option("other-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
-    [OptionPrecedence(5)]
+    [OptionPrecedence(9)]
     string OtherAuthorColor { get; set; }
 
     [Option("small-elements-color", MetaValue = "COLOR", HelpText = "The text color of small elements, such as pinned comment, comment time, likes.")]
-    [OptionPrecedence(6)]
+    [OptionPrecedence(10)]
     string SmallElementsColor { get; set; }
 
     [Option("favorited-bg-color", MetaValue = "COLOR", HelpText = "The background color of favorited by the uploader of the video.")]
-    [OptionPrecedence(7)]
+    [OptionPrecedence(11)]
     string FavoritedBackgroundColor { get; set; }
 
-    [Option("header-bg-color", MetaValue = "COLOR", HelpText = "The background color of the header.")]
-    [OptionPrecedence(8)]
-    string HeaderBackgroundColor { get; set; }
-
     [Option("highlight-uploader-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(9)]
+    [OptionPrecedence(12)]
     string HighlightUploaderTextColor { get; set; }
 
     [Option("highlight-uploader-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(10)]
+    [OptionPrecedence(13)]
     string HighlightUploaderBackgroundColor { get; set; }
 
     [Option("highlight-uploader-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments written by the uploader of the video.")]
-    [OptionPrecedence(11)]
+    [OptionPrecedence(14)]
     string HighlightUploaderBorderColor { get; set; }
 
     [Option("highlight-author-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(12)]
+    [OptionPrecedence(15)]
     string HighlightAuthorTextColor { get; set; }
 
     [Option("highlight-author-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(13)]
+    [OptionPrecedence(16)]
     string HighlightAuthorBackgroundColor { get; set; }
 
     [Option("highlight-author-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments written by any of the searched authors.")]
-    [OptionPrecedence(14)]
+    [OptionPrecedence(17)]
     string HighlightAuthorBorderColor { get; set; }
 
     [Option("highlight-text-text-color", MetaValue = "COLOR", HelpText = "The text color of highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(15)]
+    [OptionPrecedence(18)]
     string HighlightTextTextColor { get; set; }
 
     [Option("highlight-text-bg-color", MetaValue = "COLOR", HelpText = "The background color of highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(16)]
+    [OptionPrecedence(19)]
     string HighlightTextBackgroundColor { get; set; }
 
     [Option("highlight-text-border-color", MetaValue = "COLOR", HelpText = "The color of the border around highlighted comments containing any of the searched texts.")]
-    [OptionPrecedence(17)]
+    [OptionPrecedence(20)]
     string HighlightTextBorderColor { get; set; }
 
     [Option("link-color", MetaValue = "COLOR", HelpText = "The text color of HTML links.")]
-    [OptionPrecedence(18)]
+    [OptionPrecedence(21)]
     string LinkColor { get; set; }
 
     [Option("copy-text-success-color", MetaValue = "COLOR", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
-    [OptionPrecedence(19)]
+    [OptionPrecedence(22)]
     string CopyTextSuccessColor { get; set; }
 
     [Option("copy-text-failure-color", MetaValue = "COLOR", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
-    [OptionPrecedence(20)]
+    [OptionPrecedence(23)]
     string CopyTextFailureColor { get; set; }
 }
 
@@ -861,12 +873,15 @@ internal abstract class SharedOptions :
     // HTML Colors
     public string TextColor { get; set; }
     public string BackgroundColor { get; set; }
+    public string CommentColor { get; set; }
+    public string ReplyColor { get; set; }
+    public string HeaderTextColor { get; set; }
+    public string HeaderBackgroundColor { get; set; }
     public string AuthorColor { get; set; }
     public string RepliedAuthorColor { get; set; }
     public string OtherAuthorColor { get; set; }
     public string SmallElementsColor { get; set; }
     public string FavoritedBackgroundColor { get; set; }
-    public string HeaderBackgroundColor { get; set; }
     public string HighlightUploaderTextColor { get; set; }
     public string HighlightUploaderBackgroundColor { get; set; }
     public string HighlightUploaderBorderColor { get; set; }
@@ -963,12 +978,15 @@ internal abstract class SharedOptions :
             // HTML Colors
             TextColor = ColorHelper.StringToColor(TextColor),
             BackgroundColor = ColorHelper.StringToColor(BackgroundColor),
+            CommentColor = ColorHelper.StringToColor(CommentColor),
+            ReplyColor = ColorHelper.StringToColor(ReplyColor),
+            HeaderTextColor = ColorHelper.StringToColor(HeaderTextColor),
+            HeaderBackgroundColor = ColorHelper.StringToColor(HeaderBackgroundColor),
             AuthorColor = ColorHelper.StringToColor(AuthorColor),
             RepliedAuthorColor = ColorHelper.StringToColor(RepliedAuthorColor),
             OtherAuthorColor = ColorHelper.StringToColor(OtherAuthorColor),
             SmallElementsColor = ColorHelper.StringToColor(SmallElementsColor),
             FavoritedBackgroundColor = ColorHelper.StringToColor(FavoritedBackgroundColor),
-            HeaderBackgroundColor = ColorHelper.StringToColor(HeaderBackgroundColor),
             HighlightUploaderTextColor = ColorHelper.StringToColor(HighlightUploaderTextColor),
             HighlightUploaderBackgroundColor = ColorHelper.StringToColor(HighlightUploaderBackgroundColor),
             HighlightUploaderBorderColor = ColorHelper.StringToColor(HighlightUploaderBorderColor),
@@ -1157,12 +1175,15 @@ internal abstract class SharedOptions :
         // HTML Colors
         if (string.IsNullOrEmpty(TextColor)) TextColor = options.TextColor;
         if (string.IsNullOrEmpty(BackgroundColor)) BackgroundColor = options.BackgroundColor;
+        if (string.IsNullOrEmpty(CommentColor)) CommentColor = options.CommentColor;
+        if (string.IsNullOrEmpty(ReplyColor)) ReplyColor = options.ReplyColor;
+        if (string.IsNullOrEmpty(HeaderTextColor)) HeaderTextColor = options.HeaderTextColor;
+        if (string.IsNullOrEmpty(HeaderBackgroundColor)) HeaderBackgroundColor = options.HeaderBackgroundColor;
         if (string.IsNullOrEmpty(AuthorColor)) AuthorColor = options.AuthorColor;
         if (string.IsNullOrEmpty(RepliedAuthorColor)) RepliedAuthorColor = options.RepliedAuthorColor;
         if (string.IsNullOrEmpty(OtherAuthorColor)) OtherAuthorColor = options.OtherAuthorColor;
         if (string.IsNullOrEmpty(SmallElementsColor)) SmallElementsColor = options.SmallElementsColor;
         if (string.IsNullOrEmpty(FavoritedBackgroundColor)) FavoritedBackgroundColor = options.FavoritedBackgroundColor;
-        if (string.IsNullOrEmpty(HeaderBackgroundColor)) HeaderBackgroundColor = options.HeaderBackgroundColor;
         if (string.IsNullOrEmpty(HighlightUploaderTextColor)) HighlightUploaderTextColor = options.HighlightUploaderTextColor;
         if (string.IsNullOrEmpty(HighlightUploaderBackgroundColor)) HighlightUploaderBackgroundColor = options.HighlightUploaderBackgroundColor;
         if (string.IsNullOrEmpty(HighlightUploaderBorderColor)) HighlightUploaderBorderColor = options.HighlightUploaderBorderColor;
@@ -1310,12 +1331,15 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
 {
     public string TextColor { get; set; }
     public string BackgroundColor { get; set; }
+    public string CommentColor { get; set; }
+    public string ReplyColor { get; set; }
+    public string HeaderTextColor { get; set; }
+    public string HeaderBackgroundColor { get; set; }
     public string AuthorColor { get; set; }
     public string RepliedAuthorColor { get; set; }
     public string OtherAuthorColor { get; set; }
     public string SmallElementsColor { get; set; }
     public string FavoritedBackgroundColor { get; set; }
-    public string HeaderBackgroundColor { get; set; }
     public string HighlightUploaderTextColor { get; set; }
     public string HighlightUploaderBackgroundColor { get; set; }
     public string HighlightUploaderBorderColor { get; set; }

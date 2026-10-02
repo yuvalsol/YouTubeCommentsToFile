@@ -181,11 +181,11 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
         if (isTextHighlight)
             lineCh -= 4; // "│ " + line + " │"
 
-        string highlightClass = (isHTMLHighlight ? (IsHighlightUploader ? "highlight-uploader" : (IsHighlightAuthor ? "highlight-author" : "highlight-text")) : null);
-        string openHighlightBorderTop = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-top width-{lineCh}"">" : null);
-        string openHighlightBorderMiddle = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-middle width-{lineCh}"">" : null);
-        string openHighlightBorderBottom = (isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-bottom width-{lineCh}"">" : null);
-        string closeHighlightBorder = (isHTMLHighlight ? "</span>" : null);
+        string highlightClass = (isHTMLHighlight ?
+            (IsHighlightUploader ? "highlight-uploader" :
+            (IsHighlightAuthor ? "highlight-author" :
+            (IsHighlightText ? "highlight-text" :
+            null))) : null);
 
         string id = (writeToHTML ? $"c{CommentNumber}{(IsReply ? $"r{ReplyNumber}" : null)}" : null);
 
@@ -255,7 +255,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
             if (settings.ShowCopyLinks)
                 copyText = $@" <span class=""copy-text"" data-id=""{id}"" title=""Copy {(IsReply ? "Reply" : "Comment")} To Clipboard"">Copy</span>";
 
-            yield return $"{openHighlightBorderTop}{author}{time}{commentLink}{copyText}{closeHighlightBorder}";
+            yield return $"{(isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-top width-{lineCh}"">" : null)}{author}{time}{commentLink}{copyText}{(isHTMLHighlight ? "</span>" : null)}";
         }
         else
         {
@@ -304,7 +304,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                     if (isHTMLHighlight && lineLength == 0)
                         line = " ";
 
-                    yield return $@"{(ShowLikes(settings) == false && i + 1 == lines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class=""{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{line.ToHtml(url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>{closeHighlightBorder}";
+                    yield return $@"<span class=""{(IsReply ? "reply" : "comment")}{(isHTMLHighlight ? $" {highlightClass} {(ShowLikes(settings) == false && i + 1 == lines.Length ? "highlight-border-bottom" : "highlight-border-middle")}" : null)}{(isLineRTL ? " rtl" : null)}{(isHTMLHighlight || isLineRTL ? $" width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{line.ToHtml(url, websiteInfo.HashtagURL, websiteInfo.IsSupportHashtagWithSpace, websiteInfo.IsToLowerCaseHashtag, checkForRepliedAuthor: i == 0, allAuthors)}</span>";
                 }
                 else
                 {
@@ -331,7 +331,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
                         if (isHTMLHighlight && innerLine.Length == 0)
                             innerLine = " ";
 
-                        yield return $@"{(ShowLikes(settings) == false && i + 1 == lines.Length && k + 1 == innerLines.Length ? openHighlightBorderBottom : openHighlightBorderMiddle)}<span class=""{(IsReply ? "reply" : "comment")}{(isLineRTL ? $" rtl width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{innerLine}</span>{closeHighlightBorder}";
+                        yield return $@"<span class=""{(IsReply ? "reply" : "comment")}{(isHTMLHighlight ? $" {highlightClass} {(ShowLikes(settings) == false && i + 1 == lines.Length && k + 1 == innerLines.Length ? "highlight-border-bottom" : "highlight-border-middle")}" : null)}{(isLineRTL ? " rtl" : null)}{(isHTMLHighlight || isLineRTL ? $" width-{lineCh}" : null)}""{(settings.ShowCopyLinks ? $@" data-id=""{id}""" : null)}>{innerLine}</span>";
                     }
                 }
                 else
@@ -360,7 +360,7 @@ internal abstract partial class Comment : ICollection<Comment>, IComparable<Comm
 
             if (writeToHTML)
             {
-                yield return $@"{openHighlightBorderBottom}<span class=""likes"">{HttpUtility.HtmlEncode(line)}</span>{closeHighlightBorder}";
+                yield return $@"{(isHTMLHighlight ? $@"<span class=""{highlightClass} highlight-border-bottom width-{lineCh}"">" : null)}<span class=""likes"">{HttpUtility.HtmlEncode(line)}</span>{(isHTMLHighlight ? "</span>" : null)}";
             }
             else
             {
