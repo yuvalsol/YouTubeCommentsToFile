@@ -1308,6 +1308,7 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s12}--other-author-color: {(settings.OtherAuthorColor != null ? settings.OtherAuthorColor.Value : (settings.DarkTheme ? OtherAuthorDarkThemeColor : OtherAuthorLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--small-elements-color: {(settings.SmallElementsColor != null ? settings.SmallElementsColor.Value : (settings.DarkTheme ? SmallElementsDarkThemeColor : SmallElementsLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--favorited-bg-color: {(settings.FavoritedBackgroundColor != null ? settings.FavoritedBackgroundColor.Value : (settings.DarkTheme ? FavoritedBackgroundDarkThemeColor : FavoritedBackgroundLightThemeColor)).ToHex()};");
+            writer.WriteLine($"{s12}--heart-color: {HeartColor.ToHex()};");
             writer.WriteLine($"{s12}--highlight-uploader-text-color: {(settings.HighlightUploaderTextColor != null ? settings.HighlightUploaderTextColor.Value : (settings.DarkTheme ? HighlightUploaderTextDarkThemeColor : HighlightUploaderTextLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--highlight-uploader-bg-color: {(settings.HighlightUploaderBackgroundColor != null ? settings.HighlightUploaderBackgroundColor.Value : (settings.DarkTheme ? HighlightUploaderBackgroundDarkThemeColor : HighlightUploaderBackgroundLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--highlight-uploader-border-color: {(settings.HighlightUploaderBorderColor != null ? settings.HighlightUploaderBorderColor.Value : (settings.DarkTheme ? HighlightUploaderBorderDarkThemeColor : HighlightUploaderBorderLightThemeColor)).ToHex()};");
@@ -1318,9 +1319,14 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s12}--highlight-text-bg-color: {(settings.HighlightTextBackgroundColor != null ? settings.HighlightTextBackgroundColor.Value : (settings.DarkTheme ? HighlightTextBackgroundDarkThemeColor : HighlightTextBackgroundLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--highlight-text-border-color: {(settings.HighlightTextBorderColor != null ? settings.HighlightTextBorderColor.Value : (settings.DarkTheme ? HighlightTextBorderDarkThemeColor : HighlightTextBorderLightThemeColor)).ToHex()};");
             writer.WriteLine($"{s12}--link-color: {(settings.LinkColor != null ? settings.LinkColor.Value : (settings.DarkTheme ? LinkDarkThemeColor : LinkLightThemeColor)).ToHex()};");
-            writer.WriteLine($"{s12}--heart-color: {HeartColor.ToHex()};");
+            if (settings.CommentNavigationLinkColor != null)
+                writer.WriteLine($"{s12}--comment-navigation-link-color: {settings.CommentNavigationLinkColor.Value.ToHex()};");
+            if (settings.CommentLinkColor != null)
+                writer.WriteLine($"{s12}--comment-link-color: {settings.CommentLinkColor.Value.ToHex()};");
             if (settings.ShowCopyLinks)
             {
+                if (settings.CopyTextColor != null)
+                    writer.WriteLine($"{s12}--copy-text-color: {settings.CopyTextColor.Value.ToHex()};");
                 writer.WriteLine($"{s12}--copy-text-success-color: {(settings.CopyTextSuccessColor != null ? settings.CopyTextSuccessColor.Value : (settings.DarkTheme ? CopyTextSuccessDarkThemeColor : CopyTextSuccessLightThemeColor)).ToHex()};");
                 writer.WriteLine($"{s12}--copy-text-failure-color: {(settings.CopyTextFailureColor != null ? settings.CopyTextFailureColor.Value : (settings.DarkTheme ? CopyTextFailureDarkThemeColor : CopyTextFailureLightThemeColor)).ToHex()};");
             }
@@ -1362,11 +1368,11 @@ public partial class CommentsWriter(Settings settings)
             writer.WriteLine($"{s8}.link {{ text-decoration: none; }}");
             writer.WriteLine($"{s8}.link:link, .link:visited {{ color: var(--link-color); }}");
             writer.WriteLine($"{s8}.disabled-link {{ color: var(--link-color); pointer-events: none; cursor: default; opacity: 0.5; }}");
-            writer.WriteLine($"{s8}.nav-comment {{ }}");
-            writer.WriteLine($"{s8}.comment-link {{ font-size: smaller; }}");
+            writer.WriteLine($"{s8}.comment-navigation-link {{ color: var({(settings.CommentNavigationLinkColor != null ? "--comment-navigation-link-color" : "--link-color")}); }}");
+            writer.WriteLine($"{s8}.comment-link {{ color: var({(settings.CommentLinkColor != null ? "--comment-link-color" : "--link-color")}); font-size: smaller; }}");
             if (settings.ShowCopyLinks)
             {
-                writer.WriteLine($"{s8}.copy-text {{ color: var(--link-color); font-size: smaller; cursor: pointer; }}");
+                writer.WriteLine($"{s8}.copy-text {{ color: var({(settings.CopyTextColor != null ? "--copy-text-color" : "--link-color")}); font-size: smaller; cursor: pointer; }}");
                 writer.WriteLine($"{s8}.copy-text-success {{ color: var(--copy-text-success-color); }}");
                 writer.WriteLine($"{s8}.copy-text-failure {{ color: var(--copy-text-failure-color); }}");
                 writer.WriteLine($"{s8}.copy-text-success, .copy-text-failure {{ font-weight: bold; pointer-events: none; cursor: default; }}");
@@ -1675,13 +1681,13 @@ public partial class CommentsWriter(Settings settings)
                 if ((isFirstComment && isLastComment) == false)
                 {
                     string prev = (isFirstComment ?
-                        $@"<a class=""link disabled-link""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>" :
-                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber - 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Previous Comment #{comment.CommentNumber - 1}")}""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>"
+                        $@"<a class=""link disabled-link""><span class=""comment-navigation-link"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>" :
+                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber - 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Previous Comment #{comment.CommentNumber - 1}")}""><span class=""comment-navigation-link"">{HttpUtility.HtmlEncode("↑ Prev")}</span></a>"
                     );
 
                     string next = (isLastComment ?
-                        $@"<a class=""link disabled-link""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>" :
-                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber + 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Next Comment #{comment.CommentNumber + 1}")}""><span class=""nav-comment"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>"
+                        $@"<a class=""link disabled-link""><span class=""comment-navigation-link"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>" :
+                        $@"<a class=""link"" href=""{HttpUtility.HtmlAttributeEncode($"#c{comment.CommentNumber + 1}")}"" title=""{HttpUtility.HtmlAttributeEncode($"Next Comment #{comment.CommentNumber + 1}")}""><span class=""comment-navigation-link"">{HttpUtility.HtmlEncode("↓ Next")}</span></a>"
                     );
 
                     writer.WriteLine($"{next}  {prev}");

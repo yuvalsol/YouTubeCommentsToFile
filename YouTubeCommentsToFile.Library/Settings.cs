@@ -96,6 +96,9 @@ public class Settings
     public Color? HighlightTextBackgroundColor { get; set; }
     public Color? HighlightTextBorderColor { get; set; }
     public Color? LinkColor { get; set; }
+    public Color? CommentNavigationLinkColor { get; set; }
+    public Color? CommentLinkColor { get; set; }
+    public Color? CopyTextColor { get; set; }
     public Color? CopyTextSuccessColor { get; set; }
     public Color? CopyTextFailureColor { get; set; }
 

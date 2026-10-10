@@ -522,15 +522,16 @@ These options set the colors of various HTML elements. A color value can be a kn
 ```console
 --text-color COLOR                         The text color of the page.
 --bg-color COLOR                           The background color of the page.
---comment-color COLOR                      The text color of the top-level comments and replies.
+--comment-color COLOR                      The text color of the top-level comments
+                                           and replies.
 --reply-color COLOR                        The text color of the replies.
 --header-text-color COLOR                  The text color of the header.
 --header-bg-color COLOR                    The background color of the header.
 --author-color COLOR                       The text color of the author of the comment.
---replied-author-color COLOR               The text color of an author, of other comment,
-                                           appearing at the start of the comment.
---other-author-color COLOR                 The text color of an author, of other comment,
-                                           appearing anywhere else but the start of the comment.
+--replied-author-color COLOR               The text color of the author that replied to the
+                                           comment, appearing at the start of the comment.
+--other-author-color COLOR                 The text color of other author, appearing
+                                           anywhere else but the start of the comment.
 --small-elements-color COLOR               The text color of small elements, such as
                                            pinned comment, comment time, likes.
 --favorited-bg-color COLOR                 The background color of favorited by the
@@ -539,25 +540,30 @@ These options set the colors of various HTML elements. A color value can be a kn
                                            written by the uploader of the video.
 --highlight-uploader-bg-color COLOR        The background color of highlighted comments
                                            written by the uploader of the video.
---highlight-uploader-border-color COLOR    The color of the border around highlighted comments
-                                           written by the uploader of the video.
+--highlight-uploader-border-color COLOR    The color of the border around highlighted
+                                           comments written by the uploader of the video.
 --highlight-author-text-color COLOR        The text color of highlighted comments
                                            written by any of the searched authors.
 --highlight-author-bg-color COLOR          The background color of highlighted comments
                                            written by any of the searched authors.
---highlight-author-border-color COLOR      The color of the border around highlighted comments
-                                           written by any of the searched authors.
+--highlight-author-border-color COLOR      The color of the border around highlighted
+                                           comments written by any of the searched authors.
 --highlight-text-text-color COLOR          The text color of highlighted comments
                                            containing any of the searched texts.
 --highlight-text-bg-color COLOR            The background color of highlighted comments
                                            containing any of the searched texts.
---highlight-text-border-color COLOR        The color of the border around highlighted comments
-                                           containing any of the searched texts.
+--highlight-text-border-color COLOR        The color of the border around highlighted
+                                           comments containing any of the searched texts.
 --link-color COLOR                         The text color of HTML links.
---copy-text-success-color COLOR            The text color of a success message after copying
-                                           a comment to the clipboard.
---copy-text-failure-color COLOR            The text color of an error message after failing
-                                           to copy a comment to the clipboard.
+--comment-navigation-link-color COLOR      The text color of next comment and previous
+                                           comment navigation links.
+--comment-link-color COLOR                 The text color of links to comments and replies.
+--copy-text-color COLOR                    The text color of copy text links for comments
+                                           and replies.
+--copy-text-success-color COLOR            The text color of a success message after
+                                           copying a comment to the clipboard.
+--copy-text-failure-color COLOR            The text color of an error message after
+                                           failing to copy a comment to the clipboard.
 ```
 
 The colors of the HTML elements are determined by light theme (default theme) or dark theme (`--dark-theme`).
@@ -721,6 +727,27 @@ The following are the colors of these themes.
         </tr>
         <tr>
             <td style='background-color: #FFFFFF;'>Link<br /><code>--link-color</code></td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>0, 0, 238</td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>#0000EE</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>62, 166, 255</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>#3EA6FF</td>
+        </tr>
+        <tr>
+            <td style='background-color: #FFFFFF;'>Comment Navigation Link<br /><code>--comment-navigation-link-color</code></td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>0, 0, 238</td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>#0000EE</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>62, 166, 255</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>#3EA6FF</td>
+        </tr>
+        <tr>
+            <td style='background-color: #FFFFFF;'>Comment Link<br /><code>--comment-link-color</code></td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>0, 0, 238</td>
+            <td style='color: #0000EE; background-color: #FFFFFF;'>#0000EE</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>62, 166, 255</td>
+            <td style='color: #3EA6FF; background-color: #0F0F0F;'>#3EA6FF</td>
+        </tr>
+        <tr>
+            <td style='background-color: #FFFFFF;'>Copy Text<br /><code>--copy-text-color</code></td>
             <td style='color: #0000EE; background-color: #FFFFFF;'>0, 0, 238</td>
             <td style='color: #0000EE; background-color: #FFFFFF;'>#0000EE</td>
             <td style='color: #3EA6FF; background-color: #0F0F0F;'>62, 166, 255</td>

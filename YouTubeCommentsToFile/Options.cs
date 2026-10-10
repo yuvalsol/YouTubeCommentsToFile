@@ -341,11 +341,11 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(7)]
     string AuthorColor { get; set; }
 
-    [Option("replied-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing at the start of the comment.")]
+    [Option("replied-author-color", MetaValue = "COLOR", HelpText = "The text color of the author that replied to the comment, appearing at the start of the comment.")]
     [OptionPrecedence(8)]
     string RepliedAuthorColor { get; set; }
 
-    [Option("other-author-color", MetaValue = "COLOR", HelpText = "The text color of an author, of other comment, appearing anywhere else but the start of the comment.")]
+    [Option("other-author-color", MetaValue = "COLOR", HelpText = "The text color of other author, appearing anywhere else but the start of the comment.")]
     [OptionPrecedence(9)]
     string OtherAuthorColor { get; set; }
 
@@ -397,12 +397,24 @@ internal interface IHTMLColorsOptions : IYouTubeCommentsToFileOptions
     [OptionPrecedence(21)]
     string LinkColor { get; set; }
 
-    [Option("copy-text-success-color", MetaValue = "COLOR", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
+    [Option("comment-navigation-link-color", MetaValue = "COLOR", HelpText = "The text color of next comment and previous comment navigation links.")]
     [OptionPrecedence(22)]
+    string CommentNavigationLinkColor { get; set; }
+
+    [Option("comment-link-color", MetaValue = "COLOR", HelpText = "The text color of links to comments and replies.")]
+    [OptionPrecedence(23)]
+    string CommentLinkColor { get; set; }
+
+    [Option("copy-text-color", MetaValue = "COLOR", HelpText = "The text color of copy text links for comments and replies.")]
+    [OptionPrecedence(24)]
+    string CopyTextColor { get; set; }
+
+    [Option("copy-text-success-color", MetaValue = "COLOR", HelpText = "The text color of a success message after copying a comment to the clipboard.")]
+    [OptionPrecedence(25)]
     string CopyTextSuccessColor { get; set; }
 
     [Option("copy-text-failure-color", MetaValue = "COLOR", HelpText = "The text color of an error message after failing to copy a comment to the clipboard.")]
-    [OptionPrecedence(23)]
+    [OptionPrecedence(26)]
     string CopyTextFailureColor { get; set; }
 }
 
@@ -892,6 +904,9 @@ internal abstract class SharedOptions :
     public string HighlightTextBackgroundColor { get; set; }
     public string HighlightTextBorderColor { get; set; }
     public string LinkColor { get; set; }
+    public string CommentNavigationLinkColor { get; set; }
+    public string CommentLinkColor { get; set; }
+    public string CopyTextColor { get; set; }
     public string CopyTextSuccessColor { get; set; }
     public string CopyTextFailureColor { get; set; }
 
@@ -997,6 +1012,9 @@ internal abstract class SharedOptions :
             HighlightTextBackgroundColor = ColorHelper.StringToColor(HighlightTextBackgroundColor),
             HighlightTextBorderColor = ColorHelper.StringToColor(HighlightTextBorderColor),
             LinkColor = ColorHelper.StringToColor(LinkColor),
+            CommentNavigationLinkColor = ColorHelper.StringToColor(CommentNavigationLinkColor),
+            CommentLinkColor = ColorHelper.StringToColor(CommentLinkColor),
+            CopyTextColor = ColorHelper.StringToColor(CopyTextColor),
             CopyTextSuccessColor = ColorHelper.StringToColor(CopyTextSuccessColor),
             CopyTextFailureColor = ColorHelper.StringToColor(CopyTextFailureColor),
 
@@ -1194,6 +1212,9 @@ internal abstract class SharedOptions :
         if (string.IsNullOrEmpty(HighlightTextBackgroundColor)) HighlightTextBackgroundColor = options.HighlightTextBackgroundColor;
         if (string.IsNullOrEmpty(HighlightTextBorderColor)) HighlightTextBorderColor = options.HighlightTextBorderColor;
         if (string.IsNullOrEmpty(LinkColor)) LinkColor = options.LinkColor;
+        if (string.IsNullOrEmpty(CommentNavigationLinkColor)) CommentNavigationLinkColor = options.CommentNavigationLinkColor;
+        if (string.IsNullOrEmpty(CommentLinkColor)) CommentLinkColor = options.CommentLinkColor;
+        if (string.IsNullOrEmpty(CopyTextColor)) CopyTextColor = options.CopyTextColor;
         if (string.IsNullOrEmpty(CopyTextSuccessColor)) CopyTextSuccessColor = options.CopyTextSuccessColor;
         if (string.IsNullOrEmpty(CopyTextFailureColor)) CopyTextFailureColor = options.CopyTextFailureColor;
 
@@ -1350,6 +1371,9 @@ internal class HTMLColorsHelpOptions : IHTMLColorsOptions
     public string HighlightTextBackgroundColor { get; set; }
     public string HighlightTextBorderColor { get; set; }
     public string LinkColor { get; set; }
+    public string CommentNavigationLinkColor { get; set; }
+    public string CommentLinkColor { get; set; }
+    public string CopyTextColor { get; set; }
     public string CopyTextSuccessColor { get; set; }
     public string CopyTextFailureColor { get; set; }
 }
