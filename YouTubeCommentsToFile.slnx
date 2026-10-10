@@ -1,0 +1,18 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="Publish.cmd" />
+    <File Path="README.md" />
+    <File Path="Solution Items/download-comments.cmd" />
+    <File Path="Solution Items/youtube-comments-to-file-download.conf" />
+  </Folder>
+  <Folder Name="/Solution Items/Icons/">
+    <File Path="Solution Items/Icons/Icon Link.txt" />
+    <File Path="Solution Items/Icons/YouTubeCommentsToFile.ico" />
+    <File Path="Solution Items/Icons/YouTubeCommentsToFile.png" />
+  </Folder>
+  <Folder Name="/Solution Items/Images/">
+    <File Path="Solution Items/Images/YouTubeCommentsToFile.gif" />
+  </Folder>
+  <Project Path="YouTubeCommentsToFile.Library/YouTubeCommentsToFile.Library.csproj" />
+  <Project Path="YouTubeCommentsToFile/YouTubeCommentsToFile.csproj" />
+</Solution>

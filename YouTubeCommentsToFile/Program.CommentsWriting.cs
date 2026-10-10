@@ -5,7 +5,7 @@ namespace YouTubeCommentsToFile;
 internal partial class Program
 {
     private bool download;
-    private readonly object lockObj = new();
+    private readonly Lock lockObj = new();
     private bool isPrintedJsonFile;
     private bool isPrintedVideoTitle;
     private readonly List<StringBuilder> warningMessages = [];

@@ -10,7 +10,7 @@ The program can also utilize an existing copy of yt-dlp to download and convert 
 
 While this program was written with YouTube in mind, it should be applicable for any comment JSON file that yt-dlp can download, one of which is BiliBili. Here's a list of [supported sites](https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md "yt-dlp supported sites") by yt-dlp.
 
-YouTube Comments To File requires .NET 8 Runtime.
+YouTube Comments To File requires .NET 10 Runtime.
 
 ## Comment Threading
 

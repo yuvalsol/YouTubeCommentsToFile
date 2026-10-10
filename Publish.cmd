@@ -1,18 +1,16 @@
 @echo off
 
-set project="YouTubeCommentsToFile"
-set publishDir="Output"
-set win64="win-x64"
-set linux64="linux-x64"
-set arguments="--configuration Release --self-contained false -p:PublishSingleFile=true -p:PublishReadyToRun=false -p:DebugType=None -p:DebugSymbols=false --verbosity normal"
+set configuration="Release"
+set publishDir="Publish"
+set net10="net10.0"
+set arguments="--self-contained false -p:PublishSingleFile=true -p:PublishReadyToRun=false -p:DebugType=None -p:DebugSymbols=false"
+set verbosity="normal"
 
-:YouTubeCommentsToFile
-call :Publish %project%, %publishDir%, "net8.0", %win64%, %arguments%
-call :Publish %project%, %publishDir%, "net8.0", %linux64%, %arguments%
-:: call :Publish %project%, %publishDir%, "net9.0", %win64%, %arguments%
-:: call :Publish %project%, %publishDir%, "net9.0", %linux64%, %arguments%
-:: call :Publish %project%, %publishDir%, "net10.0", %win64%, %arguments%
-:: call :Publish %project%, %publishDir%, "net10.0", %linux64%, %arguments%
+set project="YouTubeCommentsToFile"
+call :Publish %project%, %configuration%, %publishDir%, %net10%, "linux-arm64", %arguments%, %verbosity%
+call :Publish %project%, %configuration%, %publishDir%, %net10%, "linux-x64", %arguments%, %verbosity%
+call :Publish %project%, %configuration%, %publishDir%, %net10%, "win-arm64", %arguments%, %verbosity%
+call :Publish %project%, %configuration%, %publishDir%, %net10%, "win-x64", %arguments%, %verbosity%
 
 :exit
 :: pause
@@ -21,19 +19,21 @@ exit /b 0
 ::----------------------------------------------------------------------
 
 :Publish
-:: Publish(project, publishDir, framework, runtime, arguments)
+:: Publish(project, configuration, publishDir, framework, runtime, arguments, verbosity)
 setlocal
 set "project=%~1"
-set "publishDir=%~2"
-set "framework=%~3"
-set "runtime=%~4"
-set "arguments=%~5"
+set "configuration=%~2"
+set "publishDir=%~3"
+set "framework=%~4"
+set "runtime=%~5"
+set "arguments=%~6"
+set "verbosity=%~7"
 
-echo %project% %framework% %runtime%
+set output="%publishDir%\%framework%\%runtime%"
+
+echo publish %project% %framework% %runtime%
 echo.
-:: echo dotnet publish %project% --output "%publishDir%\%framework%\%runtime%" --framework %framework% --runtime %runtime% %arguments%
-:: echo.
-call dotnet publish %project% --output "%publishDir%\%framework%\%runtime%" --framework %framework% --runtime %runtime% %arguments%
+call dotnet publish %project% --configuration %configuration% --output %output% --framework %framework% --runtime %runtime% %arguments% --verbosity %verbosity%
 echo.
 
 endlocal
